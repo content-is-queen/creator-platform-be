@@ -6,5 +6,6 @@ import protect from "../../middlewares";
 const router = Router();
 
 router.get("/profile",protect, AuthController.profile);
+router.patch("/profile",protect, AuthController.updateProfile);
 
 module.exports = { router };

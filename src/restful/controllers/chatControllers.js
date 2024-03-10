@@ -2,7 +2,6 @@
 import dotenv from "dotenv";
 // import Util from "../../helper/utils";
 const admin = require("firebase-admin");
-const db = admin.firestore();
 
 dotenv.config();
 /**
@@ -18,6 +17,7 @@ class ChatController {
    */
 
   static async sendMessage(req, res) {
+    const db = admin.firestore();
     const { text, senderId, receiverId } = req.body;
 
     if (!text || !senderId || !receiverId) {
@@ -36,6 +36,7 @@ class ChatController {
 
   // Get messages in real-time
   static async ReceiveMessage(req, res) {
+    const db = admin.firestore();
     const receiverId = req.params.receiverId;
     const messagesRef = db.collection("messages");
     const query = messagesRef

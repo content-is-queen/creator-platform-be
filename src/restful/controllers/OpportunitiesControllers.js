@@ -22,7 +22,7 @@ class OpportunitiesController {
     const db = admin.firestore();
     try {
       const docPath = `brand/${uid}/opportunities`;
-      const profileQuery = await db.collection(docPath).get(); // Remove limit(1)
+      const profileQuery = await db.collection(docPath).get();
       const opportunitiesData = profileQuery.docs.map((doc) => doc.data());
 
       if (opportunitiesData.length > 0) {

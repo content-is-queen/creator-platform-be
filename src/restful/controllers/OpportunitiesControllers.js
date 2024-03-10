@@ -24,7 +24,6 @@ class OpportunitiesController {
       const docPath = `brand/${uid}/opportunities`;
       const profileQuery = await db.collection(docPath).get();
       const opportunitiesData = profileQuery.docs.map((doc) => doc.data());
-
       if (opportunitiesData.length > 0) {
         util.statusCode = 200;
         util.message = opportunitiesData;
@@ -35,6 +34,7 @@ class OpportunitiesController {
         return util.send(res);
       }
     } catch (error) {
+      console.log(error);
       util.statusCode = 500;
       util.message = error.message || "Server error";
       return util.send(res);

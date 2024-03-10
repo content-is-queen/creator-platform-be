@@ -9,6 +9,27 @@ dotenv.config();
  * @classdesc ChatController
  */
 
+async function listAllUsers() {
+  const userList = [];
+  let nextPageToken;
+
+  do {
+    const listUsersResult = await admin.auth().listUsers(1000, nextPageToken);
+
+    listUsersResult.users.forEach((userRecord) => {
+      userList.push({
+        uid: userRecord.uid,
+        email: userRecord.email,
+        // Add more user properties as needed
+      });
+    });
+
+    nextPageToken = listUsersResult.pageToken;
+  } while (nextPageToken);
+
+  return userList;
+}
+
 class ChatController {
   /**
    * @param {Object} req request Object.
@@ -53,6 +74,16 @@ class ChatController {
     req.on("close", () => {
       unsubscribe();
     });
+  }
+
+  static async users(req, res) {
+    try {
+      const userList = await listAllUsers();
+      res.json(userList);
+    } catch (error) {
+      console.error("Error listing users:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
   }
 }
 

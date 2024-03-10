@@ -6,6 +6,7 @@ import ChatController from "../controllers/chatControllers";
 const router = Router();
 
 router.post("/",protect, ChatController.sendMessage);
+router.get("/users",protect, ChatController.users);
 router.get("/:receiverId",protect, ChatController.ReceiveMessage);
 
 module.exports = { router };

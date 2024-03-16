@@ -39,19 +39,24 @@ class ChatController {
 
   static async sendMessage(req, res) {
     const db = admin.firestore();
-    const { text, senderId, receiverId } = req.body;
-
-    if (!text || !senderId || !receiverId) {
+    const { message, sender, receiver } = req.body;
+    if (!message || !sender || !receiver) {
       return res.status(400).json({ error: "Invalid request" });
     }
-
-    await db.collection("messages").add({
-      text,
+    const roomName = `${sender}_${receiver}`;
+    const roomRef = db.collection("rooms").doc(roomName);
+    const messageData = {
+      message,
       createdAt: new Date(),
-      senderId,
-      receiverId,
-    });
+      sender,
+      receiver,
+    };
+    const batch = db.batch();
+    batch.set(roomRef, { id: roomName, name: roomName }, { merge: true });
 
+    const messagesRef = roomRef.collection("messages").doc();
+    batch.set(messagesRef, messageData);
+    await batch.commit();
     res.json({ success: true });
   }
 
@@ -59,21 +64,21 @@ class ChatController {
   static async ReceiveMessage(req, res) {
     const db = admin.firestore();
     const receiverId = req.params.receiverId;
-    const messagesRef = db.collection("messages");
-    const query = messagesRef
-      .where("receiverId", "==", receiverId)
-      .orderBy("createdAt", "asc")
-      .limit(25);
+    const roomRef = db.collection("rooms").doc(receiverId);
+    const messagesRef = roomRef.collection("messages");
 
-    // Set up real-time listener
-    const unsubscribe = query.onSnapshot((snapshot) => {
-      const messages = snapshot.docs.map((doc) => doc.data());
-      res.json(messages);
-    });
-
-    req.on("close", () => {
-      unsubscribe();
-    });
+    messagesRef.onSnapshot(
+      (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+          if (change.type === "added") {
+            console.log("New message:", change.doc.id, change.doc.data());
+          }
+        });
+      },
+      (error) => {
+        console.error("Error getting messages:", error);
+      },
+    );
   }
 
   static async users(req, res) {

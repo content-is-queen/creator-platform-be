@@ -18,23 +18,31 @@ class OpportunitiesController {
    */
 
   static async getAllOpportunities(req, res) {
-    const { uid } = req.user;
+    // const { uid } = req.user;
     const db = admin.firestore();
     try {
-      const docPath = `brand/${uid}/opportunities`;
-      const profileQuery = await db.collection(docPath).get();
-      const opportunitiesData = profileQuery.docs.map((doc) => doc.data());
-      if (opportunitiesData.length > 0) {
+      const opportunitiesCollectionRef = db.collection("opportunities");
+      const opportunitiesSnapshot = await opportunitiesCollectionRef.get();
+
+      const opportunities = [];
+      opportunitiesSnapshot.forEach((opportunitiesDoc) => {
+        const opportunitiesData = opportunitiesDoc.data().data;
+        const status = opportunitiesDoc.id;
+        opportunities.push({ ...opportunitiesData, status });
+      });
+
+      if (opportunities.length > 0) {
+        // console.log("opportunities found:", opportunities);
+        // console.log("Total number of opportunities:", opportunities.length);
         util.statusCode = 200;
-        util.message = opportunitiesData;
+        util.message = opportunities;
         return util.send(res);
       } else {
         util.statusCode = 404;
-        util.message = "Not found";
+        util.message = "No opportunities found.";
         return util.send(res);
       }
     } catch (error) {
-      console.log(error);
       util.statusCode = 500;
       util.message = error.message || "Server error";
       return util.send(res);

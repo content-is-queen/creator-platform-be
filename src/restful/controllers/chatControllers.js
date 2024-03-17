@@ -15,8 +15,8 @@ async function listAllUsers() {
 
   do {
     const listUsersResult = await admin.auth().listUsers(1000, nextPageToken);
-
-    listUsersResult.users.forEach((userRecord) => {
+    console.log(listUsersResult, "hiiiiiiiiiiiiiiiiiiiiii");
+    listUsersResult.users?.forEach((userRecord) => {
       userList.push({
         uid: userRecord.uid,
         email: userRecord.email,
@@ -28,6 +28,29 @@ async function listAllUsers() {
   } while (nextPageToken);
 
   return userList;
+}
+
+async function fetchProfilesForUsers() {
+  const db = admin.firestore();
+  const userList = await listAllUsers();
+  const profiles = [];
+
+  for (const user of userList) {
+    try {
+      const docPath = `brand/${user.uid}/profile`;
+      const profileQuery = await db.collection(docPath).limit(1).get();
+      if (!profileQuery.empty) {
+        const profileData = profileQuery.docs[0].data();
+        profiles.push({ ...user, ...profileData });
+      } else {
+        profiles.push({ ...user });
+      }
+    } catch (error) {
+      console.error("Error fetching profile for UID:", user.uid, error);
+    }
+  }
+
+  return profiles;
 }
 
 class ChatController {
@@ -52,7 +75,11 @@ class ChatController {
       receiver,
     };
     const batch = db.batch();
-    batch.set(roomRef, { id: roomName, name: roomName }, { merge: true });
+    batch.set(
+      roomRef,
+      { id: roomName, name: roomName, lastMessage: messageData },
+      { merge: true },
+    );
 
     const messagesRef = roomRef.collection("messages").doc();
     batch.set(messagesRef, messageData);
@@ -71,7 +98,10 @@ class ChatController {
       (snapshot) => {
         snapshot.docChanges().forEach((change) => {
           if (change.type === "added") {
-            console.log("New message:", change.doc.id, change.doc.data());
+            res.status.json({
+              message: change.doc.id,
+              data: change.doc.data(),
+            });
           }
         });
       },
@@ -88,6 +118,18 @@ class ChatController {
     } catch (error) {
       console.error("Error listing users:", error);
       res.status(500).json({ error: "Internal Server Error" });
+    }
+  }
+
+  static async usersProfiles(req, res) {
+    try {
+      const profiles = await fetchProfilesForUsers();
+      res.json({ success: true, profiles });
+    } catch (error) {
+      console.error("Error:", error);
+      res
+        .status(500)
+        .json({ success: false, message: "Internal server error" });
     }
   }
 }

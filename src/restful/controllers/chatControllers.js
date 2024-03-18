@@ -15,7 +15,6 @@ async function listAllUsers() {
 
   do {
     const listUsersResult = await admin.auth().listUsers(1000, nextPageToken);
-    console.log(listUsersResult, "hiiiiiiiiiiiiiiiiiiiiii");
     listUsersResult.users?.forEach((userRecord) => {
       userList.push({
         uid: userRecord.uid,

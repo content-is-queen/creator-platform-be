@@ -9,49 +9,6 @@ dotenv.config();
  * @classdesc ChatController
  */
 
-async function listAllUsers() {
-  const userList = [];
-  let nextPageToken;
-
-  do {
-    const listUsersResult = await admin.auth().listUsers(1000, nextPageToken);
-    listUsersResult.users?.forEach((userRecord) => {
-      // console.log(userRecord);
-      return userList.push({
-        uid: userRecord.uid,
-        email: userRecord.email,
-        // Add more user properties as needed
-      });
-    });
-
-    nextPageToken = listUsersResult.pageToken;
-  } while (nextPageToken);
-  return userList;
-}
-
-async function fetchProfilesForUsers() {
-  const db = admin.firestore();
-  const userList = await listAllUsers();
-  const profiles = [];
-
-  for (const user of userList) {
-    try {
-      const docPath = `brand/${user.uid}/profile`;
-      const profileQuery = await db.collection(docPath).limit(1).get();
-      if (!profileQuery.empty) {
-        const profileData = profileQuery.docs[0].data();
-        profiles.push({ ...user, ...profileData });
-      } else {
-        profiles.push({ ...user });
-      }
-    } catch (error) {
-      console.error("Error fetching profile for UID:", user.uid, error);
-    }
-  }
-
-  return profiles;
-}
-
 class ChatController {
   /**
    * @param {Object} req request Object.
@@ -112,23 +69,45 @@ class ChatController {
 
   static async users(req, res) {
     try {
-      const userList = await listAllUsers();
-      res.json(userList);
+      // Start listing users from the beginning, 1000 at a time.
+      let users = [];
+      let nextPageToken;
+      do {
+        let result = await admin.auth().listUsers(1000, nextPageToken);
+        nextPageToken = result.pageToken;
+        users = users.concat(result.users);
+      } while (nextPageToken);
+
+      users.forEach((userRecord) => {
+        console.log("user", userRecord.toJSON());
+      });
+
+      console.log(users);
+      console.log("Total users:", users.length);
     } catch (error) {
       console.error("Error listing users:", error);
-      res.status(500).json({ error: "Internal Server Error" });
     }
   }
 
   static async usersProfiles(req, res) {
     try {
-      const profiles = await fetchProfilesForUsers();
-      res.json({ success: true, profiles });
+      // Start listing users from the beginning, 1000 at a time.
+      let users = [];
+      let nextPageToken;
+      do {
+        let result = await admin.auth().listUsers(1000, nextPageToken);
+        nextPageToken = result.pageToken;
+        users = users.concat(result.users);
+      } while (nextPageToken);
+
+      users.forEach((userRecord) => {
+        console.log("user", userRecord.toJSON());
+      });
+
+      console.log(users);
+      console.log("Total users:", users.length);
     } catch (error) {
-      console.error("Error:", error);
-      res
-        .status(500)
-        .json({ success: false, message: "Internal server error" });
+      console.error("Error listing users:", error);
     }
   }
 }

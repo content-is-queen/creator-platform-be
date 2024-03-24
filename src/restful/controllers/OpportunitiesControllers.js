@@ -72,7 +72,6 @@ class OpportunitiesController {
   }
 
   static async getAllOpportunities(req, res) {
-    // const { uid } = req.user;
     const db = admin.firestore();
     try {
       const opportunitiesCollectionRef = db.collection("opportunities");

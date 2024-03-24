@@ -84,7 +84,6 @@ class AuthController {
         .doc(user.uid)
         .set({ uid: user.uid, podcast_name });
       util.statusCode = 200;
-      util.message = { token };
       return util.send(res);
     } catch (error) {
       const errorMessage = error?.errorInfo?.message;

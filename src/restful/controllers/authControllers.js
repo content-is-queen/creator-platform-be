@@ -32,10 +32,8 @@ class AuthController {
         email,
         password,
       });
-      console.log(user);
       const uid = user.uid;
       await admin.auth().setCustomUserClaims(uid, { role: "brand" });
-      const token = await admin.auth().createCustomToken(uid);
       const usersCollectionRef = db.collection("users");
       const brandDocRef = usersCollectionRef.doc("brand");
       const brandDocSnapshot = await brandDocRef.get();
@@ -47,7 +45,6 @@ class AuthController {
       const usersBrandCollectionRef = brandDocRef.collection("users");
       await usersBrandCollectionRef.doc(user.uid).set({ uid: user.uid });
       util.statusCode = 200;
-      util.message = { token };
       return util.send(res);
     } catch (error) {
       const errorMessage = error?.errorInfo?.message;
@@ -71,7 +68,6 @@ class AuthController {
         email,
         password,
       });
-      console.log(user);
       const uid = user.uid;
       await admin.auth().setCustomUserClaims(uid, { role: "creator" });
       const token = await admin.auth().createCustomToken(uid);
@@ -100,35 +96,27 @@ class AuthController {
   }
 
   static async profile(req, res) {
-    const userArray = [];
+    const { user_id, role } = req.user;
     const db = admin.firestore();
-    const usersCollection = db.collection("users");
-    console.log(req.user);
-
-    try {
-      //   const querySnapshot = await usersCollection.get();
-      //   for (const doc of querySnapshot.docs) {
-      //     const usersRef = doc.ref.collection("users");
-      //     const usersSnapshot = await usersRef.get();
-      //     usersSnapshot.forEach((userDoc) => {
-      //       if (userDoc.id === req.user.user_id) {
-      //         const transformedObject = {
-      //           ...userDoc.data(),
-      //           role: doc.id,
-      //         };
-      //         console.log(transformedObject, "transformed arrau");
-      //         return userArray.push(transformedObject);
-      //       }
-      //     });
-      //   }
-      //   util.statusCode = 200;
-      //   util.message = userArray;
-      //   return util.send(res);
-    } catch (error) {
-      util.statusCode = 500;
-      util.message = error.mesage || "Server error";
-      return util.send(res);
-    }
+    const docRef = db.collection(`users/${role}/users`).doc(user_id);
+    docRef
+      .get()
+      .then((doc) => {
+        if (doc.exists) {
+          util.statusCode = 200;
+          util.message = doc.data();
+          return util.send(res);
+        } else {
+          util.statusCode = 404;
+          util.message = "No such document!";
+          return util.send(res);
+        }
+      })
+      .catch((error) => {
+        util.statusCode = 500;
+        util.message = error.mesage || "Server error";
+        return util.send(res);
+      });
   }
 
   static async GetAllUsersprofile(req, res) {
@@ -161,10 +149,10 @@ class AuthController {
   }
 
   static async updateProfile(req, res) {
-    console.log(req.body, "FFFFFFFFFFFFFFFFFFF");
     try {
       const file = req.files.profilePicture;
-      const { displayName, description, role } = req.body;
+      const { displayName, description } = req.body;
+      const { role } = req.user;
       const storageRef = admin
         .storage()
         .bucket(`gs://contentisqueen-97ae5.appspot.com`);

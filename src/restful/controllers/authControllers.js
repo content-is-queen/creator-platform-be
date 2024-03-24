@@ -19,31 +19,115 @@ class AuthController {
    * @returns {Object} response Object.
    */
 
+  static async signupBrand(req, res) {
+    const { email, password, confirm_password } = req.body;
+    if (password !== confirm_password) {
+      util.statusCode = 400;
+      util.message = "Password do not match";
+      return util.send(res);
+    }
+    const db = admin.firestore();
+    try {
+      const user = await admin.auth().createUser({
+        email,
+        password,
+      });
+      console.log(user);
+      const uid = user.uid;
+      await admin.auth().setCustomUserClaims(uid, { role: "brand" });
+      const token = await admin.auth().createCustomToken(uid);
+      const usersCollectionRef = db.collection("users");
+      const brandDocRef = usersCollectionRef.doc("brand");
+      const brandDocSnapshot = await brandDocRef.get();
+
+      if (!brandDocSnapshot.exists) {
+        await brandDocRef.set({});
+      }
+
+      const usersBrandCollectionRef = brandDocRef.collection("users");
+      await usersBrandCollectionRef.doc(user.uid).set({ uid: user.uid });
+      util.statusCode = 200;
+      util.message = { token };
+      return util.send(res);
+    } catch (error) {
+      const errorMessage = error?.errorInfo?.message;
+      console.log(error);
+      util.statusCode = 500;
+      util.message = errorMessage || error.message || "Server error";
+      return util.send(res);
+    }
+  }
+
+  static async signupCreator(req, res) {
+    const { email, password, confirm_password, podcast_name } = req.body;
+    if (password !== confirm_password) {
+      util.statusCode = 400;
+      util.message = "Password do not match";
+      return util.send(res);
+    }
+    const db = admin.firestore();
+    try {
+      const user = await admin.auth().createUser({
+        email,
+        password,
+      });
+      console.log(user);
+      const uid = user.uid;
+      await admin.auth().setCustomUserClaims(uid, { role: "creator" });
+      const token = await admin.auth().createCustomToken(uid);
+      const usersCollectionRef = db.collection("users");
+      const brandDocRef = usersCollectionRef.doc("creator");
+      const brandDocSnapshot = await brandDocRef.get();
+
+      if (!brandDocSnapshot.exists) {
+        await brandDocRef.set({});
+      }
+
+      const usersBrandCollectionRef = brandDocRef.collection("users");
+      await usersBrandCollectionRef
+        .doc(user.uid)
+        .set({ uid: user.uid, podcast_name });
+      util.statusCode = 200;
+      util.message = { token };
+      return util.send(res);
+    } catch (error) {
+      const errorMessage = error?.errorInfo?.message;
+      console.log(error);
+      util.statusCode = 500;
+      util.message = errorMessage || error.message || "Server error";
+      return util.send(res);
+    }
+  }
+
   static async profile(req, res) {
-    const userId = req.params.userId;
+    const userArray = [];
     const db = admin.firestore();
     const usersCollection = db.collection("users");
+    console.log(req.user);
+
     try {
-      const creatorDoc = await usersCollection.doc("creator").get();
-      if (!creatorDoc.exists) {
-        return res.status(404).json({ error: "Creator document not found" });
-      }
-
-      // Get the user document from the nested collection
-      const userDoc = await creatorDoc.ref
-        .collection("users")
-        .doc(userId)
-        .get();
-
-      if (!userDoc.exists) {
-        return res.status(404).json({ error: "User not found" });
-      }
-      const userData = userDoc.data();
-      const userArray = [{ ...userData, role: userDoc.id }];
-      return res.status(200).json(userArray);
+      //   const querySnapshot = await usersCollection.get();
+      //   for (const doc of querySnapshot.docs) {
+      //     const usersRef = doc.ref.collection("users");
+      //     const usersSnapshot = await usersRef.get();
+      //     usersSnapshot.forEach((userDoc) => {
+      //       if (userDoc.id === req.user.user_id) {
+      //         const transformedObject = {
+      //           ...userDoc.data(),
+      //           role: doc.id,
+      //         };
+      //         console.log(transformedObject, "transformed arrau");
+      //         return userArray.push(transformedObject);
+      //       }
+      //     });
+      //   }
+      //   util.statusCode = 200;
+      //   util.message = userArray;
+      //   return util.send(res);
     } catch (error) {
-      console.error("Error fetching user data: ", error);
-      return res.status(500).json({ error: "Internal server error" });
+      util.statusCode = 500;
+      util.message = error.mesage || "Server error";
+      return util.send(res);
     }
   }
 
@@ -77,9 +161,10 @@ class AuthController {
   }
 
   static async updateProfile(req, res) {
+    console.log(req.body, "FFFFFFFFFFFFFFFFFFF");
     try {
       const file = req.files.profilePicture;
-      const displayName = req.body.username;
+      const { displayName, description, role } = req.body;
       const storageRef = admin
         .storage()
         .bucket(`gs://contentisqueen-97ae5.appspot.com`);
@@ -94,35 +179,30 @@ class AuthController {
       uploadTask
         .then(async (snapshot) => {
           const imageUrl = snapshot[0].metadata.mediaLink;
-          const currentUser = await admin.auth().getUser(req.user.user_id);
-          const currentCustomClaims = currentUser.customClaims || {};
-          const updatedCustomClaims = {
-            ...currentCustomClaims,
-            role: "brand",
-            imageUrl: imageUrl,
-            displayName: displayName,
-            description:
-              "Bacon ipsum dolor amet corned beef meatloaf pig tenderloin beef ribs tri-tip, sirloin buffalo. Fatback meatloaf leberkas filet mignon sirloin, burgdoggen pastrami meatball tail doner frankfurter strip steak spare ribs",
-          };
-          await admin
-            .auth()
-            .setCustomUserClaims(req.user.user_id, updatedCustomClaims);
-
-          console.log("Custom claims updated successfully");
-
-          return res.status(200).json({ imageUrl: imageUrl });
+          const docRef = admin
+            .firestore()
+            .collection("users")
+            .doc(role)
+            .collection("users")
+            .doc(req.user.user_id);
+          await docRef.set(
+            { displayName, imageUrl, description },
+            { merge: true },
+          );
+          util.statusCode = 200;
+          util.message = "Document updated successfully";
+          return util.send(res);
         })
         .catch((error) => {
-          console.error("Error uploading profile picture:", error);
-          return res
-            .status(500)
-            .json({ error: "Failed to upload profile picture" });
+          util.statusCode = 500;
+          util.message = error.message || "Server error";
+          return util.send(res);
         });
     } catch (error) {
       console.error("Error updating profile picture:", error);
-      return res
-        .status(500)
-        .json({ error: "Failed to update profile picture" });
+      util.statusCode = 500;
+      util.message = error.mesage || "Server error";
+      return util.send(res);
     }
   }
 }

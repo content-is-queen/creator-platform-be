@@ -1,5 +1,6 @@
 /* eslint-disable quotes */
 import dotenv from "dotenv";
+import Util from "../../helper/utils";
 // import Util from "../../helper/utils";
 const admin = require("firebase-admin");
 
@@ -8,7 +9,7 @@ dotenv.config();
  * @class ChatController
  * @classdesc ChatController
  */
-
+const util = new Util();
 class ChatController {
   /**
    * @param {Object} req request Object.
@@ -17,6 +18,7 @@ class ChatController {
    */
 
   static async sendMessage(req, res) {
+    console.log(req.body);
     const db = admin.firestore();
     const { message, sender, receiver } = req.body;
     if (!message || !sender || !receiver) {
@@ -68,24 +70,27 @@ class ChatController {
   }
 
   static async users(req, res) {
+    const db = admin.firestore();
+    const userList = [];
     try {
-      // Start listing users from the beginning, 1000 at a time.
-      let users = [];
-      let nextPageToken;
-      do {
-        let result = await admin.auth().listUsers(1000, nextPageToken);
-        nextPageToken = result.pageToken;
-        users = users.concat(result.users);
-      } while (nextPageToken);
-
-      users.forEach((userRecord) => {
-        console.log("user", userRecord.toJSON());
+      const userCollections = await db.collectionGroup("users").get();
+      // Map each async operation to a promise
+      const promises = userCollections.docs.map(async (userDoc) => {
+        const userData = await userDoc.ref.collection("users").get();
+        userData.forEach((doc) => {
+          userList.push(doc.data());
+        });
       });
+      // Wait for all promises to resolve
+      await Promise.all(promises);
 
-      console.log(users);
-      console.log("Total users:", users.length);
+      util.statusCode = 200;
+      util.message = userList;
+      return util.send(res);
     } catch (error) {
-      console.error("Error listing users:", error);
+      util.statusCode = 500;
+      util.message = error.message || "Server error";
+      return util.send(res);
     }
   }
 

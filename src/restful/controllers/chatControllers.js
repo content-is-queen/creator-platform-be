@@ -19,30 +19,41 @@ class ChatController {
 
   static async sendMessage(req, res) {
     console.log(req.body);
-    const db = admin.firestore();
-    const { message, sender, receiver } = req.body;
-    if (!message || !sender || !receiver) {
-      return res.status(400).json({ error: "Invalid request" });
-    }
-    const roomName = `${sender}_${receiver}`;
-    const roomRef = db.collection("rooms").doc(roomName);
-    const messageData = {
-      message,
-      createdAt: new Date(),
-      sender,
-      receiver,
-    };
-    const batch = db.batch();
-    batch.set(
-      roomRef,
-      { id: roomName, name: roomName, lastMessage: messageData },
-      { merge: true },
-    );
+    try {
+      const db = admin.firestore();
+      const { fullName, id, profile_image, receiver, sender, message } =
+        req.body;
+      if (
+        !message ||
+        !sender ||
+        !receiver ||
+        !profile_image ||
+        !id ||
+        !fullName
+      ) {
+        return res.status(400).json({ error: "Invalid request" });
+      }
+      const roomRef = db.collection("rooms").doc(id);
+      const messageData = {
+        message,
+        createdAt: new Date(),
+        sender,
+        receiver,
+      };
+      const batch = db.batch();
+      batch.set(
+        roomRef,
+        { id, fullName, lastMessage: fullName },
+        { merge: true },
+      );
 
-    const messagesRef = roomRef.collection("messages").doc();
-    batch.set(messagesRef, messageData);
-    await batch.commit();
-    res.json({ success: true });
+      const messagesRef = roomRef.collection("messages").doc();
+      batch.set(messagesRef, messageData);
+      await batch.commit();
+      res.json({ success: true });
+    } catch (error) {
+      console.log(error, "JJJJJJ");
+    }
   }
 
   // Get messages in real-time

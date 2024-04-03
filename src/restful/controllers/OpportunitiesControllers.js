@@ -291,47 +291,203 @@ class OpportunitiesController {
     }
   }
   
-  static async createOpportunity(req, res) {
+  // static async createOpportunity(req, res) {
+  //   const db = admin.firestore();
+  //   try {
+  //     // Generate UUID for opportunity_id
+  //     const opportunity_id = uuidv4(); // Use uuidv4 directly
+      
+  //     // Extract opportunity data from request body
+  //     const { budget, deadline, description, title, type, user_id } = req.body;
+
+  //     // Validate required fields
+  //     if (!budget || !deadline || !description || !title || !type || !user_id) {
+  //       util.statusCode = 400;
+  //       util.message = "Missing required fields";
+  //       return util.send(res);
+  //     }
+
+  //     // Get the "open" document from the "opportunities" collection
+  //     const openDocRef = db.collection('opportunities').doc('open');
+  //     const openDocSnapshot = await openDocRef.get();
+
+  //     if (!openDocSnapshot.exists) {
+  //       util.statusCode = 404;
+  //       util.message = "Open document not found";
+  //       return util.send(res);
+  //     }
+
+  //     // Update the "open" document's data array with the new opportunity data
+  //     const openData = openDocSnapshot.data();
+  //     const newDataArray = [...openData.data, {
+  //       opportunity_id,
+  //       budget,
+  //       deadline,
+  //       description,
+  //       title,
+  //       type,
+  //       user_id,
+  //     }];
+
+  //     // Update the "data" field of the "open" document with the new data array
+  //     await openDocRef.update({ data: newDataArray });
+
+  //     util.statusCode = 201;
+  //     util.message = "Opportunity created successfully";
+  //     return util.send(res);
+  //   } catch (error) {
+  //     console.error(error);
+  //     util.statusCode = 500;
+  //     util.message = error.message || "Server error";
+  //     return util.send(res);
+  //   }
+  // }
+
+  static async createJobOpportunity(req, res) {
     const db = admin.firestore();
     try {
       // Generate UUID for opportunity_id
       const opportunity_id = uuidv4(); // Use uuidv4 directly
       
       // Extract opportunity data from request body
-      const { budget, deadline, description, title, type, user_id } = req.body;
-
+      const { type, ...opportunityData } = req.body;
+  
       // Validate required fields
-      if (!budget || !deadline || !description || !title || !type || !user_id) {
+      if (!type || !opportunityData) {
         util.statusCode = 400;
-        util.message = "Missing required fields";
+        util.message = "Type and opportunity data are required";
         return util.send(res);
       }
-
-      // Get the "open" document from the "opportunities" collection
-      const openDocRef = db.collection('opportunities').doc('open');
-      const openDocSnapshot = await openDocRef.get();
-
-      if (!openDocSnapshot.exists) {
-        util.statusCode = 404;
-        util.message = "Open document not found";
+  
+      // Validate type and opportunity data based on the provided type
+      let allowedFields;
+      switch (type) {
+        case 'job':
+          allowedFields = ['title', 'company', 'description', 'skills', 'experience', 'duration', 'location', 'compensation'];
+          break;
+        default:
+          util.statusCode = 400;
+          util.message = "Invalid opportunity type";
+          return util.send(res);
+      }
+  
+      const isValid = allowedFields.every(field => Object.prototype.hasOwnProperty.call(opportunityData, field));
+      if (!isValid) {
+        util.statusCode = 400;
+        util.message = "Missing or invalid fields for the specified opportunity type";
         return util.send(res);
       }
+  
+      // Get the collection reference based on the opportunity type
+      const collectionRef = db.collection('opportunities').doc('open').collection(type);
+  
+      // Store the opportunity data in the appropriate collection
+      await collectionRef.doc(opportunity_id).set({ opportunity_id, ...opportunityData });
+  
+      util.statusCode = 201;
+      util.message = "Opportunity created successfully";
+      return util.send(res);
+    } catch (error) {
+      console.error(error);
+      util.statusCode = 500;
+      util.message = error.message || "Server error";
+      return util.send(res);
+    }
+  }
 
-      // Update the "open" document's data array with the new opportunity data
-      const openData = openDocSnapshot.data();
-      const newDataArray = [...openData.data, {
-        opportunity_id,
-        budget,
-        deadline,
-        description,
-        title,
-        type,
-        user_id,
-      }];
+  static async createPitchOpportunity(req, res) {
+    const db = admin.firestore();
+    try {
+      // Generate UUID for opportunity_id
+      const opportunity_id = uuidv4(); // Use uuidv4 directly
+      
+      // Extract opportunity data from request body
+      const { type, ...opportunityData } = req.body;
+  
+      // Validate required fields
+      if (!type || !opportunityData) {
+        util.statusCode = 400;
+        util.message = "Type and opportunity data are required";
+        return util.send(res);
+      }
+  
+      // Validate type and opportunity data based on the provided type
+      let allowedFields;
+      switch (type) {
+        case 'pitch':
+          allowedFields = ['project', 'description', 'target', 'format', 'duration', 'budget', 'submission'];
+          break;
+        default:
+          util.statusCode = 400;
+          util.message = "Invalid opportunity type";
+          return util.send(res);
+      }
+  
+      const isValid = allowedFields.every(field => Object.prototype.hasOwnProperty.call(opportunityData, field));
+      if (!isValid) {
+        util.statusCode = 400;
+        util.message = "Missing or invalid fields for the specified opportunity type";
+        return util.send(res);
+      }
+  
+      // Get the collection reference based on the opportunity type
+      const collectionRef = db.collection('opportunities').doc('open').collection(type);
+  
+      // Store the opportunity data in the appropriate collection
+      await collectionRef.doc(opportunity_id).set({ opportunity_id, ...opportunityData });
+  
+      util.statusCode = 201;
+      util.message = "Opportunity created successfully";
+      return util.send(res);
+    } catch (error) {
+      console.error(error);
+      util.statusCode = 500;
+      util.message = error.message || "Server error";
+      return util.send(res);
+    }
+  }
 
-      // Update the "data" field of the "open" document with the new data array
-      await openDocRef.update({ data: newDataArray });
-
+  static async createCampaignOpportunity(req, res) {
+    const db = admin.firestore();
+    try {
+      // Generate UUID for opportunity_id
+      const opportunity_id = uuidv4(); // Use uuidv4 directly
+      
+      // Extract opportunity data from request body
+      const { type, ...opportunityData } = req.body;
+  
+      // Validate required fields
+      if (!type || !opportunityData) {
+        util.statusCode = 400;
+        util.message = "Type and opportunity data are required";
+        return util.send(res);
+      }
+  
+      // Validate type and opportunity data based on the provided type
+      let allowedFields;
+      switch (type) {
+        case 'campaign':
+          allowedFields = ['name', 'brand', 'goals', 'target', 'budget', 'duration', 'format', 'requirements'];
+          break;
+        default:
+          util.statusCode = 400;
+          util.message = "Invalid opportunity type";
+          return util.send(res);
+      }
+  
+      const isValid = allowedFields.every(field => Object.prototype.hasOwnProperty.call(opportunityData, field));
+      if (!isValid) {
+        util.statusCode = 400;
+        util.message = "Missing or invalid fields for the specified opportunity type";
+        return util.send(res);
+      }
+  
+      // Get the collection reference based on the opportunity type
+      const collectionRef = db.collection('opportunities').doc('open').collection(type);
+  
+      // Store the opportunity data in the appropriate collection
+      await collectionRef.doc(opportunity_id).set({ opportunity_id, ...opportunityData });
+  
       util.statusCode = 201;
       util.message = "Opportunity created successfully";
       return util.send(res);

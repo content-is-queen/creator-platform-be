@@ -19,32 +19,36 @@ class AuthController {
    * @returns {Object} response Object.
    */
 
-  static async signupBrand(req, res) {
-    const { email, password, confirm_password } = req.body;
-    if (password !== confirm_password) {
-      util.statusCode = 400;
-      util.message = "Password do not match";
-      return util.send(res);
-    }
+  static async signupCreator(req, res) {
+    const { firstName, lastName, email, password } = req.body;
+    const displayName = `${firstName} ${lastName}`;
+
     const db = admin.firestore();
     try {
       const user = await admin.auth().createUser({
         email,
         password,
+        displayName,
       });
       const uid = user.uid;
-      await admin.auth().setCustomUserClaims(uid, { role: "brand" });
-      const usersCollectionRef = db.collection("users");
-      const brandDocRef = usersCollectionRef.doc("brand");
-      const brandDocSnapshot = await brandDocRef.get();
+      await admin.auth().setCustomUserClaims(uid, { role: "creator" });
 
-      if (!brandDocSnapshot.exists) {
-        await brandDocRef.set({});
+      // Save additional user information to Firestore
+      const usersCollectionRef = db.collection("users");
+      const creatorDocRef = usersCollectionRef.doc("creator");
+      const creatorDocSnapshot = await creatorDocRef.get();
+
+      if (!creatorDocSnapshot.exists) {
+        await creatorDocRef.set({});
       }
 
-      const usersBrandCollectionRef = brandDocRef.collection("users");
-      await usersBrandCollectionRef.doc(user.uid).set({ uid: user.uid });
+      const usersCreatorCollectionRef = creatorDocRef.collection("users");
+      await usersCreatorCollectionRef
+        .doc(user.uid)
+        .set({ uid: user.uid, firstName, lastName }); // Save first name and last name
+
       util.statusCode = 200;
+      util.message = "User signed up successfully"; // Add success message
       return util.send(res);
     } catch (error) {
       const errorMessage = error?.errorInfo?.message;
@@ -55,24 +59,23 @@ class AuthController {
     }
   }
 
-  static async signupCreator(req, res) {
-    const { email, password, confirm_password, podcast_name } = req.body;
-    if (password !== confirm_password) {
-      util.statusCode = 400;
-      util.message = "Password do not match";
-      return util.send(res);
-    }
+  static async signupBrand(req, res) {
+    const { firstName, lastName, email, organizationName, password } = req.body;
+    const displayName = `${firstName} ${lastName}`;
+
     const db = admin.firestore();
     try {
       const user = await admin.auth().createUser({
         email,
         password,
+        displayName,
       });
       const uid = user.uid;
-      await admin.auth().setCustomUserClaims(uid, { role: "creator" });
-      const token = await admin.auth().createCustomToken(uid);
+      await admin.auth().setCustomUserClaims(uid, { role: "brand" });
+
+      // Save additional user information to Firestore
       const usersCollectionRef = db.collection("users");
-      const brandDocRef = usersCollectionRef.doc("creator");
+      const brandDocRef = usersCollectionRef.doc("brand");
       const brandDocSnapshot = await brandDocRef.get();
 
       if (!brandDocSnapshot.exists) {
@@ -82,8 +85,10 @@ class AuthController {
       const usersBrandCollectionRef = brandDocRef.collection("users");
       await usersBrandCollectionRef
         .doc(user.uid)
-        .set({ uid: user.uid, podcast_name });
+        .set({ uid: user.uid, firstName, lastName, organizationName }); // Save first name, last name, and organization name
+
       util.statusCode = 200;
+      util.message = "User signed up successfully"; // Add success message
       return util.send(res);
     } catch (error) {
       const errorMessage = error?.errorInfo?.message;

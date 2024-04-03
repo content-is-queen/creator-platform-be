@@ -1,7 +1,6 @@
 /* eslint-disable quotes */
 import dotenv from "dotenv";
 import Util from "../../helper/utils";
-import uuid from "uuid";
 const admin = require("firebase-admin");
 import { v4 as uuidv4 } from "uuid"; // Import uuidv4 directly
 
@@ -74,7 +73,7 @@ class OpportunitiesController {
 
       // Search for the opportunity within the data array
       const opportunity = docData.data.find(
-        (op) => op.opportunity_id === opportunity_id
+        (op) => op.opportunity_id === opportunity_id,
       );
 
       if (opportunity) {
@@ -210,7 +209,7 @@ class OpportunitiesController {
 
       // Find the index of the opportunity to delete
       const opportunityIndex = docData.data.findIndex(
-        (op) => op.opportunity_id === opportunity_id
+        (op) => op.opportunity_id === opportunity_id,
       );
 
       if (opportunityIndex === -1) {
@@ -275,7 +274,7 @@ class OpportunitiesController {
 
       // Find the opportunity index
       const opportunityIndex = docData.data.findIndex(
-        (op) => op.opportunity_id === opportunity_id
+        (op) => op.opportunity_id === opportunity_id,
       );
 
       if (opportunityIndex === -1) {

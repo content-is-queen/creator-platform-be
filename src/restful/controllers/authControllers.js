@@ -20,8 +20,8 @@ class AuthController {
    */
 
   static async signupCreator(req, res) {
-    const { firstName, lastName, email, password } = req.body;
-    const displayName = `${firstName} ${lastName}`;
+    const { first_name, last_name, email, password } = req.body;
+    const displayName = `${first_name} ${last_name}`;
 
     const db = admin.firestore();
     try {
@@ -45,7 +45,7 @@ class AuthController {
       const usersCreatorCollectionRef = creatorDocRef.collection("users");
       await usersCreatorCollectionRef
         .doc(user.uid)
-        .set({ uid: user.uid, firstName, lastName }); // Save first name and last name
+        .set({ uid: user.uid, first_name, last_name }); // Save first name and last name
 
       util.statusCode = 200;
       util.message = "User signed up successfully"; // Add success message
@@ -60,8 +60,9 @@ class AuthController {
   }
 
   static async signupBrand(req, res) {
-    const { firstName, lastName, email, organizationName, password } = req.body;
-    const displayName = `${firstName} ${lastName}`;
+    const { first_name, last_name, email, organization_name, password } =
+      req.body;
+    const displayName = `${first_name} ${last_name}`;
 
     const db = admin.firestore();
     try {
@@ -85,7 +86,7 @@ class AuthController {
       const usersBrandCollectionRef = brandDocRef.collection("users");
       await usersBrandCollectionRef
         .doc(user.uid)
-        .set({ uid: user.uid, firstName, lastName, organizationName }); // Save first name, last name, and organization name
+        .set({ uid: user.uid, first_name, last_name, organization_name }); // Save first name, last name, and organization name
 
       util.statusCode = 200;
       util.message = "User signed up successfully"; // Add success message

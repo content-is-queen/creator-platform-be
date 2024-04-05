@@ -20,9 +20,9 @@ class AuthController {
    */
 
   static async signupCreator(req, res) {
-    const { firstName, lastName, email, password } = req.body;
-    const displayName = `${firstName} ${lastName}`;
-  
+    const { first_name, last_name, email, password } = req.body;
+    const displayName = `${first_name} ${last_name}`;
+
     const db = admin.firestore();
     try {
       const user = await admin.auth().createUser({
@@ -32,57 +32,21 @@ class AuthController {
       });
       const uid = user.uid;
       await admin.auth().setCustomUserClaims(uid, { role: "creator" });
-  
+
       // Save additional user information to Firestore
       const usersCollectionRef = db.collection("users");
       const creatorDocRef = usersCollectionRef.doc("creator");
       const creatorDocSnapshot = await creatorDocRef.get();
-  
+
       if (!creatorDocSnapshot.exists) {
         await creatorDocRef.set({});
       }
-  
+
       const usersCreatorCollectionRef = creatorDocRef.collection("users");
-      await usersCreatorCollectionRef.doc(user.uid).set({ uid: user.uid, firstName, lastName }); // Save first name and last name
-      
-      util.statusCode = 200;
-      util.message = "User signed up successfully"; // Add success message
-      return util.send(res);
-    } catch (error) {
-      const errorMessage = error?.errorInfo?.message;
-      console.log(error);
-      util.statusCode = 500;
-      util.message = errorMessage || error.message || "Server error";
-      return util.send(res);
-    }
-  }
-  
-  static async signupBrand(req, res) {
-    const { firstName, lastName, email, organizationName, password } = req.body;
-    const displayName = `${firstName} ${lastName}`;
-  
-    const db = admin.firestore();
-    try {
-      const user = await admin.auth().createUser({
-        email,
-        password,
-        displayName,
-      });
-      const uid = user.uid;
-      await admin.auth().setCustomUserClaims(uid, { role: "brand" });
-  
-      // Save additional user information to Firestore
-      const usersCollectionRef = db.collection("users");
-      const brandDocRef = usersCollectionRef.doc("brand");
-      const brandDocSnapshot = await brandDocRef.get();
-  
-      if (!brandDocSnapshot.exists) {
-        await brandDocRef.set({});
-      }
-  
-      const usersBrandCollectionRef = brandDocRef.collection("users");
-      await usersBrandCollectionRef.doc(user.uid).set({ uid: user.uid, firstName, lastName, organizationName }); // Save first name, last name, and organization name
-      
+      await usersCreatorCollectionRef
+        .doc(user.uid)
+        .set({ uid: user.uid, first_name, last_name }); // Save first name and last name
+
       util.statusCode = 200;
       util.message = "User signed up successfully"; // Add success message
       return util.send(res);
@@ -95,6 +59,46 @@ class AuthController {
     }
   }
 
+  static async signupBrand(req, res) {
+    const { first_name, last_name, email, organization_name, password } =
+      req.body;
+    const displayName = `${first_name} ${last_name}`;
+
+    const db = admin.firestore();
+    try {
+      const user = await admin.auth().createUser({
+        email,
+        password,
+        displayName,
+      });
+      const uid = user.uid;
+      await admin.auth().setCustomUserClaims(uid, { role: "brand" });
+
+      // Save additional user information to Firestore
+      const usersCollectionRef = db.collection("users");
+      const brandDocRef = usersCollectionRef.doc("brand");
+      const brandDocSnapshot = await brandDocRef.get();
+
+      if (!brandDocSnapshot.exists) {
+        await brandDocRef.set({});
+      }
+
+      const usersBrandCollectionRef = brandDocRef.collection("users");
+      await usersBrandCollectionRef
+        .doc(user.uid)
+        .set({ uid: user.uid, first_name, last_name, organization_name }); // Save first name, last name, and organization name
+
+      util.statusCode = 200;
+      util.message = "User signed up successfully"; // Add success message
+      return util.send(res);
+    } catch (error) {
+      const errorMessage = error?.errorInfo?.message;
+      console.log(error);
+      util.statusCode = 500;
+      util.message = errorMessage || error.message || "Server error";
+      return util.send(res);
+    }
+  }
 
   static async profile(req, res) {
     const { user_id, role } = req.user;

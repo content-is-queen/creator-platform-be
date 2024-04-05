@@ -1,5 +1,6 @@
 /* eslint-disable quotes */
 import dotenv from "dotenv";
+import Util from "../../helper/utils";
 // import Util from "../../helper/utils";
 const admin = require("firebase-admin");
 
@@ -8,28 +9,7 @@ dotenv.config();
  * @class ChatController
  * @classdesc ChatController
  */
-
-async function listAllUsers() {
-  const userList = [];
-  let nextPageToken;
-
-  do {
-    const listUsersResult = await admin.auth().listUsers(1000, nextPageToken);
-
-    listUsersResult.users.forEach((userRecord) => {
-      userList.push({
-        uid: userRecord.uid,
-        email: userRecord.email,
-        // Add more user properties as needed
-      });
-    });
-
-    nextPageToken = listUsersResult.pageToken;
-  } while (nextPageToken);
-
-  return userList;
-}
-
+const util = new Util();
 class ChatController {
   /**
    * @param {Object} req request Object.
@@ -38,51 +18,112 @@ class ChatController {
    */
 
   static async sendMessage(req, res) {
-    const db = admin.firestore();
-    const { text, senderId, receiverId } = req.body;
+    console.log(req.body);
+    try {
+      const db = admin.firestore();
+      const { fullName, id, profile_image, receiver, sender, message } =
+        req.body;
+      if (
+        !message ||
+        !sender ||
+        !receiver ||
+        !profile_image ||
+        !id ||
+        !fullName
+      ) {
+        return res.status(400).json({ error: "Invalid request" });
+      }
+      const roomRef = db.collection("rooms").doc(id);
+      const messageData = {
+        message,
+        createdAt: new Date(),
+        sender,
+        receiver,
+      };
+      const batch = db.batch();
+      batch.set(
+        roomRef,
+        { id, fullName, lastMessage: fullName },
+        { merge: true },
+      );
 
-    if (!text || !senderId || !receiverId) {
-      return res.status(400).json({ error: "Invalid request" });
+      const messagesRef = roomRef.collection("messages").doc();
+      batch.set(messagesRef, messageData);
+      await batch.commit();
+      res.json({ success: true });
+    } catch (error) {
+      console.log(error, "JJJJJJ");
     }
-
-    await db.collection("messages").add({
-      text,
-      createdAt: new Date(),
-      senderId,
-      receiverId,
-    });
-
-    res.json({ success: true });
   }
 
   // Get messages in real-time
   static async ReceiveMessage(req, res) {
     const db = admin.firestore();
     const receiverId = req.params.receiverId;
-    const messagesRef = db.collection("messages");
-    const query = messagesRef
-      .where("receiverId", "==", receiverId)
-      .orderBy("createdAt", "asc")
-      .limit(25);
+    const roomRef = db.collection("rooms").doc(receiverId);
+    const messagesRef = roomRef.collection("messages");
 
-    // Set up real-time listener
-    const unsubscribe = query.onSnapshot((snapshot) => {
-      const messages = snapshot.docs.map((doc) => doc.data());
-      res.json(messages);
-    });
-
-    req.on("close", () => {
-      unsubscribe();
-    });
+    messagesRef.onSnapshot(
+      (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+          if (change.type === "added") {
+            res.status.json({
+              message: change.doc.id,
+              data: change.doc.data(),
+            });
+          }
+        });
+      },
+      (error) => {
+        console.error("Error getting messages:", error);
+      },
+    );
   }
 
   static async users(req, res) {
+    const db = admin.firestore();
+    const userList = [];
     try {
-      const userList = await listAllUsers();
-      res.json(userList);
+      const userCollections = await db.collectionGroup("users").get();
+      // Map each async operation to a promise
+      const promises = userCollections.docs.map(async (userDoc) => {
+        const userData = await userDoc.ref.collection("users").get();
+        userData.forEach((doc) => {
+          userList.push(doc.data());
+        });
+      });
+      // Wait for all promises to resolve
+      await Promise.all(promises);
+
+      util.statusCode = 200;
+      util.message = userList;
+      return util.send(res);
+    } catch (error) {
+      util.statusCode = 500;
+      util.message = error.message || "Server error";
+      return util.send(res);
+    }
+  }
+
+  static async usersProfiles(req, res) {
+    try {
+      // Start listing users from the beginning, 1000 at a time.
+      let users = [];
+      let nextPageToken;
+      do {
+        let result = await admin.auth().listUsers(1000, nextPageToken);
+        nextPageToken = result.pageToken;
+        users = users.concat(result.users);
+      } while (nextPageToken);
+
+      users.forEach((userRecord) => {
+        console.log("user", userRecord.toJSON());
+      });
+
+      console.log(users);
+      console.log("Total users:", users.length);
     } catch (error) {
       console.error("Error listing users:", error);
-      res.status(500).json({ error: "Internal Server Error" });
     }
   }
 }

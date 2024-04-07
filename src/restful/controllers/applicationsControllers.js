@@ -159,6 +159,31 @@ class ApplicationController {
     }
   }
   
+  static async getAllApplicationsById(req, res) {
+    const { opportunity_id } = req.params;
+    try {
+      const db = admin.firestore();
+      const applicationsRef = db.collection('applications');
+      
+      // Query applications where opportunity_id matches
+      const querySnapshot = await applicationsRef.where('opportunity_id', '==', opportunity_id).get();
+      
+      if (querySnapshot.empty) {
+        return res.status(404).json({ message: 'No applications found for the specified opportunity.' });
+      }
+      
+      // Extract application data from query snapshot
+      const applications = [];
+      querySnapshot.forEach(doc => {
+        applications.push({ id: doc.id, ...doc.data() });
+      });
+      
+      return res.status(200).json(applications);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: 'Server error' });
+    }
+  }
 }
 
 export default ApplicationController;

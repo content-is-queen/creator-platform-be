@@ -6,6 +6,10 @@ const router = Router();
 // GET all applications
 router.get('/', ApplicationController.getAllApplications);
 
+// GET all applications
+router.get('/:opportunity_id', ApplicationController.getAllApplicationsById);
+
+
 // GET application by ID
 router.get('/:application_id', ApplicationController.getApplicationById);
 

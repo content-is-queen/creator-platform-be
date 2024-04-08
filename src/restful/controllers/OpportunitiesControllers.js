@@ -119,10 +119,6 @@ class OpportunitiesController {
     }
   }
   
-  
-
-  
-  
 
     static async getOpportunitiesByStatus(req, res) {
       const db = admin.firestore();
@@ -261,46 +257,52 @@ class OpportunitiesController {
   static async createOpportunity(req, res, type) {
     const db = admin.firestore();
     try {
-      // Generate UUID for opportunity_id
-      const opportunity_id = uuidv4();
+        // Generate UUID for opportunity_id
+        const opportunity_id = uuidv4();
 
-      // Extract opportunity data from request body
-      const { ...opportunityData } = req.body;
+        // Extract opportunity data from request body
+        const { ...opportunityData } = req.body;
 
-      // Validate required fields
-      const requiredFields = getRequiredFields(type);
-      const isValid = requiredFields.every(field => Object.prototype.hasOwnProperty.call(opportunityData, field));
-      if (!isValid) {
-        util.statusCode = 400;
-        util.message = `Missing or invalid fields for ${type} opportunity`;
+        // Set default status to "open" if not provided
+        if (!opportunityData.hasOwnProperty('status')) {
+            opportunityData.status = 'open';
+        }
+
+        // Validate required fields
+        const requiredFields = getRequiredFields(type);
+        const isValid = requiredFields.every(field => Object.prototype.hasOwnProperty.call(opportunityData, field));
+        if (!isValid) {
+            util.statusCode = 400;
+            util.message = `Missing or invalid fields for ${type} opportunity`;
+            return util.send(res);
+        }
+
+        // Check if opportunity with same ID already exists
+        const existingOpportunity = await db.collection('opportunities').doc(opportunity_id).get();
+        if (existingOpportunity.exists) {
+            util.statusCode = 400;
+            util.message = "Opportunity with same ID already exists";
+            return util.send(res);
+        }
+
+        // Store the opportunity data in the opportunities collection
+        await db.collection('opportunities').doc(opportunity_id).set({
+            opportunity_id,
+            type,
+            ...opportunityData
+        });
+
+        util.statusCode = 201;
+        util.message = "Opportunity created successfully";
         return util.send(res);
-      }
-
-      // Check if opportunity with same ID already exists
-      const existingOpportunity = await db.collection('opportunities').doc(opportunity_id).get();
-      if (existingOpportunity.exists) {
-        util.statusCode = 400;
-        util.message = "Opportunity with same ID already exists";
-        return util.send(res);
-      }
-
-      // Store the opportunity data in the opportunities collection
-      await db.collection('opportunities').doc(opportunity_id).set({
-        opportunity_id,
-        type,
-        ...opportunityData
-      });
-
-      util.statusCode = 201;
-      util.message = "Opportunity created successfully";
-      return util.send(res);
     } catch (error) {
-      console.error(error);
-      util.statusCode = 500;
-      util.message = error.message || "Server error";
-      return util.send(res);
+        console.error(error);
+        util.statusCode = 500;
+        util.message = error.message || "Server error";
+        return util.send(res);
     }
-  }
+}
+
 
   static async createJobOpportunity(req, res) {
     return OpportunitiesController.createOpportunity(req, res, 'job');

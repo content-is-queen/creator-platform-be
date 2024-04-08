@@ -6,13 +6,19 @@ import OpportunitiesController from "../controllers/OpportunitiesControllers";
 const router = Router();
 
 router.get("/", OpportunitiesController.getAllOpportunities);
-router.get("/open", OpportunitiesController.getOpenOpportunities);
-router.get("/in_progress", OpportunitiesController.getInProgressOpportunities);
-router.get("/completed", OpportunitiesController.getCompletedOpportunities);
+// router.get("/open", OpportunitiesController.getOpenOpportunities);
+router.get('/id/:user_id', OpportunitiesController.getAllOpportunitiesByUserId);
+router.get('/status/:status', OpportunitiesController.getOpportunitiesByStatus);
+// router.get("/in_progress", OpportunitiesController.getInProgressOpportunities);
+// router.get("/completed", OpportunitiesController.getCompletedOpportunities);
+// router.get("/:doc_type/:opportunity_id", OpportunitiesController.getOpportunityById); // Make sure this route is correct
+router.delete("/opportunityid/:opportunity_id", OpportunitiesController.deleteOpportunityById);
+router.get("/opportunityid/:opportunity_id", OpportunitiesController.getOpportunityById);
+
 
 
 // GET endpoint to retrieve individual opportunity by ID
-router.get("/:doc_type/:opportunity_id", OpportunitiesController.getOpportunityById);
+// router.get("/:doc_type/:opportunity_id", OpportunitiesController.getOpportunityById);
 
 // POST endpoint
 // router.post("/", OpportunitiesController.createOpportunity);

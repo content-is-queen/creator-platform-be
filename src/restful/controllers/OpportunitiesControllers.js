@@ -22,44 +22,49 @@ class OpportunitiesController {
    static async getAllOpportunities(req, res) {
     const db = admin.firestore();
     try {
-      const opportunitiesData = [];
-  
-      // Fetch all documents from the "opportunities" collection
-      const querySnapshot = await db.collection('opportunities').get();
-  
-      // Iterate over each document
-      for (const doc of querySnapshot.docs) {
-        // Fetch all subcollections of the document
-        const subcollections = await doc.ref.listCollections();
-  
-        // Iterate over each subcollection
-        for (const subcollectionRef of subcollections) {
-          // Fetch all documents from the subcollection
-          const subcollectionSnapshot = await subcollectionRef.get();
-  
-          // Iterate over each document in the subcollection
-          subcollectionSnapshot.forEach((subDoc) => {
-            opportunitiesData.push(subDoc.data());
-          });
+        const opportunitiesData = [];
+
+        // Recursive function to fetch all documents and subcollections
+        const getAllDocuments = async (collectionRef) => {
+            const querySnapshot = await collectionRef.get();
+
+            // Iterate over each document
+            querySnapshot.forEach(doc => {
+                const opportunityData = doc.data();
+                opportunitiesData.push(opportunityData);
+
+                // Fetch subcollections recursively
+                const subcollections = doc.ref.listCollections();
+                subcollections.then(subcollectionRefs => {
+                    subcollectionRefs.forEach(subcollectionRef => {
+                        getAllDocuments(subcollectionRef);
+                    });
+                }).catch(error => {
+                    console.error("Error fetching subcollections:", error);
+                });
+            });
+        };
+
+        // Start fetching documents from the root collection
+        await getAllDocuments(db.collection('opportunities'));
+
+        if (opportunitiesData.length > 0) {
+            util.statusCode = 200;
+            util.message = opportunitiesData;
+            return util.send(res);
+        } else {
+            util.statusCode = 404;
+            util.message = "Not found";
+            return util.send(res);
         }
-      }
-  
-      if (opportunitiesData.length > 0) {
-        util.statusCode = 200;
-        util.message = opportunitiesData;
-        return util.send(res);
-      } else {
-        util.statusCode = 404;
-        util.message = "Not found";
-        return util.send(res);
-      }
     } catch (error) {
-      console.log(error);
-      util.statusCode = 500;
-      util.message = error.message || "Server error";
-      return util.send(res);
+        console.log(error);
+        util.statusCode = 500;
+        util.message = error.message || "Server error";
+        return util.send(res);
     }
-  }
+}
+
   
   static async getAllOpportunitiesByUserId(req, res) {
     const db = admin.firestore();

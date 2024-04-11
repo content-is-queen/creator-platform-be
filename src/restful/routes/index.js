@@ -1,8 +1,8 @@
-import { Router } from "express";
+const { Router } = require("express");
 
-import { router as authRouter } from "./authRouters";
-import { router as messagesRouter } from "./chatRouters";
-import { router as opportunitiesRouter } from "./opportunitiesRouters";
+const { router: authRouter } = require("./authRouters");
+const { router: messagesRouter } = require("./chatRouters");
+const { router: opportunitiesRouter } = require("./opportunitiesRouters");
 
 const API_VERSION = process.env.API_VERSION || "v1";
 const url = `/api/${API_VERSION}`;
@@ -18,7 +18,10 @@ router.all(`${url}/`, (req, res) => {
     .json({ message: "Welcome to Creator Platform backend!" });
 });
 router.use("*", (req, res) => {
-  res.status(404).json({ status: 404, message: "This endpoint is not exist" });
+  res.status(404).json({
+    status: 404,
+    message: "This endpoint is not exist",
+  });
 });
 
-export default router;
+exports.router = router;

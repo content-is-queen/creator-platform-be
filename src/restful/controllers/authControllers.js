@@ -1,6 +1,5 @@
-/* eslint-disable quotes */
-import dotenv from "dotenv";
-import Util from "../../helper/utils";
+const dotenv = require("dotenv");
+const { Util } = require("../../helper/utils");
 const admin = require("firebase-admin");
 const { v4: uuidv4 } = require("uuid");
 
@@ -84,9 +83,12 @@ class AuthController {
       }
 
       const usersBrandCollectionRef = brandDocRef.collection("users");
-      await usersBrandCollectionRef
-        .doc(user.uid)
-        .set({ uid: user.uid, first_name, last_name, organization_name }); // Save first name, last name, and organization name
+      await usersBrandCollectionRef.doc(user.uid).set({
+        uid: user.uid,
+        first_name,
+        last_name,
+        organization_name,
+      }); // Save first name, last name, and organization name
 
       util.statusCode = 200;
       util.message = "User signed up successfully"; // Add success message
@@ -200,4 +202,4 @@ class AuthController {
   }
 }
 
-export default AuthController;
+exports.AuthController = AuthController;

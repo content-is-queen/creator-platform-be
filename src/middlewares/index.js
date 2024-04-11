@@ -1,5 +1,5 @@
-import admin from "firebase-admin";
-import Util from "../helper/utils";
+const admin = require("firebase-admin");
+const { Util } = require("../helper/utils");
 const util = new Util();
 const protect = async (req, res, next) => {
   let token;
@@ -25,4 +25,4 @@ const protect = async (req, res, next) => {
     return res.status(401).json({ error: "Not Authenticated!" });
   }
 };
-export default protect;
+exports.protect = protect;

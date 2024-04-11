@@ -1,13 +1,12 @@
-/* eslint-disable prettier/prettier */
-import { Router } from "express";
-import AuthController from "../controllers/authControllers";
-import protect from "../../middlewares";
+const { Router } = require("express");
+const AuthController = require("../controllers/authControllers");
+const protect = require("../../middlewares");
 
 const router = Router();
 
-router.get("/profile",protect, AuthController.profile);
+router.get("/profile", protect, AuthController.profile);
 router.post("/signup/brand", AuthController.signupBrand);
 router.post("/signup/creator", AuthController.signupCreator);
-router.patch("/profile",protect, AuthController.updateProfile);
+router.patch("/profile", protect, AuthController.updateProfile);
 
-module.exports = { router };
+exports.router = router;

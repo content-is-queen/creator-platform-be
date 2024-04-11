@@ -1,13 +1,12 @@
-/* eslint-disable prettier/prettier */
-import { Router } from "express";
-import protect from "../../middlewares";
-import ChatController from "../controllers/chatControllers";
+const { Router } = require("express");
+const ChatController = require("../controllers/chatControllers");
+const protect = require("../../middlewares");
 
 const router = Router();
 
-router.post("/",protect, ChatController.sendMessage);
-router.get("/users",protect, ChatController.users);
-router.get("/profiles",protect, ChatController.usersProfiles);
-router.get("/:receiverId",protect, ChatController.ReceiveMessage);
+router.post("/", protect, ChatController.sendMessage);
+router.get("/users", protect, ChatController.users);
+router.get("/profiles", protect, ChatController.usersProfiles);
+router.get("/:receiverId", protect, ChatController.ReceiveMessage);
 
-module.exports = { router };
+exports.router = router;

@@ -1,6 +1,6 @@
 # Creator Platform backend
 
-> Creator Platform backend is a 
+> Creator Platform backend is a
 
 ## Built With
 
@@ -53,4 +53,4 @@ Give a ⭐️ if you like this project!
 
 ## 📝 License
 
-Copyright of Content is Queen Ltd. Confidential. All Rights Reserved. 
+Copyright of Content is Queen Ltd. Confidential. All Rights Reserved.

@@ -5,14 +5,13 @@ const { chatRouter } = require("./chatRouter");
 const { opportunitiesRouter } = require("./opportunitiesRouter");
 
 const API_VERSION = process.env.API_VERSION || "v1";
-const url = `/api/${API_VERSION}`;
 const router = Router();
 
-router.use(`${url}/auth`, authRouter);
-router.use(`${url}/messages`, chatRouter);
-router.use(`${url}/opportunities`, opportunitiesRouter);
+router.use(`${API_VERSION}/auth`, authRouter);
+router.use(`${API_VERSION}/messages`, chatRouter);
+router.use(`${API_VERSION}/opportunities`, opportunitiesRouter);
 
-router.all(`${url}/`, (req, res) => {
+router.all(`${API_VERSION}/`, (req, res) => {
   return res
     .status(200)
     .json({ message: "Welcome to Creator Platform backend!" });

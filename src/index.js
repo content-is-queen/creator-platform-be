@@ -8,7 +8,7 @@ const serviceAccount = require("../contentisqueen-97ae5-firebase-adminsdk-qhkbo-
 const router = require("./restful/routes");
 
 dotenv.config();
-const PORT = process.env.PORT || 5000;
+const PORT = 5000;
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -27,9 +27,7 @@ app.use(
 app.use(router);
 const start = () => {
   try {
-    app.listen({ port: PORT }, () =>
-      process.stdout.write(`http://localhost:${PORT} \n`),
-    );
+    app.listen(PORT, () => console.log(`App listening on port ${PORT}`));
   } catch (error) {
     console.error(error.message);
     process.exit(1);

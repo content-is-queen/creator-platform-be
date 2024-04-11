@@ -1,15 +1,15 @@
 const { Router } = require("express");
 
-const { router: authRouter } = require("./authRouters");
-const { router: messagesRouter } = require("./chatRouters");
-const { router: opportunitiesRouter } = require("./opportunitiesRouters");
+const { authRouter } = require("./authRouter");
+const { chatRouter } = require("./chatRouter");
+const { opportunitiesRouter } = require("./opportunitiesRouter");
 
 const API_VERSION = process.env.API_VERSION || "v1";
 const url = `/api/${API_VERSION}`;
 const router = Router();
 
 router.use(`${url}/auth`, authRouter);
-router.use(`${url}/messages`, messagesRouter);
+router.use(`${url}/messages`, chatRouter);
 router.use(`${url}/opportunities`, opportunitiesRouter);
 
 router.all(`${url}/`, (req, res) => {

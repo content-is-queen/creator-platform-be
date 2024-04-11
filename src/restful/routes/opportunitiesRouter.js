@@ -1,5 +1,7 @@
 const { Router } = require("express");
-const OpportunitiesController = require("../controllers/opportunitiesController");
+const {
+  OpportunitiesController,
+} = require("../controllers/opportunitiesController");
 
 const router = Router();
 
@@ -53,4 +55,4 @@ router.put(
   OpportunitiesController.updateOpportunityById,
 ); // New route for update
 
-module.exports = router;
+module.exports.opportunitiesRouter = router;

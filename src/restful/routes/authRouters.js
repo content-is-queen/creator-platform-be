@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const AuthController = require("../controllers/authControllers");
+const AuthController = require("../controllers/authController");
 const protect = require("../../middlewares");
 
 const router = Router();
@@ -9,4 +9,4 @@ router.post("/signup/brand", AuthController.signupBrand);
 router.post("/signup/creator", AuthController.signupCreator);
 router.patch("/profile", protect, AuthController.updateProfile);
 
-exports.router = router;
+module.exports = router;

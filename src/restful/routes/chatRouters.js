@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const ChatController = require("../controllers/chatControllers");
+const ChatController = require("../controllers/chatController.js");
 const protect = require("../../middlewares");
 
 const router = Router();
@@ -9,4 +9,4 @@ router.get("/users", protect, ChatController.users);
 router.get("/profiles", protect, ChatController.usersProfiles);
 router.get("/:receiverId", protect, ChatController.ReceiveMessage);
 
-exports.router = router;
+module.exports = router;

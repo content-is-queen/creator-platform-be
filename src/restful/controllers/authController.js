@@ -103,14 +103,9 @@ class AuthController {
       }
 
       const usersBrandCollectionRef = brandDocRef.collection("users");
-      await usersBrandCollectionRef.doc(user.uid).set({
-        uid: user.uid,
-        first_name,
-        last_name,
-        organization_name,
-      }); // Save first name, last name, and organization name
-
-
+      await usersBrandCollectionRef
+        .doc(user.uid)
+        .set({ uid: user.uid, first_name, last_name, organization_name });
       util.message = "User signed up successfully";
       const data = { uid, email: user.email };
       util.setSuccess(200, "User signed up successfully", data);
@@ -133,7 +128,9 @@ class AuthController {
       const savedOTP = otpDoc.data().otp;
       console.log(savedOTP, otp);
       if (savedOTP !== otp) {
-        return res.status(400).json({ error: "Invalid OTP" });
+        util.statusCode = 400;
+        util.message = "Invalid OTP";
+        return util.send(res);
       }
       await admin.auth().setCustomUserClaims(uid, { emailVerified: true });
       await db.collection("otp").doc(email).delete();

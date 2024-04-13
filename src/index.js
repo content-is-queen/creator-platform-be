@@ -1,13 +1,14 @@
-import express from "express";
-import dotenv from "dotenv";
-import cors from "cors";
+const express = require("express");
+const dotenv = require("dotenv");
+const cors = require("cors");
+const functions = require("firebase-functions");
 const { initializeApp, cert } = require("firebase-admin/app");
-import fileUploader from "express-fileupload";
-import serviceAccount from "../contentisqueen-97ae5-firebase-adminsdk-qhkbo-6886ee17eb.json";
-import router from "./restful/routes";
+const fileUploader = require("express-fileupload");
+const serviceAccount = require("../contentisqueen-97ae5-firebase-adminsdk-qhkbo-6886ee17eb.json");
+const router = require("./restful/routes");
 
 dotenv.config();
-const PORT = process.env.PORT || 5000;
+const PORT = 5000;
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -26,9 +27,7 @@ app.use(
 app.use(router);
 const start = () => {
   try {
-    app.listen({ port: PORT }, () =>
-      process.stdout.write(`http://localhost:${PORT} \n`),
-    );
+    app.listen(PORT, () => console.log(`App listening on port ${PORT}`));
   } catch (error) {
     console.error(error.message);
     process.exit(1);
@@ -36,3 +35,5 @@ const start = () => {
 };
 
 start();
+
+exports.api = functions.https.onRequest(app);

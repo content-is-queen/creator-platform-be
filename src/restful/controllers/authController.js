@@ -1,5 +1,9 @@
 const dotenv = require("dotenv");
 const { Util } = require("../../helper/utils");
+/* eslint-disable quotes */
+const { sendOtpEmail } = require("../../services/templates/SendOtpEmail");
+const { transporter } = require("../../helper/mailHelper");
+const otpGenerator = require("otp-generator");
 const admin = require("firebase-admin");
 const { v4: uuidv4 } = require("uuid");
 
@@ -29,26 +33,45 @@ class AuthController {
         password,
         displayName,
       });
-      const uid = user.uid;
-      await admin.auth().setCustomUserClaims(uid, { role: "creator" });
-
-      // Save additional user information to Firestore
-      const usersCollectionRef = db.collection("users");
-      const creatorDocRef = usersCollectionRef.doc("creator");
-      const creatorDocSnapshot = await creatorDocRef.get();
-
-      if (!creatorDocSnapshot.exists) {
-        await creatorDocRef.set({});
+      console.log(user);
+      const code = otpGenerator.generate(6, {
+        digits: true,
+        upperCase: false,
+        specialChars: false,
+        alphabets: false,
+      });
+      await db.collection("otp").doc(email).set({
+        otp: code,
+      });
+      const emailTemplate = sendOtpEmail({
+        name: first_name,
+        email: user.email,
+        otp: code,
+      });
+      const mailOptions = {
+        from: process.env.EMAIL,
+        to: user.email,
+        subject: "Creator Platform Account Verification",
+        html: emailTemplate,
+      };
+      const emailsent = await transporter.sendMail(mailOptions);
+      if (emailsent) {
+        const uid = user.uid;
+        await admin.auth().setCustomUserClaims(uid, { role: "creator" });
+        const usersCollectionRef = db.collection("users");
+        const creatorDocRef = usersCollectionRef.doc("creator");
+        const creatorDocSnapshot = await creatorDocRef.get();
+        if (!creatorDocSnapshot.exists) {
+          await creatorDocRef.set({});
+        }
+        const usersCreatorCollectionRef = creatorDocRef.collection("users");
+        await usersCreatorCollectionRef
+          .doc(user.uid)
+          .set({ uid: user.uid, first_name, last_name });
+        util.statusCode = 200;
+        util.message = "Success";
+        return util.send(res);
       }
-
-      const usersCreatorCollectionRef = creatorDocRef.collection("users");
-      await usersCreatorCollectionRef
-        .doc(user.uid)
-        .set({ uid: user.uid, first_name, last_name }); // Save first name and last name
-
-      util.statusCode = 200;
-      util.message = "User signed up successfully"; // Add success message
-      return util.send(res);
     } catch (error) {
       const errorMessage = error?.errorInfo?.message;
       console.log(error);

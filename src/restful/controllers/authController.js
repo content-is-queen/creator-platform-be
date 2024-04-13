@@ -33,8 +33,7 @@ class AuthController {
         password,
         displayName,
       });
-      console.log(user);
-      const code = otpGenerator.generate(6, {
+      const code = otpGenerator.generate(5, {
         digits: true,
         upperCase: false,
         specialChars: false,
@@ -69,7 +68,7 @@ class AuthController {
           .doc(user.uid)
           .set({ uid: user.uid, first_name, last_name });
         util.statusCode = 200;
-        util.message = "Success";
+        util.setSuccess(200, "Success", { email, uid });
         return util.send(res);
       }
     } catch (error) {
@@ -95,8 +94,6 @@ class AuthController {
       });
       const uid = user.uid;
       await admin.auth().setCustomUserClaims(uid, { role: "brand" });
-
-      // Save additional user information to Firestore
       const usersCollectionRef = db.collection("users");
       const brandDocRef = usersCollectionRef.doc("brand");
       const brandDocSnapshot = await brandDocRef.get();
@@ -113,8 +110,35 @@ class AuthController {
         organization_name,
       }); // Save first name, last name, and organization name
 
+
+      util.message = "User signed up successfully";
+      const data = { uid, email: user.email };
+      util.setSuccess(200, "User signed up successfully", data);
+      return util.send(res);
+    } catch (error) {
+      const errorMessage = error?.errorInfo?.message;
+      console.log(error);
+      util.statusCode = 500;
+      util.message = errorMessage || error.message || "Server error";
+      return util.send(res);
+    }
+  }
+
+  static async verifyOtp(req, res) {
+    console.log(req.body);
+    try {
+      const { email, otp, uid } = req.body;
+      const db = admin.firestore();
+      const otpDoc = await db.collection("otp").doc(email).get();
+      const savedOTP = otpDoc.data().otp;
+      console.log(savedOTP, otp);
+      if (savedOTP !== otp) {
+        return res.status(400).json({ error: "Invalid OTP" });
+      }
+      await admin.auth().setCustomUserClaims(uid, { emailVerified: true });
+      await db.collection("otp").doc(email).delete();
       util.statusCode = 200;
-      util.message = "User signed up successfully"; // Add success message
+      util.message = "Your account has been successfully verified.";
       return util.send(res);
     } catch (error) {
       const errorMessage = error?.errorInfo?.message;

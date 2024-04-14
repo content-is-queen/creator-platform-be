@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const sendOtpEmail = (emailData) => {
-  const link = `${emailData.otp}`;
+  const otp = `${emailData.otp}`;
   const template = `<!DOCTYPE html>
   <html lang="en">
   <head>
@@ -63,7 +63,7 @@ export const sendOtpEmail = (emailData) => {
               <p>To finish your registration, please use this OTP:</p>
           </div>
           <div class="button-container" style="text-align: center;">
-              <a href="#" class="button"><b>${link}</b></a>
+              <p href="#" class="button"><b>${otp}</b></p>
           </div>
           <div class="content">
               <p>Thank you for choosing Creator Platform. We look forward to having you as part of our community.</p>

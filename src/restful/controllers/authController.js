@@ -179,6 +179,26 @@ class AuthController {
     }
   }
 
+  static async resetUserPassword(req, res) {
+    try {
+      const { email } = req.body;
+      const actionCodeSettings = {
+        url: `${process.env.FRONT_END_URL}/login`,
+        handleCodeInApp: true,
+      };
+      const resetLink = await admin
+        .auth()
+        .generatePasswordResetLink(email, actionCodeSettings);
+
+      return res
+        .status(200)
+        .json({ message: "Password reset email sent successfully", resetLink });
+    } catch (error) {
+      console.error("Error resetting user password:", error);
+      return res.status(500).json({ message: error.message || "Server error" });
+    }
+  }
+
   static async profile(req, res) {
     const { user_id } = req.user;
     const db = admin.firestore();

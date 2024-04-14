@@ -163,6 +163,7 @@ class AuthController {
           ...currentClaims,
           emailVerified: true
       }
+      await admin.auth().setCustomUserClaims(uid, updatedClaims);
       await db.collection("otp").doc(email).delete();
 
       util.statusCode = 200;

@@ -35,8 +35,6 @@ class AuthController {
       });
       const uid = user.uid;
       await admin.auth().setCustomUserClaims(uid, { role: "creator" });
-      const userWithClaims = await admin.auth().getUser(uid);
-      console.log(userWithClaims, "creator with claims");
       const code = otpGenerator.generate(5, {
         digits: true,
         upperCase: false,
@@ -75,7 +73,6 @@ class AuthController {
       }
     } catch (error) {
       const errorMessage = error?.errorInfo?.message;
-      console.log(error);
       util.statusCode = 500;
       util.message = errorMessage || error.message || "Server error";
       return util.send(res);
@@ -96,8 +93,6 @@ class AuthController {
       });
       const uid = user.uid;
       await admin.auth().setCustomUserClaims(uid, { role: "brand" });
-      // const userWithClaims = await admin.auth().getUser(uid);
-      // console.log(userWithClaims, "brand with claims");
       const code = otpGenerator.generate(5, {
         digits: true,
         upperCase: false,
@@ -143,7 +138,6 @@ class AuthController {
       }
     } catch (error) {
       const errorMessage = error?.errorInfo?.message;
-      console.log(error);
       util.statusCode = 500;
       util.message = errorMessage || error.message || "Server error";
       return util.send(res);
@@ -151,28 +145,24 @@ class AuthController {
   }
 
   static async verifyOtp(req, res) {
-    console.log(req.body);
     try {
       const { email, otp, uid } = req.body;
       const db = admin.firestore();
 
       // Retrieve OTP document
       const otpDoc = await db.collection("otp").doc(email).get();
-      const savedOTP = otpDoc.data()?.otp; // Use optional chaining to prevent errors if otpDoc.data() is null
-
-      console.log("Saved OTP:", savedOTP);
-      console.log("Entered OTP:", otp);
+      const savedOTP = otpDoc.data()?.otp;
 
       if (savedOTP !== otp) {
         util.statusCode = 400;
         util.message = "Invalid OTP";
         return util.send(res);
       }
-
-      // Update custom claims to set email_verified to true
-      await admin.auth().setCustomUserClaims(uid, { emailVerified: true });
-
-      // Delete OTP document
+      const currentClaims = (await admin.auth().getUser(uid)).customClaims || {};
+      const updatedClaims = {
+          ...currentClaims,
+          emailVerified: true
+      }
       await db.collection("otp").doc(email).delete();
 
       util.statusCode = 200;
@@ -247,8 +237,6 @@ class AuthController {
     try {
       const { first_name, last_name, bio, role } = req.body;
       const file = req.files?.profilePicture;
-      console.log(file, "IIIIiiiiiiiiiiiiiiiiiiiiiii");
-      console.log(req.body);
       if (!file || file === undefined || file === null) {
         const docRef = admin
           .firestore()
@@ -275,7 +263,6 @@ class AuthController {
         uploadTask
           .then(async (snapshot) => {
             const imageUrl = snapshot[0].metadata.mediaLink;
-            console.log(imageUrl);
             const docRef = admin
               .firestore()
               .collection("users")

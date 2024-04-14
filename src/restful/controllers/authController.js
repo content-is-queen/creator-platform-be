@@ -2,6 +2,7 @@ const dotenv = require("dotenv");
 const { Util } = require("../../helper/utils");
 /* eslint-disable quotes */
 const { sendOtpEmail } = require("../../services/templates/SendOtpEmail");
+const { SendPasswordReset } = require("../../services/templates/SendPasswordReset");
 const { transporter } = require("../../helper/mailHelper");
 const otpGenerator = require("otp-generator");
 const admin = require("firebase-admin");
@@ -189,10 +190,17 @@ class AuthController {
       const resetLink = await admin
         .auth()
         .generatePasswordResetLink(email, actionCodeSettings);
+        const mailOptions = {
+          from: process.env.EMAIL,
+          to: email,
+          subject: "Password Reset Request for Your Creator Platform Account",
+          html: SendPasswordReset(resetLink),
+        };
+        await transporter.sendMail(mailOptions);
 
       return res
         .status(200)
-        .json({ message: "Password reset email sent successfully", resetLink });
+        .json({ message: "Password reset email sent successfully"});
     } catch (error) {
       console.error("Error resetting user password:", error);
       return res.status(500).json({ message: error.message || "Server error" });

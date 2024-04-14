@@ -8,5 +8,6 @@ router.get("/profile", protect, AuthController.profile);
 router.post("/signup/brand", AuthController.signupBrand);
 router.post("/signup/creator", AuthController.signupCreator);
 router.patch("/profile", protect, AuthController.updateProfile);
+router.post("/verify", AuthController.verifyOtp);
 
 module.exports.authRouter = router;

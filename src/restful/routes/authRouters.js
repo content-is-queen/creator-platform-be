@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
-import { Router } from "express";
-import AuthController from "../controllers/authControllers";
-import protect from "../../middlewares";
+const { Router } = require("express");
+const AuthController = require("../controllers/authControllers");
+const protect = require("../../middlewares");
 
 const router = Router();
 

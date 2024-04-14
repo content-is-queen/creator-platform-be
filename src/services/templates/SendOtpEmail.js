@@ -42,7 +42,7 @@ export const sendOtpEmail = (emailData) => {
           .button {
               display: inline-block;
               background-color: #3677ed;
-              color: #ffffff;
+              color: #ffffff !important;
               padding: 10px 20px;
               border-radius: 5px;
               text-decoration: none;

@@ -1,29 +1,32 @@
 import { Router } from "express";
-import ApplicationController from '../controllers/applicationsControllers';
-
+const {
+    ApplicationsController,
+  } = require("../controllers/applicationsControllers");
+  
+//   
 const router = Router();
 
 // GET all applications
-router.get('/', ApplicationController.getAllApplications);
+router.get('/', ApplicationsController.getAllApplications);
 
 // GET all applications
-router.get('/:opportunity_id', ApplicationController.getAllApplicationsById);
+router.get('/:opportunity_id', ApplicationsController.getAllApplicationsById);
 
 
 // GET application by ID
-router.get('/:application_id', ApplicationController.getApplicationById);
+router.get('/:application_id', ApplicationsController.getApplicationById);
 
 // POST a new application
-router.post('/', ApplicationController.createApplication);
+router.post('/', ApplicationsController.createApplication);
 
 // PUT update an existing application
-router.put('/:application_id', ApplicationController.updateApplication);
+router.put('/:application_id', ApplicationsController.updateApplication);
 
 // DELETE an application
-router.delete('/:application_id', ApplicationController.deleteApplication);
+router.delete('/:application_id', ApplicationsController.deleteApplication);
 
 // Update application status
-router.put('/:opportunity_id/status', ApplicationController.updateApplicationStatus);
+router.put('/:opportunity_id/status', ApplicationsController.updateApplicationStatus);
 
 
-module.exports = { router };
+module.exports.ApplicationsController = { router };

@@ -51,7 +51,7 @@ router.delete(
 
 // UPDATE endpoint
 router.put(
-  "/:doc_type/:opportunity_id",
+  "/:opportunity_id",
   OpportunitiesController.updateOpportunityById,
 ); // New route for update
 

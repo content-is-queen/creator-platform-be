@@ -200,72 +200,45 @@ class OpportunitiesController {
   static async updateOpportunityById(req, res) {
     const db = admin.firestore();
     try {
-      const { opportunity_id, doc_type } = req.params;
-      const { budget, deadline, description, title, type, user_id } = req.body;
-
-      if (!opportunity_id || !doc_type) {
-        util.statusCode = 400;
-        util.message = "Opportunity ID and document type are required";
-        return util.send(res);
+      const { opportunity_id } = req.params;
+      const { budget, deadline, description, title, user_id } = req.body;
+  
+      // Check if any fields are provided for update
+      if (!budget && !deadline && !description && !title && !user_id) {
+        return res.status(400).json({ message: "At least one field to update is required" });
       }
-
-      if (!budget && !deadline && !description && !title && !type && !user_id) {
-        util.statusCode = 400;
-        util.message = "At least one field to update is required";
-        return util.send(res);
+  
+      // Fetch the opportunity document
+      const opportunityRef = db.collection("opportunities").doc(opportunity_id);
+      const opportunitySnapshot = await opportunityRef.get();
+  
+      // Check if the opportunity exists
+      if (!opportunitySnapshot.exists) {
+        return res.status(404).json({ message: "Opportunity not found" });
       }
-
-      // Get the document reference based on the specified document type
-      const docRef = db.collection("opportunities").doc(doc_type);
-      const docSnapshot = await docRef.get();
-
-      if (!docSnapshot.exists) {
-        util.statusCode = 404;
-        util.message = `${doc_type} document not found`;
-        return util.send(res);
-      }
-
-      const docData = docSnapshot.data();
-
-      // Check if the document type contains a "data" array
-      if (!docData.data || !Array.isArray(docData.data)) {
-        util.statusCode = 404;
-        util.message = "No opportunities found in this document type";
-        return util.send(res);
-      }
-
-      // Find the opportunity index
-      const opportunityIndex = docData.data.findIndex(
-        (op) => op.opportunity_id === opportunity_id,
-      );
-
-      if (opportunityIndex === -1) {
-        util.statusCode = 404;
-        util.message = "Opportunity not found";
-        return util.send(res);
-      }
-
-      // Update the opportunity fields
-      if (budget) docData.data[opportunityIndex].budget = budget;
-      if (deadline) docData.data[opportunityIndex].deadline = deadline;
-      if (description) docData.data[opportunityIndex].description = description;
-      if (title) docData.data[opportunityIndex].title = title;
-      if (type) docData.data[opportunityIndex].type = type;
-      if (user_id) docData.data[opportunityIndex].user_id = user_id;
-
-      // Update the document data array
-      await docRef.update({ data: docData.data });
-
-      util.statusCode = 200;
-      util.message = "Opportunity updated successfully";
-      return util.send(res);
+  
+      // Extract existing opportunity data
+      const existingData = opportunitySnapshot.data();
+  
+      // Prepare the update object with only provided fields
+      const updateData = {};
+      if (budget) updateData.budget = budget;
+      if (deadline) updateData.deadline = deadline;
+      if (description) updateData.description = description;
+      if (title) updateData.title = title;
+      if (user_id) updateData.user_id = user_id;
+  
+      // Perform the update
+      await opportunityRef.update(updateData);
+  
+      // Return success response
+      return res.status(200).json({ message: "Opportunity updated successfully" });
     } catch (error) {
-      console.error(error);
-      util.statusCode = 500;
-      util.message = error.message || "Server error";
-      return util.send(res);
+      console.error("Error updating opportunity:", error);
+      return res.status(500).json({ message: "Server error" });
     }
   }
+  
 
   static async createOpportunity(req, res, type) {
     const db = admin.firestore();
@@ -351,31 +324,37 @@ function getRequiredFields(type) {
         "duration",
         "location",
         "compensation",
+        "deadline",
+        "contract_type",
       ];
     case "pitch":
       return [
-        "project",
+        "title",
         "status",
         "user_id",
         "description",
         "target",
         "format",
         "duration",
-        "budget",
+        "compensation",
         "submission",
+        "deadline",
+        "contract_type",
       ];
     case "campaign":
       return [
-        "name",
+        "title",
         "status",
         "user_id",
         "brand",
-        "goals",
+        "description",
         "target",
         "budget",
         "duration",
         "format",
         "requirements",
+        "deadline",
+        "contract_type",
       ];
     default:
       return [];

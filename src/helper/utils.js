@@ -1,4 +1,4 @@
-export default class Util {
+class Util {
   constructor() {
     this.statusCode = null;
     this.type = null;
@@ -34,3 +34,5 @@ export default class Util {
     });
   }
 }
+
+module.exports.Util = Util;

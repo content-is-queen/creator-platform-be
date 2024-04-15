@@ -1,7 +1,5 @@
-/* eslint-disable quotes */
-import dotenv from "dotenv";
-import Util from "../../helper/utils";
-// import Util from "../../helper/utils";
+const dotenv = require("dotenv");
+const { Util } = require("../../helper/utils");
 const admin = require("firebase-admin");
 
 dotenv.config();
@@ -128,4 +126,4 @@ class ChatController {
   }
 }
 
-export default ChatController;
+exports.ChatController = ChatController;

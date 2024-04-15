@@ -27,7 +27,7 @@ class ApplicationsController {
         return util.send(res);
       } else {
         util.statusCode = 404;
-        util.message = "Not found";
+        util.message = "Applications not found";
         return util.send(res);
       }
     } catch (error) {

@@ -1,5 +1,5 @@
-import dotenv from "dotenv";
-import Util from "../../helper/utils";
+const dotenv = require("dotenv");
+const { Util } = require("../../helper/utils");
 const admin = require("firebase-admin");
 
 dotenv.config();
@@ -182,11 +182,9 @@ class ApplicationsController {
         .get();
 
       if (querySnapshot.empty) {
-        return res
-          .status(404)
-          .json({
-            message: "No applications found for the specified opportunity.",
-          });
+        return res.status(404).json({
+          message: "No applications found for the specified opportunity.",
+        });
       }
 
       // Extract application data from query snapshot

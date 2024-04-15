@@ -8,7 +8,7 @@ dotenv.config();
 
 const util = new Util();
 
-class ApplicationController {
+class ApplicationsController {
   static async getAllApplications(req, res) {
     const db = admin.firestore();
     try {
@@ -194,4 +194,5 @@ static async updateApplication(req, res) {
   }
 }
 
-export default ApplicationController;
+
+exports.ApplicationsController = ApplicationsController

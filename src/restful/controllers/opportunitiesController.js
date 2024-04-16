@@ -300,13 +300,11 @@ function getRequiredFields(type) {
     case "job":
       return [
         "title",
-        "status",
         "user_id",
         "company",
         "description",
         "skills",
         "experience",
-        "duration",
         "location",
         "compensation",
         "deadline",
@@ -315,7 +313,6 @@ function getRequiredFields(type) {
     case "pitch":
       return [
         "title",
-        "status",
         "user_id",
         "description",
         "target",
@@ -328,7 +325,6 @@ function getRequiredFields(type) {
     case "campaign":
       return [
         "title",
-        "status",
         "user_id",
         "brand",
         "description",

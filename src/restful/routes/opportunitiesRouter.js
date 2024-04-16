@@ -43,16 +43,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// DELETE endpoint
-router.delete(
-  "/:doc_type/:opportunity_id",
-  OpportunitiesController.deleteOpportunityById,
-); // New route for delete
-
 // UPDATE endpoint
-router.put(
-  "/:doc_type/:opportunity_id",
-  OpportunitiesController.updateOpportunityById,
-); // New route for update
+router.put("/:opportunity_id", OpportunitiesController.updateOpportunityById); // New route for update
 
 module.exports.opportunitiesRouter = router;

@@ -21,15 +21,9 @@ class ApplicationsController {
         applicationsData.push(data);
       });
 
-      if (applicationsData.length > 0) {
-        util.statusCode = 200;
-        util.message = applicationsData;
-        return util.send(res);
-      } else {
-        util.statusCode = 404;
-        util.message = "Applications not found";
-        return util.send(res);
-      }
+      util.statusCode = 200;
+      util.message = applicationsData;
+      return util.send(res);
     } catch (error) {
       console.log(error);
       util.statusCode = 500;
@@ -181,17 +175,14 @@ class ApplicationsController {
         .where("opportunity_id", "==", opportunity_id)
         .get();
 
-      if (querySnapshot.empty) {
-        return res.status(404).json({
-          message: "No applications found for the specified opportunity.",
+      const applications = [];
+
+      if (!querySnapshot.empty) {
+        // Extract application data from query snapshot
+        querySnapshot.forEach((doc) => {
+          applications.push({ id: doc.id, ...doc.data() });
         });
       }
-
-      // Extract application data from query snapshot
-      const applications = [];
-      querySnapshot.forEach((doc) => {
-        applications.push({ id: doc.id, ...doc.data() });
-      });
 
       return res.status(200).json(applications);
     } catch (error) {

@@ -48,15 +48,9 @@ class OpportunitiesController {
       // Start fetching documents from the root collection
       await getAllDocuments(db.collection("opportunities"));
 
-      if (opportunitiesData.length > 0) {
-        util.statusCode = 200;
-        util.message = opportunitiesData;
-        return util.send(res);
-      } else {
-        util.statusCode = 404;
-        util.message = "Not found";
-        return util.send(res);
-      }
+      util.statusCode = 200;
+      util.message = opportunitiesData;
+      return util.send(res);
     } catch (error) {
       console.log(error);
       util.statusCode = 500;
@@ -88,13 +82,7 @@ class OpportunitiesController {
         opportunitiesData.push(opportunity);
       });
 
-      if (opportunitiesData.length > 0) {
-        return res.status(200).json(opportunitiesData);
-      } else {
-        return res
-          .status(404)
-          .json({ message: "No opportunities found for this user" });
-      }
+      return res.status(200).json(opportunitiesData);
     } catch (error) {
       console.error("Error fetching opportunities by user ID:", error);
       return res.status(500).json({ message: "Server error" });
@@ -151,15 +139,9 @@ class OpportunitiesController {
         opportunities.push(doc.data());
       });
 
-      if (opportunities.length > 0) {
-        util.statusCode = 200;
-        util.message = opportunities;
-        return util.send(res);
-      } else {
-        util.statusCode = 404;
-        util.message = `No ${status} opportunities found`;
-        return util.send(res);
-      }
+      util.statusCode = 200;
+      util.message = opportunities;
+      return util.send(res);
     } catch (error) {
       console.error(error);
       util.statusCode = 500;
@@ -202,24 +184,26 @@ class OpportunitiesController {
     try {
       const { opportunity_id } = req.params;
       const { budget, deadline, description, title, user_id } = req.body;
-  
+
       // Check if any fields are provided for update
       if (!budget && !deadline && !description && !title && !user_id) {
-        return res.status(400).json({ message: "At least one field to update is required" });
+        return res
+          .status(400)
+          .json({ message: "At least one field to update is required" });
       }
-  
+
       // Fetch the opportunity document
       const opportunityRef = db.collection("opportunities").doc(opportunity_id);
       const opportunitySnapshot = await opportunityRef.get();
-  
+
       // Check if the opportunity exists
       if (!opportunitySnapshot.exists) {
         return res.status(404).json({ message: "Opportunity not found" });
       }
-  
+
       // Extract existing opportunity data
       const existingData = opportunitySnapshot.data();
-  
+
       // Prepare the update object with only provided fields
       const updateData = {};
       if (budget) updateData.budget = budget;
@@ -227,18 +211,19 @@ class OpportunitiesController {
       if (description) updateData.description = description;
       if (title) updateData.title = title;
       if (user_id) updateData.user_id = user_id;
-  
+
       // Perform the update
       await opportunityRef.update(updateData);
-  
+
       // Return success response
-      return res.status(200).json({ message: "Opportunity updated successfully" });
+      return res
+        .status(200)
+        .json({ message: "Opportunity updated successfully" });
     } catch (error) {
       console.error("Error updating opportunity:", error);
       return res.status(500).json({ message: "Server error" });
     }
   }
-  
 
   static async createOpportunity(req, res, type) {
     const db = admin.firestore();
@@ -335,7 +320,6 @@ function getRequiredFields(type) {
         "description",
         "target",
         "format",
-        "duration",
         "compensation",
         "submission",
         "deadline",
@@ -349,8 +333,7 @@ function getRequiredFields(type) {
         "brand",
         "description",
         "target",
-        "budget",
-        "duration",
+        "compensation",
         "format",
         "requirements",
         "deadline",

@@ -183,47 +183,47 @@ class OpportunitiesController {
     const db = admin.firestore();
     try {
       const { opportunity_id } = req.params;
-      const { budget, deadline, description, title, user_id } = req.body;
-
-      // Check if any fields are provided for update
-      if (!budget && !deadline && !description && !title && !user_id) {
-        return res
-          .status(400)
-          .json({ message: "At least one field to update is required" });
-      }
-
+      const { type } = req.body;
+  
       // Fetch the opportunity document
       const opportunityRef = db.collection("opportunities").doc(opportunity_id);
       const opportunitySnapshot = await opportunityRef.get();
-
+  
       // Check if the opportunity exists
       if (!opportunitySnapshot.exists) {
         return res.status(404).json({ message: "Opportunity not found" });
       }
-
+  
       // Extract existing opportunity data
       const existingData = opportunitySnapshot.data();
-
+  
+      // Validate type field
+      if (!type || !["job", "pitch", "campaign"].includes(type)) {
+        return res.status(400).json({ message: "Invalid or missing opportunity type" });
+      }
+  
+      // Get required fields based on the type
+      const requiredFields = getRequiredFields(type);
+  
       // Prepare the update object with only provided fields
       const updateData = {};
-      if (budget) updateData.budget = budget;
-      if (deadline) updateData.deadline = deadline;
-      if (description) updateData.description = description;
-      if (title) updateData.title = title;
-      if (user_id) updateData.user_id = user_id;
-
+      requiredFields.forEach(field => {
+        if (req.body.hasOwnProperty(field)) {
+          updateData[field] = req.body[field];
+        }
+      });
+  
       // Perform the update
       await opportunityRef.update(updateData);
-
+  
       // Return success response
-      return res
-        .status(200)
-        .json({ message: "Opportunity updated successfully" });
+      return res.status(200).json({ message: "Opportunity updated successfully" });
     } catch (error) {
       console.error("Error updating opportunity:", error);
       return res.status(500).json({ message: "Server error" });
     }
   }
+  
 
   static async createOpportunity(req, res, type) {
     const db = admin.firestore();

@@ -29,4 +29,4 @@ router.put(
   ApplicationsController.updateApplicationStatus,
 );
 
-module.exports.ApplicationsController = router;
+module.exports.applicationsRouter = router;

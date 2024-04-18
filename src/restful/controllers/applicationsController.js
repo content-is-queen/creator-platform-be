@@ -1,7 +1,5 @@
-
-import dotenv from "dotenv";
-import Util from "../../helper/utils";
-import { v4 as uuidv4 } from 'uuid';
+const dotenv = require("dotenv");
+const { Util } = require("../../helper/utils");
 const admin = require("firebase-admin");
 
 dotenv.config();
@@ -177,7 +175,9 @@ static async updateApplication(req, res) {
       const querySnapshot = await applicationsRef.where('opportunity_id', '==', opportunity_id).get();
       
       if (querySnapshot.empty) {
-        return res.status(404).json({ message: 'No applications found for the specified opportunity.' });
+        return res.status(404).json({
+          message: "No applications found for the specified opportunity.",
+        });
       }
       
       // Extract application data from query snapshot

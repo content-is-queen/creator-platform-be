@@ -1,15 +1,17 @@
 const { Router } = require("express");
 
-const { authRouter } = require("./authRouter");
-const { chatRouter } = require("./chatRouter");
-const { opportunitiesRouter } = require("./opportunitiesRouter");
+import { router as authRouter } from "./authRouters";
+import { router as messagesRouter } from "./chatRouters";
+import { router as opportunitiesRouter } from "./opportunitiesRouters";
+import { router as applicationsRouter } from "./applicationsRouters";
 
 const API_VERSION = process.env.API_VERSION || "v1";
 const router = Router();
 
-router.use(`/${API_VERSION}/auth`, authRouter);
-router.use(`/${API_VERSION}/messages`, chatRouter);
-router.use(`/${API_VERSION}/opportunities`, opportunitiesRouter);
+router.use(`${url}/auth`, authRouter);
+router.use(`${url}/messages`, messagesRouter);
+router.use(`${url}/opportunities`, opportunitiesRouter);
+router.use(`${url}/applications`, applicationsRouter);
 
 router.all(`/${API_VERSION}/`, (req, res) => {
   return res

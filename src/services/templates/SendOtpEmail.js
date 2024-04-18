@@ -63,7 +63,7 @@ export const sendOtpEmail = (emailData) => {
               <p>To finish your registration, please use this OTP:</p>
           </div>
           <div class="button-container" style="text-align: center;">
-              <p href="#" class="button"><b>${otp}</b></p>
+              <p class="button"><b>${otp}</b></p>
           </div>
           <div class="content">
               <p>Thank you for choosing Creator Platform. We look forward to having you as part of our community.</p>

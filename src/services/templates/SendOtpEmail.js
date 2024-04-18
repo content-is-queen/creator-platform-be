@@ -42,7 +42,7 @@ export const sendOtpEmail = (emailData) => {
           .button {
               display: inline-block;
               background-color: #3677ed;
-              color: #ffffff;
+              color: #ffffff !important;
               padding: 10px 20px;
               border-radius: 5px;
               text-decoration: none;
@@ -59,11 +59,10 @@ export const sendOtpEmail = (emailData) => {
               <p>Hello ${emailData.name},</p>
               <p> we kindly request you to verify your email address.
   
-  Please use the following OTP (One-Time Password) to verify your email:.</p>
-              <p>To finish your registration, please use this OTP:</p>
+  Please copy or click to the following OTP (One-Time Password) to verify your email:</p>
           </div>
           <div class="button-container" style="text-align: center;">
-              <p class="button"><b>${otp}</b></p>
+              <a class="button" href="${process.env.FRONT_END_URL}/verify?otp=${otp}"><b>${otp}</b></a>
           </div>
           <div class="content">
               <p>Thank you for choosing Creator Platform. We look forward to having you as part of our community.</p>

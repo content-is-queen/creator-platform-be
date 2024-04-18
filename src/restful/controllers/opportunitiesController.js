@@ -2,6 +2,7 @@ const dotenv = require("dotenv");
 const { Util } = require("../../helper/utils");
 const admin = require("firebase-admin");
 const { v4: uuidv4 } = require("uuid"); // Import uuidv4 directly
+const { application } = require("express");
 
 dotenv.config();
 /**
@@ -230,15 +231,18 @@ class OpportunitiesController {
     try {
       // Generate UUID for opportunity_id
       const opportunity_id = uuidv4();
-
+  
       // Extract opportunity data from request body
       const { ...opportunityData } = req.body;
-
+  
       // Set default status to "open" if not provided
       if (!opportunityData.hasOwnProperty("status")) {
         opportunityData.status = "open";
       }
-
+  
+      // Set total_applications to 0
+      opportunityData.total_applications = 0;
+  
       // Validate required fields
       const requiredFields = getRequiredFields(type);
       const isValid = requiredFields.every((field) =>
@@ -249,7 +253,7 @@ class OpportunitiesController {
         util.message = `Missing or invalid fields for ${type} opportunity`;
         return util.send(res);
       }
-
+  
       // Check if opportunity with same ID already exists
       const existingOpportunity = await db
         .collection("opportunities")
@@ -260,7 +264,7 @@ class OpportunitiesController {
         util.message = "Opportunity with same ID already exists";
         return util.send(res);
       }
-
+  
       // Store the opportunity data in the opportunities collection
       await db
         .collection("opportunities")
@@ -270,7 +274,7 @@ class OpportunitiesController {
           type,
           ...opportunityData,
         });
-
+  
       util.statusCode = 201;
       util.message = "Opportunity created successfully";
       return util.send(res);
@@ -281,6 +285,7 @@ class OpportunitiesController {
       return util.send(res);
     }
   }
+  
 
   static async createJobOpportunity(req, res) {
     return OpportunitiesController.createOpportunity(req, res, "job");
@@ -309,6 +314,7 @@ function getRequiredFields(type) {
         "compensation",
         "deadline",
         "contract_type",
+        "total_applications"
       ];
     case "pitch":
       return [
@@ -321,6 +327,7 @@ function getRequiredFields(type) {
         "submission",
         "deadline",
         "contract_type",
+        "total_applications"
       ];
     case "campaign":
       return [
@@ -334,6 +341,7 @@ function getRequiredFields(type) {
         "requirements",
         "deadline",
         "contract_type",
+        "total_applications"
       ];
     default:
       return [];

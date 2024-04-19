@@ -14,6 +14,8 @@ const protect = async (req, res, next) => {
     try {
       token = req.headers.authorization.split(" ")[1];
       const decodedToken = await admin.auth().verifyIdToken(token);
+      const refreshedUser = await admin.auth().getUser(decodedToken.uid, true);
+      console.log(refreshedUser, "Refleshed user .......");
       req.user = decodedToken;
       next();
     } catch (error) {

@@ -2,7 +2,9 @@ const dotenv = require("dotenv");
 const { Util } = require("../../helper/utils");
 /* eslint-disable quotes */
 const { sendOtpEmail } = require("../../services/templates/SendOtpEmail");
-const { SendPasswordReset } = require("../../services/templates/SendPasswordReset");
+const {
+  SendPasswordReset,
+} = require("../../services/templates/SendPasswordReset");
 const { transporter } = require("../../helper/mailHelper");
 const otpGenerator = require("otp-generator");
 const admin = require("firebase-admin");
@@ -159,11 +161,12 @@ class AuthController {
         util.message = "Invalid OTP";
         return util.send(res);
       }
-      const currentClaims = (await admin.auth().getUser(uid)).customClaims || {};
+      const currentClaims =
+        (await admin.auth().getUser(uid)).customClaims || {};
       const updatedClaims = {
-          ...currentClaims,
-          emailVerified: true
-      }
+        ...currentClaims,
+        emailVerified: true,
+      };
       await admin.auth().setCustomUserClaims(uid, updatedClaims);
       await db.collection("otp").doc(email).delete();
 
@@ -190,54 +193,57 @@ class AuthController {
       const resetLink = await admin
         .auth()
         .generatePasswordResetLink(email, actionCodeSettings);
-        const mailOptions = {
-          from: process.env.EMAIL,
-          to: email,
-          subject: "Password Reset Request for Your Creator Platform Account",
-          html: SendPasswordReset(resetLink),
-        };
-        await transporter.sendMail(mailOptions);
+      const mailOptions = {
+        from: process.env.EMAIL,
+        to: email,
+        subject: "Password Reset Request for Your Creator Platform Account",
+        html: SendPasswordReset(resetLink),
+      };
+      await transporter.sendMail(mailOptions);
 
       return res
         .status(200)
-        .json({ message: "Password reset email sent successfully"});
+        .json({ message: "Password reset email sent successfully" });
     } catch (error) {
       console.error("Error resetting user password:", error);
       return res.status(500).json({ message: error.message || "Server error" });
     }
   }
 
-  static async profile(req, res) {
+  static async getUserProfile(req, res) {
     const { user_id, role } = req.user;
     const db = admin.firestore();
 
     try {
-            const docRef = db.collection(`users/${role}/users`).doc(user_id);
-            const docSnapshot = await docRef.get({ source: 'cache' }); 
-            if (docSnapshot.exists) {
-                const serverSnapshot = await docRef.get();
-                if (!serverSnapshot.exists || serverSnapshot.updateTime === docSnapshot.updateTime) {
-                    util.statusCode = 200;
-                    util.message = docSnapshot.data();
-                    return util.send(res);
-                } else {
-                    util.statusCode = 200;
-                    util.message = serverSnapshot.data();
-                    return util.send(res);
-                }
-            }
-        util.statusCode = 404;
-        util.message = "No such document!";
-        return util.send(res);
+      const docRef = db.collection(`users/${role}/users`).doc(user_id);
+      const docSnapshot = await docRef.get({ source: "cache" });
+      if (docSnapshot.exists) {
+        const serverSnapshot = await docRef.get();
+        if (
+          !serverSnapshot.exists ||
+          serverSnapshot.updateTime === docSnapshot.updateTime
+        ) {
+          util.statusCode = 200;
+          util.message = docSnapshot.data();
+          return util.send(res);
+        } else {
+          util.statusCode = 200;
+          util.message = serverSnapshot.data();
+          return util.send(res);
+        }
+      }
+      util.statusCode = 404;
+      util.message = "No such document!";
+      return util.send(res);
     } catch (error) {
-        console.error("Error fetching user profile:", error);
-        util.statusCode = 500;
-        util.message = error.message || "Server error";
-        return util.send(res);
+      console.error("Error fetching user profile:", error);
+      util.statusCode = 500;
+      util.message = error.message || "Server error";
+      return util.send(res);
     }
-}
+  }
 
-  static async GetAllUsersprofile(req, res) {
+  static async getAllUserProfiles(req, res) {
     const userArray = [];
     const db = admin.firestore();
     const usersCollection = db.collection("users");

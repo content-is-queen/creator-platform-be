@@ -208,30 +208,34 @@ class AuthController {
   }
 
   static async profile(req, res) {
-    const { user_id } = req.user;
+    const { user_id, role } = req.user;
     const db = admin.firestore();
 
     try {
-      const roles = ["brand", "creator" /* Add other roles as needed */];
-      for (const role of roles) {
-        const docRef = db.collection(`users/${role}/users`).doc(user_id);
-        const docSnapshot = await docRef.get();
-        if (docSnapshot.exists) {
-          util.statusCode = 200;
-          util.message = docSnapshot.data();
-          return util.send(res);
-        }
-      }
-      util.statusCode = 404;
-      util.message = "No such document!";
-      return util.send(res);
+            const docRef = db.collection(`users/${role}/users`).doc(user_id);
+            const docSnapshot = await docRef.get({ source: 'cache' }); 
+            if (docSnapshot.exists) {
+                const serverSnapshot = await docRef.get();
+                if (!serverSnapshot.exists || serverSnapshot.updateTime === docSnapshot.updateTime) {
+                    util.statusCode = 200;
+                    util.message = docSnapshot.data();
+                    return util.send(res);
+                } else {
+                    util.statusCode = 200;
+                    util.message = serverSnapshot.data();
+                    return util.send(res);
+                }
+            }
+        util.statusCode = 404;
+        util.message = "No such document!";
+        return util.send(res);
     } catch (error) {
-      console.error("Error fetching user profile:", error);
-      util.statusCode = 500;
-      util.message = error.message || "Server error";
-      return util.send(res);
+        console.error("Error fetching user profile:", error);
+        util.statusCode = 500;
+        util.message = error.message || "Server error";
+        return util.send(res);
     }
-  }
+}
 
   static async GetAllUsersprofile(req, res) {
     const userArray = [];

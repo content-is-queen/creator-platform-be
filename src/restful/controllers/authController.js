@@ -184,16 +184,16 @@ class AuthController {
       const db = admin.firestore();
 
       // Construct the path to the user document based on the role and user ID
-      const userDocRef = db.collection("users").doc(user_id);
+      const usersCollection = db.collection("users").doc(user_id);
 
-      const userDoc = await userDocRef.get();
-      if (!userDoc.exists) {
+      const querySnapshot = await usersCollection.get();
+      if (!querySnapshot.exists) {
         util.statusCode = 404;
         util.message = "User not found";
         return util.send(res);
       }
 
-      const userData = userDoc.data();
+      const userData = querySnapshot.data();
       // Extract bio and imageUrl from the user document
       const nonSensitiveData = {
         first_name: userData.first_name,
@@ -214,27 +214,26 @@ class AuthController {
   }
 
   static async getAllUsers(req, res) {
-    const users = [];
-    const db = admin.firestore();
-    const usersCollection = db.collection("users");
-
     try {
-      const querySnapshot = await usersCollection.get();
-      for (const doc of querySnapshot.docs) {
-        const usersRef = doc.ref.collection("users");
-        const usersSnapshot = await usersRef.get();
+      const db = admin.firestore();
+      const usersCollection = db.collection("users");
 
-        usersSnapshot.forEach((userDoc) => {
-          const transformedObject = {
-            ...userDoc.data(),
-            role: doc.id,
-          };
-          users.push(transformedObject);
+      const querySnapshot = await usersCollection.get();
+
+      const users = [];
+
+      if (!querySnapshot.empty) {
+        querySnapshot.forEach((doc) => {
+          const userObj = doc.data();
+
+          // Only push objects with a uid field
+          if (userObj.hasOwnProperty("uid")) {
+            users.push(userObj);
+          }
         });
       }
-      util.statusCode = 200;
-      util.message = users;
-      return util.send(res);
+
+      return res.status(200).json(users);
     } catch (error) {
       util.statusCode = 500;
       util.message = error.mesage || "Server error";

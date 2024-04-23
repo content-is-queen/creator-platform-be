@@ -239,6 +239,52 @@ class AuthController {
     }
   }
 
+  static async getNonSensitiveProfile(req, res) {
+    try {
+      const { userId, role } = req.params; // Extract user ID and role from URL params
+
+      if (!userId || !role) {
+        util.statusCode = 400;
+        util.message = "User ID and role are required";
+        return util.send(res);
+      }
+
+      const db = admin.firestore();
+
+      // Construct the path to the user document based on the role and user ID
+      const userDocRef = db
+        .collection("users")
+        .doc(role)
+        .collection("users")
+        .doc(userId);
+
+      const userDoc = await userDocRef.get();
+      if (!userDoc.exists) {
+        util.statusCode = 404;
+        util.message = "User not found";
+        return util.send(res);
+      }
+
+      const userData = userDoc.data();
+      // Extract bio and imageUrl from the user document
+      const nonSensitiveData = {
+        first_name: userData.first_name,
+        last_name: userData.last_name,
+        imageUrl: userData.imageUrl, // Assuming this field exists in the user document
+        bio: userData.bio, // Assuming this field exists in the user document
+      };
+
+      util.statusCode = 200;
+      util.message = nonSensitiveData;
+      return util.send(res);
+    } catch (error) {
+      console.error("Error fetching non-sensitive profile:", error);
+      util.statusCode = 500;
+      util.message = error.message || "Server error";
+      return util.send(res);
+    }
+  }
+
   static async getAllUserProfiles(req, res) {
     const userArray = [];
     const db = admin.firestore();

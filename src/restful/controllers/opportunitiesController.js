@@ -17,47 +17,58 @@ class OpportunitiesController {
    * @returns {Object} response Object.
    */
 
-  static async getAllOpportunities(req, res) {
+  static async getAllOpportunities (req, res) {
     const db = admin.firestore();
-    try {
-      const opportunitiesData = [];
 
-      // Recursive function to fetch all documents and subcollections
-      const getAllDocuments = async (collectionRef) => {
-        const querySnapshot = await collectionRef.get();
+  try {
+    const opportunitiesData = [];
 
-        // Iterate over each document
+    // Fetch opportunities data from Firestore cache or server
+    const querySnapshot = await db.collection("opportunities").get({ source: 'cache' });
+
+    // Check if cached data is up-to-date
+    if (!querySnapshot.empty) {
+      const serverSnapshot = await db.collection("opportunities").get();
+      const serverUpdateTime = serverSnapshot.docs[0].updateTime.toDate();
+
+      if (serverUpdateTime === querySnapshot.docs[0].updateTime.toDate()) {
+        // Cached data is up-to-date, return it
         querySnapshot.forEach((doc) => {
           const opportunityData = doc.data();
           opportunitiesData.push(opportunityData);
-
-          // Fetch subcollections recursively
-          const subcollections = doc.ref.listCollections();
-          subcollections
-            .then((subcollectionRefs) => {
-              subcollectionRefs.forEach((subcollectionRef) => {
-                getAllDocuments(subcollectionRef);
-              });
-            })
-            .catch((error) => {
-              console.error("Error fetching subcollections:", error);
-            });
         });
-      };
 
-      // Start fetching documents from the root collection
-      await getAllDocuments(db.collection("opportunities"));
-
-      util.statusCode = 200;
-      util.message = opportunitiesData;
-      return util.send(res);
-    } catch (error) {
-      console.log(error);
-      util.statusCode = 500;
-      util.message = error.message || "Server error";
-      return util.send(res);
+        if (opportunitiesData.length > 0) {
+          util.statusCode = 200;
+          util.message = opportunitiesData;
+          return util.send(res);
+        } else {
+          util.statusCode = 404;
+          util.message = "Not found";
+          return util.send(res);
+        }
+      }
     }
+
+    // Cached data is outdated or not available, fetch latest data from Firestore
+    const updatedData = [];
+    querySnapshot.forEach((doc) => {
+      updatedData.push(doc.data());
+    });
+
+    // Update cache with latest data
+    await db.collection("opportunities").get({ source: 'server' });
+
+    util.statusCode = 200;
+    util.message = updatedData;
+    return util.send(res);
+  } catch (error) {
+    console.error("Error fetching opportunities:", error);
+    util.statusCode = 500;
+    util.message = error.message || "Server error";
+    return util.send(res);
   }
+  };
 
   static async getAllOpportunitiesByUserId(req, res) {
     const db = admin.firestore();
@@ -207,6 +218,7 @@ class OpportunitiesController {
       // Prepare the update object with only provided fields
       const updateData = {};
       requiredFields.forEach((field) => {
+        // eslint-disable-next-line no-prototype-builtins
         if (req.body.hasOwnProperty(field)) {
           updateData[field] = req.body[field];
         }
@@ -235,6 +247,7 @@ class OpportunitiesController {
       const { ...opportunityData } = req.body;
 
       // Set default status to "open" if not provided
+      // eslint-disable-next-line no-prototype-builtins
       if (!opportunityData.hasOwnProperty("status")) {
         opportunityData.status = "open";
       }

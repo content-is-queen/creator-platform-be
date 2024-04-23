@@ -16,7 +16,7 @@ class ChatController {
    */
 
   static async sendMessage(req, res) {
-    console.log(req.body);
+
     try {
       const db = admin.firestore();
       const { fullName, id, profile_image, receiver, sender, message } =
@@ -109,7 +109,7 @@ class ChatController {
       let users = [];
       let nextPageToken;
       do {
-        let result = await admin.auth().listUsers(1000, nextPageToken);
+        const result = await admin.auth().listUsers(1000, nextPageToken);
         nextPageToken = result.pageToken;
         users = users.concat(result.users);
       } while (nextPageToken);

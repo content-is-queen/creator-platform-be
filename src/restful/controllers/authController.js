@@ -27,14 +27,12 @@ class AuthController {
 
   static async signupCreator(req, res) {
     const { first_name, last_name, email, password } = req.body;
-    const displayName = `${first_name} ${last_name}`;
 
     const db = admin.firestore();
     try {
       const user = await admin.auth().createUser({
         email,
         password,
-        displayName,
       });
       const uid = user.uid;
       await admin.auth().setCustomUserClaims(uid, { role: "creator" });
@@ -85,14 +83,12 @@ class AuthController {
   static async signupBrand(req, res) {
     const { first_name, last_name, email, organization_name, password } =
       req.body;
-    const displayName = `${first_name} ${last_name}`;
 
     const db = admin.firestore();
     try {
       const user = await admin.auth().createUser({
         email,
         password,
-        displayName,
       });
       const uid = user.uid;
       await admin.auth().setCustomUserClaims(uid, { role: "brand" });

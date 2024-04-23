@@ -11,4 +11,7 @@ router.patch("/profile", protect, AuthController.updateProfile);
 router.post("/verify", AuthController.verifyOtp);
 router.post("/reset", AuthController.resetUserPassword);
 
+// New route for fetching non-sensitive user profile data
+router.get("/profile/:role/:userId", AuthController.getNonSensitiveProfile);
+
 module.exports.authRouter = router;

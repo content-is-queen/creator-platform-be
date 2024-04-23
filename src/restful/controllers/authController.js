@@ -20,14 +20,12 @@ class AuthController {
 
   static async signupCreator(req, res) {
     const { first_name, last_name, email, password } = req.body;
-    const displayName = `${first_name} ${last_name}`;
 
     const db = admin.firestore();
     try {
       const user = await admin.auth().createUser({
         email,
         password,
-        displayName,
       });
       const uid = user.uid;
       await admin.auth().setCustomUserClaims(uid, { role: "creator" });
@@ -61,14 +59,12 @@ class AuthController {
   static async signupBrand(req, res) {
     const { first_name, last_name, email, organization_name, password } =
       req.body;
-    const displayName = `${first_name} ${last_name}`;
 
     const db = admin.firestore();
     try {
       const user = await admin.auth().createUser({
         email,
         password,
-        displayName,
       });
       const uid = user.uid;
       await admin.auth().setCustomUserClaims(uid, { role: "brand" });
@@ -128,45 +124,49 @@ class AuthController {
 
   static async getNonSensitiveProfile(req, res) {
     try {
-        const { userId, role } = req.params; // Extract user ID and role from URL params
+      const { userId, role } = req.params; // Extract user ID and role from URL params
 
-        if (!userId || !role) {
-            util.statusCode = 400;
-            util.message = "User ID and role are required";
-            return util.send(res);
-        }
-
-        const db = admin.firestore();
-
-        // Construct the path to the user document based on the role and user ID
-        const userDocRef = db.collection("users").doc(role).collection("users").doc(userId);
-
-        const userDoc = await userDocRef.get();
-        if (!userDoc.exists) {
-            util.statusCode = 404;
-            util.message = "User not found";
-            return util.send(res);
-        }
-
-        const userData = userDoc.data();
-        // Extract bio and imageUrl from the user document
-        const nonSensitiveData = {
-            imageUrl: userData.imageUrl, // Assuming this field exists in the user document
-            bio: userData.bio, // Assuming this field exists in the user document
-        };
-
-        util.statusCode = 200;
-        util.message = nonSensitiveData;
+      if (!userId || !role) {
+        util.statusCode = 400;
+        util.message = "User ID and role are required";
         return util.send(res);
+      }
+
+      const db = admin.firestore();
+
+      // Construct the path to the user document based on the role and user ID
+      const userDocRef = db
+        .collection("users")
+        .doc(role)
+        .collection("users")
+        .doc(userId);
+
+      const userDoc = await userDocRef.get();
+      if (!userDoc.exists) {
+        util.statusCode = 404;
+        util.message = "User not found";
+        return util.send(res);
+      }
+
+      const userData = userDoc.data();
+      // Extract bio and imageUrl from the user document
+      const nonSensitiveData = {
+        first_name: userData.first_name,
+        last_name: userData.last_name,
+        imageUrl: userData.imageUrl, // Assuming this field exists in the user document
+        bio: userData.bio, // Assuming this field exists in the user document
+      };
+
+      util.statusCode = 200;
+      util.message = nonSensitiveData;
+      return util.send(res);
     } catch (error) {
-        console.error("Error fetching non-sensitive profile:", error);
-        util.statusCode = 500;
-        util.message = error.message || "Server error";
-        return util.send(res);
+      console.error("Error fetching non-sensitive profile:", error);
+      util.statusCode = 500;
+      util.message = error.message || "Server error";
+      return util.send(res);
     }
-}
-
-
+  }
 
   static async GetAllUsersprofile(req, res) {
     const userArray = [];

@@ -25,8 +25,8 @@ class AuthController {
    * @returns {Object} response Object.
    */
 
-  static async signupCreator(req, res) {
-    const { first_name, last_name, email, password } = req.body;
+  static async signup(req, res) {
+    const { first_name, last_name, email, password, role, ...other } = req.body;
 
     const db = admin.firestore();
     try {
@@ -35,7 +35,7 @@ class AuthController {
         password,
       });
       const uid = user.uid;
-      await admin.auth().setCustomUserClaims(uid, { role: "creator" });
+      await admin.auth().setCustomUserClaims(uid, { role });
       const code = otpGenerator.generate(5, {
         digits: true,
         upperCase: false,
@@ -59,80 +59,12 @@ class AuthController {
       const emailsent = await transporter.sendMail(mailOptions);
       if (emailsent) {
         const usersCollectionRef = db.collection("users");
-        const creatorDocRef = usersCollectionRef.doc("creator");
-        const creatorDocSnapshot = await creatorDocRef.get();
-        if (!creatorDocSnapshot.exists) {
-          await creatorDocRef.set({});
-        }
-        const usersCreatorCollectionRef = creatorDocRef.collection("users");
-        await usersCreatorCollectionRef
+
+        await usersCollectionRef
           .doc(user.uid)
-          .set({ uid: user.uid, first_name, last_name, role: "creator" });
+          .set({ uid: user.uid, first_name, last_name, role, ...other });
         util.statusCode = 200;
         util.setSuccess(200, "Success", { email, uid });
-        return util.send(res);
-      }
-    } catch (error) {
-      const errorMessage = error?.errorInfo?.message;
-      util.statusCode = 500;
-      util.message = errorMessage || error.message || "Server error";
-      return util.send(res);
-    }
-  }
-
-  static async signupBrand(req, res) {
-    const { first_name, last_name, email, organization_name, password } =
-      req.body;
-
-    const db = admin.firestore();
-    try {
-      const user = await admin.auth().createUser({
-        email,
-        password,
-      });
-      const uid = user.uid;
-      await admin.auth().setCustomUserClaims(uid, { role: "brand" });
-      const code = otpGenerator.generate(5, {
-        digits: true,
-        upperCase: false,
-        specialChars: false,
-        alphabets: false,
-      });
-      await db.collection("otp").doc(email).set({
-        otp: code,
-      });
-      const emailTemplate = sendOtpEmail({
-        name: first_name,
-        email: user.email,
-        otp: code,
-      });
-      const mailOptions = {
-        from: process.env.EMAIL,
-        to: user.email,
-        subject: "Creator Platform Account Verification",
-        html: emailTemplate,
-      };
-      const emailsent = await transporter.sendMail(mailOptions);
-      if (emailsent) {
-        const usersCollectionRef = db.collection("users");
-        const brandDocRef = usersCollectionRef.doc("brand");
-        const brandDocSnapshot = await brandDocRef.get();
-
-        if (!brandDocSnapshot.exists) {
-          await brandDocRef.set({});
-        }
-
-        const usersBrandCollectionRef = brandDocRef.collection("users");
-        await usersBrandCollectionRef.doc(user.uid).set({
-          uid: user.uid,
-          first_name,
-          last_name,
-          organization_name,
-          role: "brand",
-        });
-        util.message = "User signed up successfully";
-        const data = { uid, email: user.email };
-        util.setSuccess(200, "User signed up successfully", data);
         return util.send(res);
       }
     } catch (error) {
@@ -206,12 +138,12 @@ class AuthController {
     }
   }
 
-  static async getUserProfile(req, res) {
-    const { user_id, role } = req.user;
+  static async getUser(req, res) {
+    const { user_id } = req.user;
     const db = admin.firestore();
 
     try {
-      const docRef = db.collection(`users/${role}/users`).doc(user_id);
+      const docRef = db.collection("users").doc(user_id);
       const docSnapshot = await docRef.get({ source: "cache" });
       if (docSnapshot.exists) {
         const serverSnapshot = await docRef.get();
@@ -232,44 +164,41 @@ class AuthController {
       util.message = "No such document!";
       return util.send(res);
     } catch (error) {
-      console.error("Error fetching user profile:", error);
+      console.error("Error fetching user:", error);
       util.statusCode = 500;
       util.message = error.message || "Server error";
       return util.send(res);
     }
   }
 
-  static async getNonSensitiveProfile(req, res) {
+  static async getPublicUser(req, res) {
     try {
-      const { userId, role } = req.params; // Extract user ID and role from URL params
+      const { user_id } = req.params; // Extract user ID from URL params
 
-      if (!userId || !role) {
+      if (!user_id) {
         util.statusCode = 400;
-        util.message = "User ID and role are required";
+        util.message = "User ID is required";
         return util.send(res);
       }
 
       const db = admin.firestore();
 
       // Construct the path to the user document based on the role and user ID
-      const userDocRef = db
-        .collection("users")
-        .doc(role)
-        .collection("users")
-        .doc(userId);
+      const usersCollection = db.collection("users").doc(user_id);
 
-      const userDoc = await userDocRef.get();
-      if (!userDoc.exists) {
+      const querySnapshot = await usersCollection.get();
+      if (!querySnapshot.exists) {
         util.statusCode = 404;
         util.message = "User not found";
         return util.send(res);
       }
 
-      const userData = userDoc.data();
+      const userData = querySnapshot.data();
       // Extract bio and imageUrl from the user document
       const nonSensitiveData = {
         first_name: userData.first_name,
         last_name: userData.last_name,
+        role: userData.role,
         imageUrl: userData.imageUrl, // Assuming this field exists in the user document
         bio: userData.bio, // Assuming this field exists in the user document
       };
@@ -285,28 +214,27 @@ class AuthController {
     }
   }
 
-  static async getAllUserProfiles(req, res) {
-    const userArray = [];
-    const db = admin.firestore();
-    const usersCollection = db.collection("users");
-
+  static async getAllUsers(req, res) {
     try {
-      const querySnapshot = await usersCollection.get();
-      for (const doc of querySnapshot.docs) {
-        const usersRef = doc.ref.collection("users");
-        const usersSnapshot = await usersRef.get();
+      const db = admin.firestore();
+      const usersCollection = db.collection("users");
 
-        usersSnapshot.forEach((userDoc) => {
-          const transformedObject = {
-            ...userDoc.data(),
-            role: doc.id,
-          };
-          userArray.push(transformedObject);
+      const querySnapshot = await usersCollection.get();
+
+      const users = [];
+
+      if (!querySnapshot.empty) {
+        querySnapshot.forEach((doc) => {
+          const userObj = doc.data();
+
+          // Only push objects with a uid field
+          if (userObj.hasOwnProperty("uid")) {
+            users.push(userObj);
+          }
         });
       }
-      util.statusCode = 200;
-      util.message = userArray;
-      return util.send(res);
+
+      return res.status(200).json(users);
     } catch (error) {
       util.statusCode = 500;
       util.message = error.mesage || "Server error";
@@ -314,15 +242,13 @@ class AuthController {
     }
   }
 
-  static async updateProfile(req, res) {
+  static async updateUser(req, res) {
     try {
-      const { first_name, last_name, bio, role } = req.body;
+      const { first_name, last_name, bio } = req.body;
       const file = req.files?.profilePicture;
       if (!file || file === undefined || file === null) {
         const docRef = admin
           .firestore()
-          .collection("users")
-          .doc(role)
           .collection("users")
           .doc(req.user.user_id);
         await docRef.set({ first_name, last_name, bio }, { merge: true });
@@ -346,8 +272,6 @@ class AuthController {
             const imageUrl = snapshot[0].metadata.mediaLink;
             const docRef = admin
               .firestore()
-              .collection("users")
-              .doc(role)
               .collection("users")
               .doc(req.user.user_id);
             await docRef.set(

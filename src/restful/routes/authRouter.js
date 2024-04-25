@@ -1,17 +1,17 @@
 const { Router } = require("express");
 const { AuthController } = require("../controllers/authController");
-const { protect } = require("../../middlewares");
+const { protect } = require("../../middleware");
 
 const router = Router();
 
-router.get("/profile", protect, AuthController.getUserProfile);
-router.post("/signup/brand", AuthController.signupBrand);
-router.post("/signup/creator", AuthController.signupCreator);
-router.patch("/profile", protect, AuthController.updateProfile);
+router.get("/user", protect, AuthController.getUser);
+router.patch("/user", protect, AuthController.updateUser);
+
+router.get("/users", AuthController.getAllUsers);
+router.post("/signup", AuthController.signup);
 router.post("/verify", AuthController.verifyOtp);
 router.post("/reset", AuthController.resetUserPassword);
 
-// New route for fetching non-sensitive user profile data
-router.get("/profile/:role/:userId", AuthController.getNonSensitiveProfile);
+router.get("/user/:user_id", AuthController.getPublicUser);
 
 module.exports.authRouter = router;

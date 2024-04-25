@@ -1,6 +1,6 @@
 const { Router } = require("express");
 const { ChatController } = require("../controllers/chatController.js");
-const { protect } = require("../../middlewares/index.js");
+const { protect } = require("../../middleware/index.js");
 
 const router = Router();
 

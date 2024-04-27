@@ -1,3 +1,4 @@
+/* eslint-disable no-prototype-builtins */
 const dotenv = require("dotenv");
 const { Util } = require("../../helper/utils");
 /* eslint-disable quotes */
@@ -44,7 +45,7 @@ class AuthController {
       });
       await db.collection("otp").doc(email).set({
         otp: code,
-      });
+      }, { merge: true });
       const emailTemplate = sendOtpEmail({
         name: first_name,
         email: user.email,

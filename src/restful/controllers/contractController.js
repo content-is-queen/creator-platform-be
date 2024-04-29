@@ -10,82 +10,95 @@ const util = new Util();
 dotenv.config();
 
 class ContractController {
-
-
   static async createContract(req, res) {
     const db = admin.firestore();
     try {
-        const { status, description, deadline, duration, client_id, creator_id, opportunity_id } = req.body;
+      const {
+        status,
+        description,
+        deadline,
+        duration,
+        client_id,
+        creator_id,
+        opportunity_id,
+      } = req.body;
 
-        // Validate required fields
-        if (!status || !description || !deadline || !duration || !client_id || !creator_id || !opportunity_id) {
-            return res.status(400).json({ message: "Missing required fields" });
-        }
+      // Validate required fields
+      if (
+        !status ||
+        !description ||
+        !deadline ||
+        !duration ||
+        !client_id ||
+        !creator_id ||
+        !opportunity_id
+      ) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
 
-        // Generate UID for the contract
-        const contract_id = uuidv4();
+      // Generate UID for the contract
+      const contract_id = uuidv4();
 
-        // Create the contract document
-        await db.collection("contracts").doc(contract_id).set({
-            contract_id,
-            status,
-            description,
-            deadline,
-            duration,
-            client_id,
-            creator_id,
-            opportunity_id
-        });
+      // Create the contract document
+      await db.collection("contracts").doc(contract_id).set({
+        contract_id,
+        status,
+        description,
+        deadline,
+        duration,
+        client_id,
+        creator_id,
+        opportunity_id,
+      });
 
-        return res.status(201).json({ message: "Contract created successfully", contract_id });
+      return res
+        .status(201)
+        .json({ message: "Contract created successfully", contract_id });
     } catch (error) {
-        console.error("Error creating contract:", error);
-        return res.status(500).json({ message: "Server error" });
+      console.error("Error creating contract:", error);
+      return res.status(500).json({ message: "Server error" });
     }
-}
+  }
 
-static async deleteContractById(req, res) {
-  const db = admin.firestore();
-  try {
+  static async deleteContractById(req, res) {
+    const db = admin.firestore();
+    try {
       const { contract_id } = req.params;
 
       // Check if the contract exists
       const contractRef = db.collection("contracts").doc(contract_id);
       const contractSnapshot = await contractRef.get();
       if (!contractSnapshot.exists) {
-          return res.status(404).json({ message: "Contract not found" });
+        return res.status(404).json({ message: "Contract not found" });
       }
 
       // Delete the contract
       await contractRef.delete();
 
       return res.status(200).json({ message: "Contract deleted successfully" });
-  } catch (error) {
+    } catch (error) {
       console.error("Error deleting contract by ID:", error);
       return res.status(500).json({ message: "Server error" });
+    }
   }
-}
-
 
   static async getAllContracts(req, res) {
     const db = admin.firestore();
     try {
-        const contractsData = [];
-        const contractsSnapshot = await db.collection("contracts").get();
+      const contractsData = [];
+      const contractsSnapshot = await db.collection("contracts").get();
 
-        contractsSnapshot.forEach((doc) => {
-            const contractData = doc.data();
-            contractsData.push(contractData);
-        });
+      contractsSnapshot.forEach((doc) => {
+        const contractData = doc.data();
+        contractsData.push(contractData);
+      });
 
-        return res.status(200).json(contractsData);
+      return res.status(200).json(contractsData);
     } catch (error) {
-        console.error("Error fetching contracts:", error);
-        return res.status(500).json({ message: "Server error" });
+      console.error("Error fetching contracts:", error);
+      return res.status(500).json({ message: "Server error" });
     }
-}
-
-
+  }
 
   static async getContractById(req, res) {
     const db = admin.firestore();

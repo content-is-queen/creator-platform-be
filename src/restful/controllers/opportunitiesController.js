@@ -17,58 +17,61 @@ class OpportunitiesController {
    * @returns {Object} response Object.
    */
 
-  static async getAllOpportunities (req, res) {
+  static async getAllOpportunities(req, res) {
     const db = admin.firestore();
 
-  try {
-    const opportunitiesData = [];
+    try {
+      const opportunitiesData = [];
 
-    // Fetch opportunities data from Firestore cache or server
-    const querySnapshot = await db.collection("opportunities").where("status", "!=", "archived").get({ source: 'cache' });
+      // Fetch opportunities data from Firestore cache or server
+      const querySnapshot = await db
+        .collection("opportunities")
+        .where("status", "!=", "archived")
+        .get({ source: "cache" });
 
-    // Check if cached data is up-to-date
-    if (!querySnapshot.empty) {
-      const serverSnapshot = await db.collection("opportunities").get();
-      const serverUpdateTime = serverSnapshot.docs[0].updateTime.toDate();
+      // Check if cached data is up-to-date
+      if (!querySnapshot.empty) {
+        const serverSnapshot = await db.collection("opportunities").get();
+        const serverUpdateTime = serverSnapshot.docs[0].updateTime.toDate();
 
-      if (serverUpdateTime === querySnapshot.docs[0].updateTime.toDate()) {
-        // Cached data is up-to-date, return it
-        querySnapshot.forEach((doc) => {
-          const opportunityData = doc.data();
-          opportunitiesData.push(opportunityData);
-        });
+        if (serverUpdateTime === querySnapshot.docs[0].updateTime.toDate()) {
+          // Cached data is up-to-date, return it
+          querySnapshot.forEach((doc) => {
+            const opportunityData = doc.data();
+            opportunitiesData.push(opportunityData);
+          });
 
-        if (opportunitiesData.length > 0) {
-          util.statusCode = 200;
-          util.message = opportunitiesData;
-          return util.send(res);
-        } else {
-          util.statusCode = 404;
-          util.message = "Not found";
-          return util.send(res);
+          if (opportunitiesData.length > 0) {
+            util.statusCode = 200;
+            util.message = opportunitiesData;
+            return util.send(res);
+          } else {
+            util.statusCode = 404;
+            util.message = "Not found";
+            return util.send(res);
+          }
         }
       }
+
+      // Cached data is outdated or not available, fetch latest data from Firestore
+      const updatedData = [];
+      querySnapshot.forEach((doc) => {
+        updatedData.push(doc.data());
+      });
+
+      // Update cache with latest data
+      await db.collection("opportunities").get({ source: "server" });
+
+      util.statusCode = 200;
+      util.message = updatedData;
+      return util.send(res);
+    } catch (error) {
+      console.error("Error fetching opportunities:", error);
+      util.statusCode = 500;
+      util.message = error.message || "Server error";
+      return util.send(res);
     }
-
-    // Cached data is outdated or not available, fetch latest data from Firestore
-    const updatedData = [];
-    querySnapshot.forEach((doc) => {
-      updatedData.push(doc.data());
-    });
-
-    // Update cache with latest data
-    await db.collection("opportunities").get({ source: 'server' });
-
-    util.statusCode = 200;
-    util.message = updatedData;
-    return util.send(res);
-  } catch (error) {
-    console.error("Error fetching opportunities:", error);
-    util.statusCode = 500;
-    util.message = error.message || "Server error";
-    return util.send(res);
   }
-  };
 
   static async getAllOpportunitiesByUserId(req, res) {
     const db = admin.firestore();
@@ -164,31 +167,31 @@ class OpportunitiesController {
   static async deleteOpportunityById(req, res) {
     const db = admin.firestore();
     try {
-        const { opportunity_id } = req.params;
+      const { opportunity_id } = req.params;
 
-        if (!opportunity_id) {
-            return res.status(400).json({ message: "Opportunity ID is required" });
-        }
+      if (!opportunity_id) {
+        return res.status(400).json({ message: "Opportunity ID is required" });
+      }
 
-        // Fetch the opportunity document from Firestore
-        const opportunityRef = db.collection("opportunities").doc(opportunity_id);
-        const docSnapshot = await opportunityRef.get();
+      // Fetch the opportunity document from Firestore
+      const opportunityRef = db.collection("opportunities").doc(opportunity_id);
+      const docSnapshot = await opportunityRef.get();
 
-        if (!docSnapshot.exists) {
-            return res.status(404).json({ message: "Opportunity not found" });
-        }
+      if (!docSnapshot.exists) {
+        return res.status(404).json({ message: "Opportunity not found" });
+      }
 
-        // Update the status of the opportunity to "archived"
-        await opportunityRef.update({ status: "archived" });
+      // Update the status of the opportunity to "archived"
+      await opportunityRef.update({ status: "archived" });
 
-        return res.status(200).json({ message: "Opportunity archived successfully" });
+      return res
+        .status(200)
+        .json({ message: "Opportunity archived successfully" });
     } catch (error) {
-        console.error("Error archiving opportunity:", error);
-        return res.status(500).json({ message: "Server error" });
+      console.error("Error archiving opportunity:", error);
+      return res.status(500).json({ message: "Server error" });
     }
-}
-
-
+  }
 
   static async updateOpportunityById(req, res) {
     const db = admin.firestore();

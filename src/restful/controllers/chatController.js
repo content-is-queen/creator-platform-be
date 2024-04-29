@@ -16,7 +16,6 @@ class ChatController {
    */
 
   static async sendMessage(req, res) {
-
     try {
       const db = admin.firestore();
       const { fullName, id, profile_image, receiver, sender, message } =

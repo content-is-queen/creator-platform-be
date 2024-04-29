@@ -44,6 +44,9 @@ router.post("/", async (req, res) => {
 });
 
 // UPDATE endpoint
-router.put("/opportunityid/:opportunity_id", OpportunitiesController.updateOpportunityById); // New route for update
+router.put(
+  "/opportunityid/:opportunity_id",
+  OpportunitiesController.updateOpportunityById,
+); // New route for update
 
 module.exports.opportunitiesRouter = router;

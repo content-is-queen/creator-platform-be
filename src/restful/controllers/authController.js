@@ -1,3 +1,4 @@
+/* eslint-disable no-prototype-builtins */
 const dotenv = require("dotenv");
 const { Util } = require("../../helper/utils");
 /* eslint-disable quotes */
@@ -30,65 +31,64 @@ class AuthController {
 
     const db = admin.firestore();
     try {
-        const user = await admin.auth().createUser({
-            email,
-            password,
-        });
+      const user = await admin.auth().createUser({
+        email,
+        password,
+      });
 
-        const uid = user.uid;
-        await admin.auth().setCustomUserClaims(uid, { role });
+      const uid = user.uid;
+      await admin.auth().setCustomUserClaims(uid, { role });
 
-        const code = otpGenerator.generate(5, {
-            digits: true,
-            upperCase: false,
-            specialChars: false,
-            alphabets: false,
-        });
+      const code = otpGenerator.generate(5, {
+        digits: true,
+        upperCase: false,
+        specialChars: false,
+        alphabets: false,
+      });
 
-        await db.collection("otp").doc(email).set({
-            otp: code,
-        });
+      await db.collection("otp").doc(email).set({
+        otp: code,
+      });
 
-        const emailTemplate = sendOtpEmail({
-            name: first_name,
-            email: user.email,
-            otp: code,
-        });
+      const emailTemplate = sendOtpEmail({
+        name: first_name,
+        email: user.email,
+        otp: code,
+      });
 
-        const mailOptions = {
-            from: process.env.EMAIL,
-            to: user.email,
-            subject: "Creator Platform Account Verification",
-            html: emailTemplate,
-        };
+      const mailOptions = {
+        from: process.env.EMAIL,
+        to: user.email,
+        subject: "Creator Platform Account Verification",
+        html: emailTemplate,
+      };
 
-        const emailSent = await transporter.sendMail(mailOptions);
+      const emailSent = await transporter.sendMail(mailOptions);
 
-        if (emailSent) {
-            const usersCollectionRef = db.collection("users");
+      if (emailSent) {
+        const usersCollectionRef = db.collection("users");
 
-            await usersCollectionRef
-                .doc(user.uid)
-                .set({ uid: user.uid, first_name, last_name, role, ...other });
+        await usersCollectionRef
+          .doc(user.uid)
+          .set({ uid: user.uid, first_name, last_name, role, ...other });
 
-            util.statusCode = 200;
-            util.setSuccess(200, "Success", { email, uid });
-            return util.send(res);
-        } else {
-            // Delete the user if email sending failed
-            await admin.auth().deleteUser(user.uid);
-            util.statusCode = 500;
-            util.message = "Failed to send verification email";
-            return util.send(res);
-        }
-    } catch (error) {
-        const errorMessage = error?.errorInfo?.message;
-        util.statusCode = 500;
-        util.message = errorMessage || error.message || "Server error";
+        util.statusCode = 200;
+        util.setSuccess(200, "Success", { email, uid });
         return util.send(res);
+      } else {
+        // Delete the user if email sending failed
+        await admin.auth().deleteUser(user.uid);
+        util.statusCode = 500;
+        util.message = "Failed to send verification email";
+        return util.send(res);
+      }
+    } catch (error) {
+      const errorMessage = error?.errorInfo?.message;
+      util.statusCode = 500;
+      util.message = errorMessage || error.message || "Server error";
+      return util.send(res);
     }
-}
-
+  }
 
   static async verifyOtp(req, res) {
     try {

@@ -26,6 +26,7 @@ class OpportunitiesController {
       // Fetch opportunities data from Firestore cache or server
       const querySnapshot = await db
         .collection("opportunities")
+        .where("status", "!=", "archived")
         .get({ source: "cache" });
 
       // Check if cached data is up-to-date
@@ -180,14 +181,14 @@ class OpportunitiesController {
         return res.status(404).json({ message: "Opportunity not found" });
       }
 
-      // Delete the opportunity
-      await opportunityRef.delete();
+      // Update the status of the opportunity to "archived"
+      await opportunityRef.update({ status: "archived" });
 
       return res
         .status(200)
-        .json({ message: "Opportunity deleted successfully" });
+        .json({ message: "Opportunity archived successfully" });
     } catch (error) {
-      console.error("Error deleting opportunity by ID:", error);
+      console.error("Error archiving opportunity:", error);
       return res.status(500).json({ message: "Server error" });
     }
   }

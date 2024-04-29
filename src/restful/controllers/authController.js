@@ -295,6 +295,22 @@ class AuthController {
       return util.send(res);
     }
   }
+
+  static async createUsername(req, res) {
+    try {
+      const { user_name } = req.body;
+      const docRef = admin.firestore().collection("users").doc(req.user.user_id);
+      await docRef.set({ user_name }, { merge: true });
+      util.statusCode = 200;
+      util.message = "Username created successfully";
+      return util.send(res);
+    } catch (error) {
+      console.error("Error creating username:", error);
+      util.statusCode = 500;
+      util.message = error.message || "Server error";
+      return util.send(res);
+    }
+  }
 }
 
 exports.AuthController = AuthController;

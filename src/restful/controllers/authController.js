@@ -298,9 +298,12 @@ class AuthController {
 
   static async createUsername(req, res) {
     try {
-      const { user_name } = req.body;
-      const docRef = admin.firestore().collection("users").doc(req.user.user_id);
-      await docRef.set({ user_name }, { merge: true });
+      const { username } = req.body;
+      const docRef = admin
+        .firestore()
+        .collection("users")
+        .doc(req.user.user_id);
+      await docRef.set({ username }, { merge: true });
       util.statusCode = 200;
       util.message = "Username created successfully";
       return util.send(res);

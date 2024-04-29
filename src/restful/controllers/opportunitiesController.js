@@ -24,7 +24,7 @@ class OpportunitiesController {
     const opportunitiesData = [];
 
     // Fetch opportunities data from Firestore cache or server
-    const querySnapshot = await db.collection("opportunities").get({ source: 'cache' });
+    const querySnapshot = await db.collection("opportunities").where("status", "!=", "archived").get({ source: 'cache' });
 
     // Check if cached data is up-to-date
     if (!querySnapshot.empty) {
@@ -164,31 +164,31 @@ class OpportunitiesController {
   static async deleteOpportunityById(req, res) {
     const db = admin.firestore();
     try {
-      const { opportunity_id } = req.params;
+        const { opportunity_id } = req.params;
 
-      if (!opportunity_id) {
-        return res.status(400).json({ message: "Opportunity ID is required" });
-      }
+        if (!opportunity_id) {
+            return res.status(400).json({ message: "Opportunity ID is required" });
+        }
 
-      // Fetch the opportunity document from Firestore
-      const opportunityRef = db.collection("opportunities").doc(opportunity_id);
-      const docSnapshot = await opportunityRef.get();
+        // Fetch the opportunity document from Firestore
+        const opportunityRef = db.collection("opportunities").doc(opportunity_id);
+        const docSnapshot = await opportunityRef.get();
 
-      if (!docSnapshot.exists) {
-        return res.status(404).json({ message: "Opportunity not found" });
-      }
+        if (!docSnapshot.exists) {
+            return res.status(404).json({ message: "Opportunity not found" });
+        }
 
-      // Delete the opportunity
-      await opportunityRef.delete();
+        // Update the status of the opportunity to "archived"
+        await opportunityRef.update({ status: "archived" });
 
-      return res
-        .status(200)
-        .json({ message: "Opportunity deleted successfully" });
+        return res.status(200).json({ message: "Opportunity archived successfully" });
     } catch (error) {
-      console.error("Error deleting opportunity by ID:", error);
-      return res.status(500).json({ message: "Server error" });
+        console.error("Error archiving opportunity:", error);
+        return res.status(500).json({ message: "Server error" });
     }
-  }
+}
+
+
 
   static async updateOpportunityById(req, res) {
     const db = admin.firestore();

@@ -329,6 +329,89 @@ class AuthController {
       return util.send(res);
     }
   }
+
+
+  static async deleteUser(req, res) {
+  const { user_id } = req.user;
+  const db = admin.firestore();
+
+  try {
+    // Get user role
+    const userSnapshot = await db.collection("users").doc(user_id).get();
+    const { role } = userSnapshot.data();
+
+    // Delete user from Authentication service
+    await admin.auth().deleteUser(user_id);
+
+    // Remove user document from Firestore
+    await db.collection("users").doc(user_id).delete();
+
+    // Archive applications where the user is a creator
+    if (role === "creator") {
+      const creatorApplicationsSnapshot = await db.collection("applications").where("creator_id", "==", user_id).get();
+      creatorApplicationsSnapshot.forEach(async (doc) => {
+        await doc.ref.update({ status: "archived" });
+      });
+    }
+
+    // Archive opportunities where the user is a client
+    if (role === "client") {
+      const clientOpportunitiesSnapshot = await db.collection("opportunities").where("client_id", "==", user_id).get();
+      clientOpportunitiesSnapshot.forEach(async (doc) => {
+        await doc.ref.update({ status: "archived" });
+      });
+    }
+
+    util.statusCode = 200;
+    util.message = "User account deleted successfully";
+    return util.send(res);
+  } catch (error) {
+    console.error("Error deleting user account:", error);
+    util.statusCode = 500;
+    util.message = error.message || "Server error";
+    return util.send(res);
+  }
+}
+
+static async deleteUser(req, res) {
+  const { user_id } = req.user;
+  const db = admin.firestore();
+
+  try {
+    // Get user role
+    const userSnapshot = await db.collection("users").doc(user_id).get();
+    const { role } = userSnapshot.data();
+
+    // Delete user from Authentication service
+    await admin.auth().deleteUser(user_id);
+
+    // Remove user document from Firestore
+    await db.collection("users").doc(user_id).delete();
+
+    // Archive applications where the user is a creator or client
+    const applicationsSnapshot = await db.collection("applications").where("user_id", "==", user_id).get();
+    applicationsSnapshot.forEach(async (doc) => {
+      await doc.ref.update({ status: "archived" });
+    });
+
+    // Archive opportunities where the user is a creator or client
+    const opportunitiesSnapshot = await db.collection("opportunities").where("user_id", "==", user_id).get();
+    opportunitiesSnapshot.forEach(async (doc) => {
+      await doc.ref.update({ status: "archived" });
+    });
+
+    util.statusCode = 200;
+    util.message = "User account deleted successfully";
+    return util.send(res);
+  } catch (error) {
+    console.error("Error deleting user account:", error);
+    util.statusCode = 500;
+    util.message = error.message || "Server error";
+    return util.send(res);
+  }
+}
+
+
 }
 
 exports.AuthController = AuthController;

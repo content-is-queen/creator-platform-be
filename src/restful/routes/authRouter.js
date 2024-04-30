@@ -13,5 +13,6 @@ router.post("/verify", AuthController.verifyOtp);
 router.post("/reset", AuthController.resetUserPassword);
 router.post("/username", protect, AuthController.createUsername);
 router.get("/user/:user_id", AuthController.getPublicUser);
+router.delete("/delete", AuthController.deleteUser);
 
 module.exports.authRouter = router;

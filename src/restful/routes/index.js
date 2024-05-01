@@ -5,6 +5,7 @@ const { chatRouter } = require("./chatRouter");
 const { opportunitiesRouter } = require("./opportunitiesRouter");
 const { applicationsRouter } = require("./applicationsRouter");
 const { contractRouter } = require("./contractRouter");
+const { adminRouter } = require("./adminRouter");
 
 const API_VERSION = process.env.API_VERSION || "v1";
 const router = Router();
@@ -14,6 +15,7 @@ router.use(`/${API_VERSION}/messages`, chatRouter);
 router.use(`/${API_VERSION}/opportunities`, opportunitiesRouter);
 router.use(`/${API_VERSION}/applications`, applicationsRouter);
 router.use(`/${API_VERSION}/contracts`, contractRouter);
+router.use(`/${API_VERSION}/admin`, adminRouter);
 
 router.all(`/${API_VERSION}/`, (req, res) => {
   return res

@@ -27,7 +27,78 @@ class AuthController {
    */
 
   
+    static async signup(req, res) {
+      const { first_name, last_name, email, password, role, profile_picture, ...other } = req.body;
   
+      const db = admin.firestore();
+      try {
+          const displayName = `${first_name} ${last_name
+              .split("-")
+              .map((name) => name.charAt(0).toUpperCase())
+              .join("")}`;
+  
+          const user = await admin.auth().createUser({
+              email,
+              password,
+              displayName: displayName, // Set displayName to first name and initials
+              photoURL: profile_picture, // Set photoURL to profile picture
+          });
+  
+          const uid = user.uid;
+          await admin.auth().setCustomUserClaims(uid, { role });
+  
+          const code = otpGenerator.generate(5, {
+              digits: true,
+              upperCase: false,
+              specialChars: false,
+              alphabets: false,
+          });
+  
+          await db.collection("otp").doc(email).set({
+              otp: code,
+          });
+  
+          const emailTemplate = sendOtpEmail({
+              name: displayName,
+              email: user.email,
+              otp: code,
+          });
+  
+          const mailOptions = {
+              from: process.env.EMAIL,
+              to: user.email,
+              subject: "Creator Platform Account Verification",
+              html: emailTemplate,
+          };
+  
+          const emailSent = await transporter.sendMail(mailOptions);
+  
+          if (emailSent) {
+              const usersCollectionRef = db.collection("users");
+  
+              await usersCollectionRef
+                  .doc(user.uid)
+                  .set({ uid: user.uid, first_name, last_name, role, displayName, profile_picture, ...other });
+  
+              util.statusCode = 200;
+              util.setSuccess(200, "Success", { email, uid });
+              return util.send(res);
+          } else {
+              // Delete the user if email sending failed
+              await admin.auth().deleteUser(user.uid);
+              util.statusCode = 500;
+              util.message = "Failed to send verification email";
+              return util.send(res);
+          }
+      } catch (error) {
+          const errorMessage = error?.errorInfo?.message;
+          util.statusCode = 500;
+          util.message = errorMessage || error.message || "Server error";
+          return util.send(res);
+      }
+  }
+  
+   
 
 
   static async verifyOtp(req, res) {
@@ -274,6 +345,55 @@ class AuthController {
   }
 
 
+  static async deleteUser(req, res) {
+    const db = admin.firestore();
+    const { user_id } = req.params;
+    try {
+        // Check if the user is a creator or a client
+        const userDoc = await db.collection("users").doc(user_id).get();
+        if (!userDoc.exists) {
+            util.statusCode = 404;
+            util.message = "User not found";
+            return util.send(res);
+        }
+
+        const userData = userDoc.data();
+        const isCreator = userData.role === "creator";
+
+        // Set the status of existing applications to "archived" if the user is a creator
+        if (isCreator) {
+            const applicationsRef = db.collection("applications");
+            const applicationsQuerySnapshot = await applicationsRef.where("user_id", "==", user_id).get();
+            applicationsQuerySnapshot.forEach(async (doc) => {
+                await doc.ref.update({ status: "archived" });
+            });
+        }
+
+        // Set the status of existing opportunities to "archived" if the user is a client
+        if (!isCreator) {
+            const opportunitiesRef = db.collection("opportunities");
+            const opportunitiesQuerySnapshot = await opportunitiesRef.where("user_id", "==", user_id).get();
+            opportunitiesQuerySnapshot.forEach(async (doc) => {
+                await doc.ref.update({ status: "archived" });
+            });
+        }
+
+        // Delete user from Authentication service
+        await admin.auth().deleteUser(user_id);
+
+        // Remove user from users collection
+        await db.collection("users").doc(user_id).delete();
+
+        util.statusCode = 200;
+        util.message = "User account deleted successfully";
+        return util.send(res);
+    } catch (error) {
+        console.error("Error deleting user account:", error);
+        util.statusCode = 500;
+        util.message = error.message || "Server error";
+        return util.send(res);
+    }
+}
 
 
 

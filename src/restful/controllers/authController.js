@@ -224,6 +224,7 @@ class AuthController {
       const nonSensitiveData = {
         first_name: userData.first_name,
         last_name: userData.last_name,
+        displayName: userData.displayName,
         role: userData.role,
         imageUrl: userData.imageUrl, // Assuming this field exists in the user document
         bio: userData.bio, // Assuming this field exists in the user document
@@ -267,6 +268,7 @@ class AuthController {
       return util.send(res);
     }
   }
+
 
   static async updateUser(req, res) {
     try {
@@ -322,6 +324,7 @@ class AuthController {
     }
   }
 
+
   static async createUsername(req, res) {
     try {
       const { username } = req.body;
@@ -343,35 +346,43 @@ class AuthController {
 
 
   static async deleteUser(req, res) {
-    const { uid } = req.user;
     const db = admin.firestore();
-
+    const { user_id } = req.params;
     try {
-        // Check if the user exists
-        const userRecord = await admin.auth().getUser(uid);
-        if (!userRecord) {
+        // Check if the user is a creator or a client
+        const userDoc = await db.collection("users").doc(user_id).get();
+        if (!userDoc.exists) {
             util.statusCode = 404;
             util.message = "User not found";
             return util.send(res);
         }
 
-        // Delete the user from the Authentication service
-        await admin.auth().deleteUser(uid);
+        const userData = userDoc.data();
+        const isCreator = userData.role === "creator";
 
-        // Delete the user from the users collection
-        await db.collection("users").doc(uid).delete();
+        // Set the status of existing applications to "archived" if the user is a creator
+        if (isCreator) {
+            const applicationsRef = db.collection("applications");
+            const applicationsQuerySnapshot = await applicationsRef.where("user_id", "==", user_id).get();
+            applicationsQuerySnapshot.forEach(async (doc) => {
+                await doc.ref.update({ status: "archived" });
+            });
+        }
 
-        // Archive applications if the user is a creator
-        const creatorAppsSnapshot = await db.collection("applications").where("creator_uid", "==", uid).get();
-        creatorAppsSnapshot.forEach(async (doc) => {
-            await doc.ref.update({ status: "archived" });
-        });
+        // Set the status of existing opportunities to "archived" if the user is a client
+        if (!isCreator) {
+            const opportunitiesRef = db.collection("opportunities");
+            const opportunitiesQuerySnapshot = await opportunitiesRef.where("user_id", "==", user_id).get();
+            opportunitiesQuerySnapshot.forEach(async (doc) => {
+                await doc.ref.update({ status: "archived" });
+            });
+        }
 
-        // Archive opportunities if the user is a client
-        const clientOppsSnapshot = await db.collection("opportunities").where("client_uid", "==", uid).get();
-        clientOppsSnapshot.forEach(async (doc) => {
-            await doc.ref.update({ status: "archived" });
-        });
+        // Delete user from Authentication service
+        await admin.auth().deleteUser(user_id);
+
+        // Remove user from users collection
+        await db.collection("users").doc(user_id).delete();
 
         util.statusCode = 200;
         util.message = "User account deleted successfully";

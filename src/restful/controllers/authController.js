@@ -70,7 +70,7 @@ class AuthController {
 
         await usersCollectionRef
           .doc(user.uid)
-          .set({ uid: user.uid, first_name, last_name, role, ...other });
+          .set({ uid: user.uid, first_name, last_name, role,isActivated:false, ...other });
 
         util.statusCode = 200;
         util.setSuccess(200, "Success", { email, uid });
@@ -109,6 +109,7 @@ class AuthController {
       const updatedClaims = {
         ...currentClaims,
         emailVerified: true,
+        isActivated:true
       };
       await admin.auth().setCustomUserClaims(uid, updatedClaims);
       await db.collection("otp").doc(email).delete();

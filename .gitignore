@@ -1,5 +1,6 @@
 # Dependency directories
 node_modules/
+api_logs.txt
 
 .env
 

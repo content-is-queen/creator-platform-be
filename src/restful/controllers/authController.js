@@ -28,50 +28,50 @@ class AuthController {
 
   static async signup(req, res) {
     const { first_name, last_name, email, password, role, ...other } = req.body;
-
+  
     const db = admin.firestore();
     try {
       const user = await admin.auth().createUser({
         email,
         password,
       });
-
+  
       const uid = user.uid;
       await admin.auth().setCustomUserClaims(uid, { role });
-
+  
       const code = otpGenerator.generate(5, {
         digits: true,
         upperCase: false,
         specialChars: false,
         alphabets: false,
       });
-
+  
       await db.collection("otp").doc(email).set({
         otp: code,
       });
-
+  
       const emailTemplate = sendOtpEmail({
         name: first_name,
         email: user.email,
         otp: code,
       });
-
+  
       const mailOptions = {
         from: process.env.EMAIL,
         to: user.email,
         subject: "Creator Platform Account Verification",
         html: emailTemplate,
       };
-
+  
       const emailSent = await transporter.sendMail(mailOptions);
-
+  
       if (emailSent) {
         const usersCollectionRef = db.collection("users");
-
+  
         await usersCollectionRef
           .doc(user.uid)
-          .set({ uid: user.uid, first_name, last_name, role,isActivated:false, ...other });
-
+          .set({ uid: user.uid, first_name, last_name, role, isActivated: false, ...other });
+  
         util.statusCode = 200;
         util.setSuccess(200, "Success", { email, uid });
         return util.send(res);
@@ -89,43 +89,7 @@ class AuthController {
       return util.send(res);
     }
   }
-
-  static async verifyOtp(req, res) {
-    try {
-      const { email, otp, uid } = req.body;
-      const db = admin.firestore();
-
-      // Retrieve OTP document
-      const otpDoc = await db.collection("otp").doc(email).get();
-      const savedOTP = otpDoc.data()?.otp;
-
-      if (savedOTP !== otp) {
-        util.statusCode = 400;
-        util.message = "Invalid OTP";
-        return util.send(res);
-      }
-      const currentClaims =
-        (await admin.auth().getUser(uid)).customClaims || {};
-      const updatedClaims = {
-        ...currentClaims,
-        emailVerified: true,
-        isActivated:true
-      };
-      await admin.auth().setCustomUserClaims(uid, updatedClaims);
-      await db.collection("otp").doc(email).delete();
-
-      util.statusCode = 200;
-      util.message = "Your account has been successfully verified.";
-      return util.send(res);
-    } catch (error) {
-      console.error("Error verifying OTP:", error);
-      const errorMessage =
-        error?.errorInfo?.message || error.message || "Server error";
-      util.statusCode = 500;
-      util.message = errorMessage;
-      return util.send(res);
-    }
-  }
+  
 
   static async resetUserPassword(req, res) {
     try {

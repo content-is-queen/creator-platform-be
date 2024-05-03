@@ -9,7 +9,7 @@ const router = Router();
 router.get("/", ApplicationsController.getAllApplications);
 
 // GET all applications
-router.get("/:opportunity_id", ApplicationsController.getAllApplicationsById);
+router.get("/opportunity/:opportunity_id", ApplicationsController.getAllApplicationsById);
 
 // GET application by ID
 router.get("/:application_id", ApplicationsController.getApplicationById);
@@ -24,9 +24,6 @@ router.put("/:application_id", ApplicationsController.updateApplication);
 router.delete("/:application_id", ApplicationsController.deleteApplication);
 
 // Update application status
-router.put(
-  "/:opportunity_id/status",
-  ApplicationsController.updateApplicationStatus,
-);
+
 
 module.exports.applicationsRouter = router;

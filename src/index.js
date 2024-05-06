@@ -4,7 +4,7 @@ const cors = require("cors");
 const functions = require("firebase-functions");
 const { initializeApp, cert } = require("firebase-admin/app");
 const fileUploader = require("express-fileupload");
-const serviceAccount = require("../creator-99ddf-firebase-adminsdk-nf38h-cc33e2ec46.json");
+const serviceAccount = require("../contentisqueen-97ae5-firebase-adminsdk-qhkbo-6886ee17eb.json");
 const router = require("./restful/routes");
 
 dotenv.config();

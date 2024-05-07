@@ -90,6 +90,44 @@ class AuthController {
     }
   }
   
+  
+
+  static async verifyOtp(req, res) {
+    try {
+      const { email, otp, uid } = req.body;
+      const db = admin.firestore();
+
+      // Retrieve OTP document
+      const otpDoc = await db.collection("otp").doc(email).get();
+      const savedOTP = otpDoc.data()?.otp;
+
+      if (savedOTP !== otp) {
+        util.statusCode = 400;
+        util.message = "Invalid OTP";
+        return util.send(res);
+      }
+      const currentClaims =
+        (await admin.auth().getUser(uid)).customClaims || {};
+      const updatedClaims = {
+        ...currentClaims,
+        emailVerified: true,
+        isActivated:true
+      };
+      await admin.auth().setCustomUserClaims(uid, updatedClaims);
+      await db.collection("otp").doc(email).delete();
+
+      util.statusCode = 200;
+      util.message = "Your account has been successfully verified.";
+      return util.send(res);
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      const errorMessage =
+        error?.errorInfo?.message || error.message || "Server error";
+      util.statusCode = 500;
+      util.message = errorMessage;
+      return util.send(res);
+    }
+  }
 
   static async resetUserPassword(req, res) {
     try {

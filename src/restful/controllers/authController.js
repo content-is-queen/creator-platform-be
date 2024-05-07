@@ -272,57 +272,62 @@ class AuthController {
 
   static async updateUser(req, res) {
     try {
-      const { first_name, last_name, bio } = req.body;
-      const file = req.files?.profilePicture;
-      if (!file || file === undefined || file === null) {
-        const docRef = admin
-          .firestore()
-          .collection("users")
-          .doc(req.user.user_id);
-        await docRef.set({ first_name, last_name, bio }, { merge: true });
-        util.statusCode = 200;
-        util.message = "Document updated successfully";
-        return util.send(res);
-      } else {
-        const storageRef = admin
-          .storage()
-          .bucket(`gs://contentisqueen-97ae5.appspot.com`);
-        const uploadTask = storageRef.upload(file.tempFilePath, {
-          public: true,
-          destination: `profile/picture/${uuidv4()}_${file.name}`,
-          metadata: {
-            firebaseStorageDownloadTokens: uuidv4(),
-          },
-        });
+        const { first_name, last_name, bio, profile_picture } = req.body;
+        const file = req.files?.profilePicture;
 
-        uploadTask
-          .then(async (snapshot) => {
-            const imageUrl = snapshot[0].metadata.mediaLink;
+        // If profile_picture is provided in the request body, use it as the new imageUrl
+        const imageUrl = profile_picture || undefined;
+
+        if (!file || file === undefined || file === null) {
+            // If no new profile picture file is uploaded, update the user profile without changing the imageUrl
             const docRef = admin
-              .firestore()
-              .collection("users")
-              .doc(req.user.user_id);
-            await docRef.set(
-              { first_name, last_name, bio, imageUrl },
-              { merge: true },
-            );
-            util.statusCode = 200;
-            util.message = "Document updated successfully";
-            return util.send(res);
-          })
-          .catch((error) => {
-            util.statusCode = 500;
-            util.message = error.message || "Server error";
-            return util.send(res);
-          });
-      }
+                .firestore()
+                .collection("users")
+                .doc(req.user.user_id);
+            await docRef.set({ first_name, last_name, bio, imageUrl }, { merge: true });
+        } else {
+            // If a new profile picture file is uploaded, upload it to Firebase Storage
+            const storageRef = admin
+                .storage()
+                .bucket(`gs://contentisqueen-97ae5.appspot.com`);
+            const uploadTask = storageRef.upload(file.tempFilePath, {
+                public: true,
+                destination: `profile/picture/${uuidv4()}_${file.name}`,
+                metadata: {
+                    firebaseStorageDownloadTokens: uuidv4(),
+                },
+            });
+
+            uploadTask.then(async (snapshot) => {
+                // Get the URL of the uploaded profile picture
+                const imageUrl = snapshot[0].metadata.mediaLink;
+                // Update the user profile with the new profile picture URL as imageUrl
+                const docRef = admin
+                    .firestore()
+                    .collection("users")
+                    .doc(req.user.user_id);
+                await docRef.set(
+                    { first_name, last_name, bio, imageUrl },
+                    { merge: true }
+                );
+            }).catch((error) => {
+                console.error("Error uploading profile picture:", error);
+                util.statusCode = 500;
+                util.message = error.message || "Server error";
+                return util.send(res);
+            });
+        }
+
+        util.statusCode = 200;
+        util.message = "Profile updated successfully";
+        return util.send(res);
     } catch (error) {
-      console.error("Error updating profile picture:", error);
-      util.statusCode = 500;
-      util.message = error.mesage || "Server error";
-      return util.send(res);
+        console.error("Error updating profile:", error);
+        util.statusCode = 500;
+        util.message = error.message || "Server error";
+        return util.send(res);
     }
-  }
+}
 
 
   static async createUsername(req, res) {
@@ -345,6 +350,55 @@ class AuthController {
   }
 
 
+  static async deleteUser(req, res) {
+    const db = admin.firestore();
+    const { user_id } = req.params;
+    try {
+        // Check if the user is a creator or a client
+        const userDoc = await db.collection("users").doc(user_id).get();
+        if (!userDoc.exists) {
+            util.statusCode = 404;
+            util.message = "User not found";
+            return util.send(res);
+        }
+
+        const userData = userDoc.data();
+        const isCreator = userData.role === "creator";
+
+        // Set the status of existing applications to "archived" if the user is a creator
+        if (isCreator) {
+            const applicationsRef = db.collection("applications");
+            const applicationsQuerySnapshot = await applicationsRef.where("user_id", "==", user_id).get();
+            applicationsQuerySnapshot.forEach(async (doc) => {
+                await doc.ref.update({ status: "archived" });
+            });
+        }
+
+        // Set the status of existing opportunities to "archived" if the user is a client
+        if (!isCreator) {
+            const opportunitiesRef = db.collection("opportunities");
+            const opportunitiesQuerySnapshot = await opportunitiesRef.where("user_id", "==", user_id).get();
+            opportunitiesQuerySnapshot.forEach(async (doc) => {
+                await doc.ref.update({ status: "archived" });
+            });
+        }
+
+        // Delete user from Authentication service
+        await admin.auth().deleteUser(user_id);
+
+        // Remove user from users collection
+        await db.collection("users").doc(user_id).delete();
+
+        util.statusCode = 200;
+        util.message = "User account deleted successfully";
+        return util.send(res);
+    } catch (error) {
+        console.error("Error deleting user account:", error);
+        util.statusCode = 500;
+        util.message = error.message || "Server error";
+        return util.send(res);
+    }
+}
 
 
 

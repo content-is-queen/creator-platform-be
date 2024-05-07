@@ -21,6 +21,7 @@ class ContractController {
         client_id,
         creator_id,
         opportunity_id,
+        compensation,
       } = req.body;
 
       // Validate required fields
@@ -31,7 +32,8 @@ class ContractController {
         !duration ||
         !client_id ||
         !creator_id ||
-        !opportunity_id
+        !opportunity_id ||
+        !compensation
       ) {
         return res.status(400).json({ message: "Missing required fields" });
       }
@@ -49,6 +51,7 @@ class ContractController {
         client_id,
         creator_id,
         opportunity_id,
+        compensation,
       });
 
       return res
@@ -127,7 +130,7 @@ class ContractController {
     const db = admin.firestore();
     try {
       const { contract_id } = req.params;
-      const { status, description, deadline, duration } = req.body;
+      const { status, description, deadline, duration, compensation } = req.body;
 
       // Fetch the contract document
       const contractRef = db.collection("contracts").doc(contract_id);
@@ -144,6 +147,7 @@ class ContractController {
       if (description) updateData.description = description;
       if (deadline) updateData.deadline = deadline;
       if (duration) updateData.duration = duration;
+      if (compensation) updateData.compensation = compensation;
 
       // Perform the update
       await contractRef.update(updateData);

@@ -21,6 +21,7 @@ class ContractController {
         client_id,
         creator_id,
         opportunity_id,
+        compensation, 
       } = req.body;
 
       // Validate required fields
@@ -31,7 +32,8 @@ class ContractController {
         !duration ||
         !client_id ||
         !creator_id ||
-        !opportunity_id
+        !opportunity_id ||
+        !compensation // Check for compensation field
       ) {
         return res.status(400).json({ message: "Missing required fields" });
       }
@@ -49,6 +51,7 @@ class ContractController {
         client_id,
         creator_id,
         opportunity_id,
+        compensation, // Include compensation field
       });
 
       return res
@@ -144,6 +147,7 @@ class ContractController {
       if (description) updateData.description = description;
       if (deadline) updateData.deadline = deadline;
       if (duration) updateData.duration = duration;
+      if (compensation) updateData.compensation = compensation; // Update compensation field
 
       // Perform the update
       await contractRef.update(updateData);

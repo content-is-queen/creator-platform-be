@@ -32,16 +32,16 @@ class ApplicationsController {
     const db = admin.firestore();
     try {
       const applicationsData = [];
-
+  
       // Fetch all documents from the "applications" collection
       const querySnapshot = await db.collection("applications").get();
-
+  
       // Iterate over each document
       querySnapshot.forEach((doc) => {
         const data = doc.data();
         applicationsData.push(data);
       });
-
+  
       util.statusCode = 200;
       util.message = applicationsData;
       return util.send(res);
@@ -52,6 +52,7 @@ class ApplicationsController {
       return util.send(res);
     }
   }
+
   static async getApplicationById(req, res) {
     const db = admin.firestore();
     const { application_id } = req.params;

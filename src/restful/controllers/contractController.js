@@ -1,4 +1,5 @@
 // contractController.js
+
 const dotenv = require("dotenv");
 const { v4: uuidv4 } = require("uuid"); // Import uuidv4 directly
 
@@ -21,9 +22,10 @@ class ContractController {
         client_id,
         creator_id,
         opportunity_id,
+        compensation, // Add compensation field
       } = req.body;
 
-      // Validate required fields
+      // Validate required fields including compensation
       if (
         !status ||
         !description ||
@@ -31,7 +33,8 @@ class ContractController {
         !duration ||
         !client_id ||
         !creator_id ||
-        !opportunity_id
+        !opportunity_id ||
+        !compensation // Check for compensation
       ) {
         return res.status(400).json({ message: "Missing required fields" });
       }
@@ -39,7 +42,7 @@ class ContractController {
       // Generate UID for the contract
       const contract_id = uuidv4();
 
-      // Create the contract document
+      // Create the contract document with compensation
       await db.collection("contracts").doc(contract_id).set({
         contract_id,
         status,
@@ -49,6 +52,7 @@ class ContractController {
         client_id,
         creator_id,
         opportunity_id,
+        compensation, // Include compensation in the document
       });
 
       return res
@@ -113,7 +117,7 @@ class ContractController {
         return res.status(404).json({ message: "Contract not found" });
       }
 
-      // Extract the data of the contract
+      // Extract the data of the contract including compensation
       const contractData = docSnapshot.data();
 
       return res.status(200).json(contractData);
@@ -127,7 +131,7 @@ class ContractController {
     const db = admin.firestore();
     try {
       const { contract_id } = req.params;
-      const { status, description, deadline, duration } = req.body;
+      const { status, description, deadline, duration, compensation } = req.body;
 
       // Fetch the contract document
       const contractRef = db.collection("contracts").doc(contract_id);
@@ -138,12 +142,13 @@ class ContractController {
         return res.status(404).json({ message: "Contract not found" });
       }
 
-      // Prepare the update object with only provided fields
+      // Prepare the update object with only provided fields including compensation
       const updateData = {};
       if (status) updateData.status = status;
       if (description) updateData.description = description;
       if (deadline) updateData.deadline = deadline;
       if (duration) updateData.duration = duration;
+      if (compensation) updateData.compensation = compensation; // Add compensation
 
       // Perform the update
       await contractRef.update(updateData);

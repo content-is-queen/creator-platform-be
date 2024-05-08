@@ -14,7 +14,7 @@ async function createRoom(db, roomId, user_id, user_name, user_image_url, creato
     id: roomId,
     createdAt: new Date().toString(),
     client: user_id,
-    brand: creator_id,
+    creator: creator_id,
   };
 
   try {

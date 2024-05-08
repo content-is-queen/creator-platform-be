@@ -342,7 +342,7 @@ function getRequiredFields(type) {
       return [
         "title",
         "user_id",
-        "brand",
+        "client",
         "description",
         "target",
         "compensation",

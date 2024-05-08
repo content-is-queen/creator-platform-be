@@ -47,6 +47,60 @@ class AdminController {
     }
   }
 
+  static async adminActivateUser(req,res){
+    const { user_id } = req.params;
+    try {
+      const db = admin.firestore();
+      const userRecord = await admin.auth().getUser(user_id);
+      const currentClaims = userRecord.customClaims || {};
+      const updatedClaims = {
+        ...currentClaims,
+        isActivated: true
+      };
+      await admin.auth().setCustomUserClaims(user_id, updatedClaims);
+      const usersCollectionRef = db.collection("users");
+      await usersCollectionRef
+      .doc(user_id)
+      .set({ isActivated: true });
+      util.statusCode = 200;
+      util.setSuccess(200, "User activated successfull!");
+      return util.send(res);
+      
+    } catch (error) {
+      console.log(error);
+      util.statusCode = 500;
+      util.message = error.mesage || "Server error";
+      return util.send(res);
+    }
+  }
+
+  static async adminDeActivateUser(req, res) {
+    const { user_id } = req.params;
+    try {
+      const db = admin.firestore();
+      const userRecord = await admin.auth().getUser(user_id);
+      const currentClaims = userRecord.customClaims || {};
+      const updatedClaims = {
+        ...currentClaims,
+        isActivated: false
+      };
+      await admin.auth().setCustomUserClaims(user_id, updatedClaims);
+      const usersCollectionRef = db.collection("users");
+      await usersCollectionRef
+      .doc(user_id)
+      .set({ isActivated: false });
+      util.statusCode = 200;
+      util.setSuccess(200, "User Deactivated successfull!");
+      return util.send(res);
+      
+    } catch (error) {
+      console.log(error);
+      util.statusCode = 500;
+      util.message = error.mesage || "Server error";
+      return util.send(res);
+    }
+}
+
   static async admingetAllUsers(req, res) {
       try {
           const db = admin.firestore();
@@ -59,8 +113,6 @@ class AdminController {
           if (!querySnapshot.empty) {
               querySnapshot.forEach((doc) => {
                   const userObj = doc.data();
-                  
-                  console.log(userObj,"getting all the ussers");
             // Only push objects with a uid field
             if (userObj.hasOwnProperty("uid")) {
               users.push(userObj);

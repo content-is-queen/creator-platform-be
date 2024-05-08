@@ -18,7 +18,7 @@ class ContractController {
         description,
         deadline,
         duration,
-        client_id,
+        brand,
         creator_id,
         opportunity_id,
         compensation,
@@ -30,7 +30,7 @@ class ContractController {
         !description ||
         !deadline ||
         !duration ||
-        !client_id ||
+        !brand ||
         !creator_id ||
         !opportunity_id ||
         !compensation
@@ -48,7 +48,7 @@ class ContractController {
         description,
         deadline,
         duration,
-        client_id,
+        brand,
         creator_id,
         opportunity_id,
         compensation,

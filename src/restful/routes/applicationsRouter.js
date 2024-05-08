@@ -1,14 +1,13 @@
 const { Router } = require("express");
-const {
-  ApplicationsController,
-} = require("../controllers/applicationsController");
+const { ApplicationsController } = require("../controllers/applicationsController");
+const rateLimit = require('express-rate-limit');
 
 const router = Router();
 
 // GET all applications
 router.get("/", ApplicationsController.getAllApplications);
 
-// GET all applications
+// GET applications by opportunity ID
 router.get("/opportunity/:opportunity_id", ApplicationsController.getAllApplicationsById);
 
 // GET application by ID
@@ -22,8 +21,5 @@ router.put("/:application_id", ApplicationsController.updateApplication);
 
 // DELETE an application
 router.delete("/:application_id", ApplicationsController.deleteApplication);
-
-// Update application status
-
 
 module.exports.applicationsRouter = router;

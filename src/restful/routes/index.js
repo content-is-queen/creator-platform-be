@@ -6,9 +6,19 @@ const { opportunitiesRouter } = require("./opportunitiesRouter");
 const { applicationsRouter } = require("./applicationsRouter");
 const { contractRouter } = require("./contractRouter");
 const { adminRouter } = require("./adminRouter");
+const rateLimit = require('express-rate-limit');
+
+// Define rate limiting options
+const limiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 5, // Max 5 requests per minute
+  message: "Too many requests from this IP, please try again later."
+});
+
 
 const API_VERSION = process.env.API_VERSION || "v1";
 const router = Router();
+router.use(limiter);
 
 router.use(`/${API_VERSION}/auth`, authRouter);
 router.use(`/${API_VERSION}/messages`, chatRouter);

@@ -128,6 +128,32 @@ class AdminController {
         return util.send(res);
       }
   }
+
+  static async adminDeleteUser(req, res) {
+    const { user_id } = req.params;
+    try {
+      const db = admin.firestore();
+      const userDoc = await db.collection("users").doc(user_id).get();
+      const userData = userDoc.data();
+      const imageUrl = userData?.imageUrl;
+      await admin.auth().deleteUser(user_id);
+      await db.collection("users").doc(user_id).delete();
+      if (imageUrl) {
+        const fileName = imageUrl.split("/").pop();
+        const bucket = admin.storage().bucket();
+        await bucket.file(`profile/picture/${fileName}`).delete();
+      }
+
+      util.statusCode = 200;
+      util.setSuccess(200, "User deleted successfully!");
+      return util.send(res);
+    } catch (error) {
+      console.log(error);
+      util.statusCode = 500;
+      util.message = error.message || "Server error";
+      return util.send(res);
+    }
+  }
 }
 
 exports.AdminController = AdminController;

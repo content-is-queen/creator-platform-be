@@ -3,7 +3,6 @@ const { AdminController } = require("../controllers/adminController");
 const { protect } = require("../../middleware/index");
 const { default: allowedRole } = require("../../helper/allowedRole");
 
-
 const router = Router();
 
 

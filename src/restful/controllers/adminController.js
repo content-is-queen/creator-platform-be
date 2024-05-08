@@ -143,11 +143,10 @@ class AdminController {
         const bucket = admin.storage().bucket();
         await bucket.file(`profile/picture/${fileName}`).delete();
       }
-      
+
       util.statusCode = 200;
       util.setSuccess(200, "User deleted successfully!");
       return util.send(res);
-      
     } catch (error) {
       console.log(error);
       util.statusCode = 500;
@@ -155,8 +154,6 @@ class AdminController {
       return util.send(res);
     }
   }
-  
-  
 }
 
 exports.AdminController = AdminController;

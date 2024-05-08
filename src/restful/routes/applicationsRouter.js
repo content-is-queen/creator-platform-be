@@ -4,16 +4,6 @@ const rateLimit = require('express-rate-limit');
 
 const router = Router();
 
-// Define rate limiting options
-const limiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 5, // Max 5 requests per minute
-  message: "Too many requests from this IP, please try again later."
-});
-
-// Apply rate limiting middleware to all routes in the applications router
-router.use(limiter);
-
 // GET all applications
 router.get("/", ApplicationsController.getAllApplications);
 

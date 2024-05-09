@@ -164,6 +164,7 @@ class ApplicationsController {
     }
   }
 
+  
   static async getAllApplicationsById(req, res) {
     const { opportunity_id } = req.params;
     try {
@@ -190,6 +191,35 @@ class ApplicationsController {
       return res.status(500).json({ message: "Server error" });
     }
   }
+  
+
+  static async getAllApplicationsByUserId(req, res) {
+    const { user_id } = req.params;
+    try {
+        const db = admin.firestore();
+        const applicationsRef = db.collection("applications");
+
+        // Query applications where user_id matches
+        const querySnapshot = await applicationsRef
+            .where("user_id", "==", user_id)
+            .get();
+
+        const applications = [];
+
+        if (!querySnapshot.empty) {
+            // Extract application data from query snapshot
+            querySnapshot.forEach((doc) => {
+                applications.push({ id: doc.id, ...doc.data() });
+            });
+        }
+
+        return res.status(200).json(applications);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Server error" });
+    }
+}
+
 }
 
 exports.ApplicationsController = ApplicationsController;

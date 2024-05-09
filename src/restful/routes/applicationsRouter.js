@@ -5,6 +5,9 @@ const {
 
 const router = Router();
 
+// GET applications by user ID
+router.get("/user/:user_id", ApplicationsController.getAllApplicationsByUserId);
+
 // GET all applications
 router.get("/", ApplicationsController.getAllApplications);
 

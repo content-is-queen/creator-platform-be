@@ -13,7 +13,7 @@ async function createRoom(db, roomId, user_id, user_name, user_image_url, creato
   const roomData = {
     id: roomId,
     createdAt: new Date().toString(),
-    client: user_id,
+    creator: user_id,
     brand: creator_id,
   };
 

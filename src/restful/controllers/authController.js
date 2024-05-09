@@ -261,7 +261,7 @@ class AuthController {
   static async updateUser(req, res) {
     try {
       const { first_name, last_name, bio } = req.body;
-      const file = req.files?.profilePicture;
+      const file = req.files?.imageUrl;
       if (!file || file === undefined || file === null) {
         const docRef = admin
           .firestore()

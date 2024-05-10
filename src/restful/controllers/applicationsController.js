@@ -192,7 +192,7 @@ class ApplicationsController {
     }
   }
   
-
+  
   static async getAllApplicationsByUserId(req, res) {
     const { user_id } = req.params;
     try {
@@ -219,6 +219,7 @@ class ApplicationsController {
         return res.status(500).json({ message: "Server error" });
     }
 }
+
 
 }
 

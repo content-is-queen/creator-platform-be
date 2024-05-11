@@ -313,13 +313,19 @@ class AuthController {
   }
 
   static async createUsername(req, res) {
+    const { username, email } = req.body;
+    const {user_id} = req.user;
     try {
-      const { username } = req.body;
       const docRef = admin
         .firestore()
         .collection("users")
         .doc(req.user.user_id);
       await docRef.set({ username }, { merge: true });
+      if(email !== req.user.email){
+        await admin.auth().updateUser(user_id, {
+          email,
+        });
+      }
       util.statusCode = 200;
       util.message = "Username created successfully";
       return util.send(res);

@@ -4,9 +4,11 @@ const { protect } = require("../../middleware/index.js");
 
 const router = Router();
 
+const rateLimit = require('express-rate-limit');
+
 router.post("/", protect, ChatController.sendMessage);
-router.get("/users", protect, ChatController.users);
-router.get("/profiles", protect, ChatController.usersProfiles);
-router.get("/:receiverId", protect, ChatController.ReceiveMessage);
+router.get("/users", protect, ChatController.getUsers);
+router.get("/:receiverId", protect, ChatController.receiveMessage);
+router.get("/profiles", protect, ChatController.getUserProfiles);
 
 module.exports.chatRouter = router;

@@ -120,6 +120,7 @@ class AuthController {
       const updatedClaims = {
         ...currentClaims,
         emailVerified: true,
+        isActivated:true
       };
       await admin.auth().setCustomUserClaims(uid, updatedClaims);
       await db.collection("otp").doc(email).delete();
@@ -273,9 +274,28 @@ class AuthController {
 
   static async updateUser(req, res) {
     try {
-        const { first_name, last_name, bio } = req.body;
-        const file = req.files?.profilePicture;
-        const user_id = req.user.user_id;
+      const { first_name, last_name, bio } = req.body;
+      const file = req.files?.imageUrl;
+      if (!file || file === undefined || file === null) {
+        const docRef = admin
+          .firestore()
+          .collection("users")
+          .doc(req.user.user_id);
+        await docRef.set({ first_name, last_name, bio }, { merge: true });
+        util.statusCode = 200;
+        util.message = "Document updated successfully";
+        return util.send(res);
+      } else {
+        const storageRef = admin
+          .storage()
+          .bucket(`gs://contentisqueen-97ae5.appspot.com`);
+        const uploadTask = storageRef.upload(file.tempFilePath, {
+          public: true,
+          destination: `profile/picture/${uuidv4()}_${file.name}`,
+          metadata: {
+            firebaseStorageDownloadTokens: uuidv4(),
+          },
+        });
 
         if (!file || file === undefined || file === null) {
             // If no file is provided, update user data without changing the photo
@@ -327,13 +347,36 @@ class AuthController {
 
 
   static async createUsername(req, res) {
+    const { username, email } = req.body;
+    const {user_id} = req.user;
     try {
-      const { username } = req.body;
       const docRef = admin
         .firestore()
         .collection("users")
         .doc(req.user.user_id);
       await docRef.set({ username }, { merge: true });
+      if(email !== req.user.email){
+        await admin.auth().updateUser(user_id, {
+          email,
+        });
+      }
+      util.statusCode = 200;
+      util.message = "Username created successfully";
+      return util.send(res);
+    } catch (error) {
+      console.error("Error creating username:", error);
+      util.statusCode = 500;
+      util.message = error.message || "Server error";
+      return util.send(res);
+    }
+  }
+
+  static async changePassword(req, res) {
+    const {password } = req.body;
+    try {
+      await admin.auth().updateUser(req.user?.user_id, {
+        password
+      });
       util.statusCode = 200;
       util.message = "Username created successfully";
       return util.send(res);

@@ -9,27 +9,13 @@ dotenv.config();
  */
 const util = new Util();
 class ChatController {
-  /**
-   * @param {Object} req request Object.
-   * @param {Object} res response Object.
-   * @returns {Object} response Object.
-   */
-
   static async sendMessage(req, res) {
     try {
-      const db = admin.firestore();
-      const { fullName, id, profile_image, receiver, sender, message } =
-        req.body;
-      if (
-        !message ||
-        !sender ||
-        !receiver ||
-        !profile_image ||
-        !id ||
-        !fullName
-      ) {
+      const { fullName, id, profile_image, receiver, sender, message } = req.body;
+      if (!message || !sender || !receiver || !profile_image || !id || !fullName) {
         return res.status(400).json({ error: "Invalid request" });
       }
+      const db = admin.firestore();
       const roomRef = db.collection("rooms").doc(id);
       const messageData = {
         message,
@@ -38,91 +24,73 @@ class ChatController {
         receiver,
       };
       const batch = db.batch();
-      batch.set(
-        roomRef,
-        { id, fullName, lastMessage: fullName },
-        { merge: true },
-      );
-
+      batch.set(roomRef, { id, fullName, lastMessage: fullName }, { merge: true });
       const messagesRef = roomRef.collection("messages").doc();
       batch.set(messagesRef, messageData);
       await batch.commit();
       res.json({ success: true });
     } catch (error) {
-      console.log(error, "JJJJJJ");
+      console.error("Error sending message:", error);
+      res.status(500).json({ error: "Internal server error" });
     }
   }
 
-  // Get messages in real-time
-  static async ReceiveMessage(req, res) {
-    const db = admin.firestore();
-    const receiverId = req.params.receiverId;
-    const roomRef = db.collection("rooms").doc(receiverId);
-    const messagesRef = roomRef.collection("messages");
+  static async receiveMessage(req, res) {
+    try {
+      const receiverId = req.params.receiverId;
+      const db = admin.firestore();
+      const roomRef = db.collection("rooms").doc(receiverId);
+      const messagesRef = roomRef.collection("messages");
 
-    messagesRef.onSnapshot(
-      (snapshot) => {
-        snapshot.docChanges().forEach((change) => {
+      messagesRef.onSnapshot(snapshot => {
+        snapshot.docChanges().forEach(change => {
           if (change.type === "added") {
-            res.status.json({
+            res.status(200).json({
               message: change.doc.id,
               data: change.doc.data(),
             });
           }
         });
-      },
-      (error) => {
+      }, error => {
         console.error("Error getting messages:", error);
-      },
-    );
+        res.status(500).json({ error: "Internal server error" });
+      });
+    } catch (error) {
+      console.error("Error receiving message:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 
-  static async users(req, res) {
-    const db = admin.firestore();
-    const userList = [];
+  static async getUsers(req, res) {
     try {
+      const db = admin.firestore();
+      const userList = [];
       const userCollections = await db.collectionGroup("users").get();
-      // Map each async operation to a promise
-      const promises = userCollections.docs.map(async (userDoc) => {
-        const userData = await userDoc.ref.collection("users").get();
-        userData.forEach((doc) => {
-          userList.push(doc.data());
+      userCollections.forEach(userDoc => {
+        userDoc.ref.collection("users").get().then(userData => {
+          userData.forEach(doc => {
+            userList.push(doc.data());
+          });
         });
       });
-      // Wait for all promises to resolve
-      await Promise.all(promises);
-
-      util.statusCode = 200;
-      util.message = userList;
-      return util.send(res);
+      res.status(200).json(userList);
     } catch (error) {
-      util.statusCode = 500;
-      util.message = error.message || "Server error";
-      return util.send(res);
+      console.error("Error fetching users:", error);
+      res.status(500).json({ error: "Internal server error" });
     }
   }
 
-  static async usersProfiles(req, res) {
+  static async getUserProfiles(req, res) {
     try {
-      // Start listing users from the beginning, 1000 at a time.
-      let users = [];
-      let nextPageToken;
-      do {
-        const result = await admin.auth().listUsers(1000, nextPageToken);
-        nextPageToken = result.pageToken;
-        users = users.concat(result.users);
-      } while (nextPageToken);
-
-      users.forEach((userRecord) => {
-        console.log("user", userRecord.toJSON());
-      });
-
-      console.log(users);
-      console.log("Total users:", users.length);
+      const users = await admin.auth().listUsers();
+      const userProfiles = users.users.map(userRecord => userRecord.toJSON());
+      res.status(200).json(userProfiles);
     } catch (error) {
-      console.error("Error listing users:", error);
+      console.error("Error fetching user profiles:", error);
+      res.status(500).json({ error: "Internal server error" });
     }
   }
+  
 }
 
 exports.ChatController = ChatController;

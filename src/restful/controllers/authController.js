@@ -313,13 +313,36 @@ class AuthController {
   }
 
   static async createUsername(req, res) {
+    const { username, email } = req.body;
+    const {user_id} = req.user;
     try {
-      const { username } = req.body;
       const docRef = admin
         .firestore()
         .collection("users")
         .doc(req.user.user_id);
       await docRef.set({ username }, { merge: true });
+      if(email !== req.user.email){
+        await admin.auth().updateUser(user_id, {
+          email,
+        });
+      }
+      util.statusCode = 200;
+      util.message = "Username created successfully";
+      return util.send(res);
+    } catch (error) {
+      console.error("Error creating username:", error);
+      util.statusCode = 500;
+      util.message = error.message || "Server error";
+      return util.send(res);
+    }
+  }
+
+  static async changePassword(req, res) {
+    const {password } = req.body;
+    try {
+      await admin.auth().updateUser(req.user?.user_id, {
+        password
+      });
       util.statusCode = 200;
       util.message = "Username created successfully";
       return util.send(res);

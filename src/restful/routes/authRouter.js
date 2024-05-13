@@ -12,6 +12,7 @@ router.post("/signup", AuthController.signup);
 router.post("/verify", AuthController.verifyOtp);
 router.post("/reset", AuthController.resetUserPassword);
 router.post("/username", protect, AuthController.createUsername);
+router.post("/password", protect, AuthController.changePassword);
 router.get("/user/:user_id", AuthController.getPublicUser);
 
 module.exports.authRouter = router;

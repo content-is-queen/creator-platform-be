@@ -34,7 +34,7 @@ router.all(`/${API_VERSION}/`, (req, res) => {
 router.use("*", (req, res) => {
   res.status(404).json({
     status: 404,
-    message: "This endpoint is not exist",
+    message: "This endpoint does not exist",
   });
 });
 

@@ -8,8 +8,7 @@ dotenv.config();
 
 const util = new Util();
 
-// Define the createRoomAndAddParticipants function
- async function createRoomDirect(db, roomId, userIds) {
+async function createRoomDirect(db, roomId, userIds) {
   try {
     const roomRef = db.collection("rooms").doc(roomId);
     const roomData = {
@@ -21,14 +20,19 @@ const util = new Util();
 
     await roomRef.set(roomData);
 
-    return { success: true, room: roomData };
+    return {
+      status: 200,
+      message: "Room created successfully",
+      roomId: roomId,
+      room: roomData
+    };
   } catch (error) {
     console.error("Error creating room:", error);
     throw new Error("Internal server error");
   }
 }
 
-// }
+
 
 
 class ApplicationsController {
@@ -90,15 +94,15 @@ class ApplicationsController {
 
   static async createApplication(req, res) {
     const db = admin.firestore();
-    const { user_id, opportunity_id, proposal, creator_id } = req.body; 
+    const { creator_id, opportunity_id, proposal, brand_id } = req.body; 
     try {
       const applicationRef = db.collection("applications").doc();
       const newApplicationData = {
         application_id: applicationRef.id,
-        user_id,
+        creator_id,
         opportunity_id,
         proposal,
-        creator_id, // the opportuties user_id
+        brand_id, // the opportuties creator_id
         status: "pending", 
       };
       await applicationRef.set(newApplicationData);
@@ -116,41 +120,45 @@ class ApplicationsController {
   static async updateApplication(req, res) {
     const db = admin.firestore();
     const { application_id } = req.params;
-    const { status, user_id, creator_id, user_name, user_image_url, creator_name, creator_image_url } = req.body;
+    const { status, creator_id, brand_id, user_name, user_image_url, brand_name, brand_image_url } = req.body;
 
     try {
-      const applicationRef = db.collection("applications").doc(application_id);
+        const applicationRef = db.collection("applications").doc(application_id);
 
-      if (!status) {
-        util.statusCode = 400;
-        util.message = "Status field is required for updating an application";
-        return util.send(res);
-      }
+        if (!status) {
+            util.statusCode = 400;
+            util.message = "Status field is required for updating an application";
+            return util.send(res);
+        }
 
-      await applicationRef.update({ status });
+        await applicationRef.update({ status });
 
-      if (status === "accepted") {
-        const roomId = uuidv4();
-        const userIds = [user_id, creator_id];
+        if (status === "accepted") {
+            const roomId = uuidv4();
+            const userIds = [creator_id, brand_id];
 
-        // Call createRoom function with data
-        await createRoomDirect(db, roomId, userIds);
+            // Call createRoom function with data
+            await createRoomDirect(db, roomId, userIds);
+
+            util.statusCode = 200;
+            util.message = "Application status updated successfully, room created"  ;
+                // Include roomId in the message
+            util.message += `, roomId: ${roomId}`;
+            return util.send(res);
+        }
 
         util.statusCode = 200;
-        util.message = "Application status updated successfully, room created";
+        util.message = "Application status updated successfully";
         return util.send(res);
-      }
-
-      util.statusCode = 200;
-      util.message = "Application status updated successfully";
-      return util.send(res);
     } catch (error) {
-      console.error("Error updating application:", error);
-      util.statusCode = 500;
-      util.message = error.message || "Server error";
-      return util.send(res);
+        console.error("Error updating application:", error);
+        util.statusCode = 500;
+        util.message = error.message || "Server error";
+        return util.send(res);
     }
-  }
+}
+
+  
   
   
 

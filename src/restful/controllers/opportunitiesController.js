@@ -199,26 +199,24 @@ class OpportunitiesController {
     try {
       const { opportunity_id } = req.params;
       const { type } = req.body;
-  
+
       // Fetch the opportunity document
       const opportunityRef = db.collection("opportunities").doc(opportunity_id);
       const opportunitySnapshot = await opportunityRef.get();
-  
+
       // Check if the opportunity exists
       if (!opportunitySnapshot.exists) {
         return res.status(404).json({ message: "Opportunity not found" });
       }
-  
+
       // Validate type field
       if (!type || !["job", "pitch", "campaign"].includes(type)) {
-        return res
-          .status(400)
-          .json({ message: "Invalid or missing opportunity type", statusCode: 400 });
+        throw new Error("Invalid or missing opportunity type");
       }
-  
+
       // Get required fields based on the type
       const requiredFields = getRequiredFields(type);
-  
+
       // Prepare the update object with only provided fields
       const updateData = {};
       requiredFields.forEach((field) => {
@@ -227,22 +225,22 @@ class OpportunitiesController {
           updateData[field] = req.body[field];
         }
       });
-  
+
       // Perform the update
       await opportunityRef.update(updateData);
-  
+
       // Return success response
       return res
         .status(200)
-        .json({ message: "Opportunity updated successfully" });
+        .json({ message: "Opportunity updated successfully", statusCode: 200 });
     } catch (error) {
+      console.log(error)
       console.error("Error updating opportunity:", error);
-      // Handle unexpected errors
-      return res.status(500).json({ message: "Server error", statusCode: 500 });
+      return res.status(500).json({ message: error?.message || "Server error", statusCode: 500 });
     }
   }
-  
-  
+
+
   static async createOpportunity(req, res, type) {
     const db = admin.firestore();
     try {

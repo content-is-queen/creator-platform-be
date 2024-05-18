@@ -2,29 +2,37 @@ const dotenv = require("dotenv");
 const { Util } = require("../../helper/utils");
 const admin = require("firebase-admin");
 const { v4: uuidv4 } = require('uuid');
+const ChatController = require("../controllers/chatController"); 
 
 dotenv.config();
 
 const util = new Util();
 
-// Define the createRoomAndAddParticipants function
-async function createRoom(db, roomId, user_id, user_name, user_image_url, creator_id, creator_name, creator_image_url) {
-
-  const roomData = {
-    id: roomId,
-    createdAt: new Date().toString(),
-    creator: user_id,
-    brand: creator_id,
-  };
-
+async function createRoomDirect(db, roomId, userIds) {
   try {
-    await db.collection("rooms").doc(roomId).set(roomData);
-    return true;
+    const roomRef = db.collection("rooms").doc(roomId);
+    const roomData = {
+      id: roomId,
+      userIds,
+      lastMessage: "",
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    await roomRef.set(roomData);
+
+    return {
+      status: 200,
+      message: "Room created successfully",
+      roomId: roomId,
+      room: roomData
+    };
   } catch (error) {
     console.error("Error creating room:", error);
-    return false;
+    throw new Error("Internal server error");
   }
 }
+
+
 
 
 class ApplicationsController {
@@ -86,15 +94,15 @@ class ApplicationsController {
 
   static async createApplication(req, res) {
     const db = admin.firestore();
-    const { user_id, opportunity_id, proposal, creator_id } = req.body; 
+    const { creator_id, opportunity_id, proposal, brand_id } = req.body; 
     try {
       const applicationRef = db.collection("applications").doc();
       const newApplicationData = {
         application_id: applicationRef.id,
-        user_id,
+        creator_id,
         opportunity_id,
         proposal,
-        creator_id, // the opportuties user_id
+        brand_id, // the opportuties creator_id
         status: "pending", 
       };
       await applicationRef.set(newApplicationData);
@@ -112,58 +120,45 @@ class ApplicationsController {
   static async updateApplication(req, res) {
     const db = admin.firestore();
     const { application_id } = req.params;
-    const { status, user_id, creator_id } = req.body; // Include user_id and creator_id in the request body
+    const { status, creator_id, brand_id, user_name, user_image_url, brand_name, brand_image_url } = req.body;
+
     try {
-      const applicationRef = db.collection("applications").doc(application_id);
-  
-      // Check if the status field is provided
-      if (!status) {
-        util.statusCode = 400;
-        util.message = "Status field is required for updating an application";
-        return util.send(res);
-      }
-  
-      // Update the status field only
-      await applicationRef.update({ status });
-  
-      // If the status is accepted, create a room
-      if (status === "accepted") {
-        const roomId = uuidv4(); // Generate a unique room ID
-  
-        // Fetch user and creator data if necessary (optional)
-        // const userSnapshot = await db.collection("users").doc(user_id).get();
-        // const creatorSnapshot = await db.collection("users").doc(creator_id).get();
-  
-        // Ensure the snapshots exist before proceeding (optional)
-        // if (!userSnapshot.exists || !creatorSnapshot.exists) {
-        //   util.statusCode = 404;
-        //   util.message = "User or creator not found";
-        //   return util.send(res);
-        // }
-  
-        // Extract user and creator data from request body
-        const { user_name, user_image_url, creator_name, creator_image_url } = req.body;
-  
-        // Call createRoom function with data from request body
-        await createRoom(db, roomId, user_id, user_name, user_image_url, creator_id, creator_name, creator_image_url);
-        
-        // Return success response along with the room creation message
+        const applicationRef = db.collection("applications").doc(application_id);
+
+        if (!status) {
+            util.statusCode = 400;
+            util.message = "Status field is required for updating an application";
+            return util.send(res);
+        }
+
+        await applicationRef.update({ status });
+
+        if (status === "accepted") {
+            const roomId = uuidv4();
+            const userIds = [creator_id, brand_id];
+
+            // Call createRoom function with data
+            await createRoomDirect(db, roomId, userIds);
+
+            util.statusCode = 200;
+            util.message = "Application status updated successfully, room created"  ;
+                // Include roomId in the message
+            util.message += `, roomId: ${roomId}`;
+            return util.send(res);
+        }
+
         util.statusCode = 200;
-        util.message = "Application status updated successfully, room created";
+        util.message = "Application status updated successfully";
         return util.send(res);
-      }
-  
-      // If status is not "accepted", return success response without room creation message
-      util.statusCode = 200;
-      util.message = "Application status updated successfully";
-      return util.send(res);
     } catch (error) {
-      console.error(error);
-      util.statusCode = 500;
-      util.message = error.message || "Server error";
-      return util.send(res);
+        console.error("Error updating application:", error);
+        util.statusCode = 500;
+        util.message = error.message || "Server error";
+        return util.send(res);
     }
-  }
+}
+
+  
   
   
 

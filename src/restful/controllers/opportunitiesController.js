@@ -9,7 +9,6 @@ dotenv.config();
  * @classdesc OpportunitiesController
  */
 
-
 const util = new Util();
 class OpportunitiesController {
   /**
@@ -199,26 +198,29 @@ class OpportunitiesController {
     try {
       const { opportunity_id } = req.params;
       const { type } = req.body;
-  
+
       // Fetch the opportunity document
       const opportunityRef = db.collection("opportunities").doc(opportunity_id);
       const opportunitySnapshot = await opportunityRef.get();
-  
+
       // Check if the opportunity exists
       if (!opportunitySnapshot.exists) {
         return res.status(404).json({ message: "Opportunity not found" });
       }
-  
+
       // Validate type field
       if (!type || !["job", "pitch", "campaign"].includes(type)) {
         return res
           .status(400)
-          .json({ message: "Invalid or missing opportunity type", statusCode: 400 });
+          .json({
+            message: "Invalid or missing opportunity type",
+            statusCode: 400,
+          });
       }
-  
+
       // Get required fields based on the type
       const requiredFields = getRequiredFields(type);
-  
+
       // Prepare the update object with only provided fields
       const updateData = {};
       requiredFields.forEach((field) => {
@@ -227,24 +229,24 @@ class OpportunitiesController {
           updateData[field] = req.body[field];
         }
       });
-  
+
       // Perform the update
       await opportunityRef.update(updateData);
-  
+
       // Return success response
       return res
         .status(200)
-        .json({ message: "Opportunity updated successfully" });
+        .json({ message: "Opportunity updated successfully", statusCode: 200 });
     } catch (error) {
       console.error("Error updating opportunity:", error);
       // Handle unexpected errors
       return res.status(500).json({ message: "Server error", statusCode: 500 });
     }
   }
-  
-  
+
   static async createOpportunity(req, res, type) {
     const db = admin.firestore();
+    const util = new Util(); // Initialize util object within the function scope
     try {
       // Generate UUID for opportunity_id
       const opportunity_id = uuidv4();
@@ -253,19 +255,19 @@ class OpportunitiesController {
       const { ...opportunityData } = req.body;
 
       // Set default status to "open" if not provided
-      // eslint-disable-next-line no-prototype-builtins
       if (!opportunityData.hasOwnProperty("status")) {
         opportunityData.status = "open";
       }
 
       // Validate required fields
       const requiredFields = getRequiredFields(type);
-      const isValid = requiredFields.every((field) =>
-        Object.prototype.hasOwnProperty.call(opportunityData, field),
+      const emptyFields = requiredFields.filter(
+        (field) => !opportunityData[field],
       );
-      if (!isValid) {
+
+      if (emptyFields.length > 0) {
         util.statusCode = 400;
-        util.message = `Missing or invalid fields for ${type} opportunity`;
+        util.message = `Empty fields: ${emptyFields.join(", ")}`;
         return util.send(res);
       }
 

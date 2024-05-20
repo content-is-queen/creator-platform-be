@@ -5,7 +5,9 @@
   "main": "src/index.js",
   "scripts": {
     "dev": "nodemon --exec babel-node src/index.js",
-    "deploy": "firebase deploy --only functions:api"
+    "deploy": "firebase deploy --only functions:api",
+    "precommit": "lint-staged"
+
   },
   "author": "Bizimungu Pascal",
   "license": "ISC",
@@ -42,5 +44,15 @@
   },
   "engines": {
     "node": "18"
-  }
+  },
+    "lint-staged": {
+      "*.js": [
+        "prettier --write",
+        "git add"
+      ]
+    }
+  
+  
 }
+
+

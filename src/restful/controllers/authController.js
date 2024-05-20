@@ -70,7 +70,14 @@ class AuthController {
 
         await usersCollectionRef
           .doc(user.uid)
-          .set({ uid: user.uid, first_name, last_name, role,isActivated:true, ...other });
+          .set({
+            uid: user.uid,
+            first_name,
+            last_name,
+            role,
+            isActivated: true,
+            ...other,
+          });
 
         util.statusCode = 200;
         util.setSuccess(200, "Success", { email, uid });
@@ -109,7 +116,7 @@ class AuthController {
       const updatedClaims = {
         ...currentClaims,
         emailVerified: true,
-        isActivated:true
+        isActivated: true,
       };
       await admin.auth().setCustomUserClaims(uid, updatedClaims);
       await db.collection("otp").doc(email).delete();
@@ -258,30 +265,39 @@ class AuthController {
     }
   }
 
+  
   static async updateUser(req, res) {
     try {
       const { first_name, last_name, bio, profile_meta } = req.body;
       const file = req.files?.imageUrl;
-  
+
       let profileDataObject;
       try {
         // Parse profile_meta only if it's a string
-        profileDataObject = typeof profile_meta === "string" ? JSON.parse(profile_meta) : profile_meta;
+        profileDataObject =
+          typeof profile_meta === "string"
+            ? JSON.parse(profile_meta)
+            : profile_meta;
       } catch (e) {
         console.error("Error parsing profile data:", e);
         return res.status(400).json({ message: "Invalid profile data" });
       }
-  
+
       // Extract showcase, credits, and showreel from the profile data object
       const { showcase, credits, showreel } = profileDataObject;
-  
+
       if (!file || file === undefined || file === null) {
         const docRef = admin
           .firestore()
           .collection("users")
           .doc(req.user.user_id);
-        await docRef.set({ first_name, last_name, bio, showcase, credits, showreel }, { merge: true });
-        return res.status(200).json({ message: "Document updated successfully" });
+        await docRef.set(
+          { first_name, last_name, bio, showcase, credits, showreel },
+          { merge: true },
+        );
+        return res
+          .status(200)
+          .json({ message: "Document updated successfully" });
       } else {
         const storageRef = admin
           .storage()
@@ -293,7 +309,7 @@ class AuthController {
             firebaseStorageDownloadTokens: uuidv4(),
           },
         });
-  
+
         uploadTask
           .then(async (snapshot) => {
             const imageUrl = snapshot[0].metadata.mediaLink;
@@ -302,11 +318,21 @@ class AuthController {
               .collection("users")
               .doc(req.user.user_id);
             await docRef.set(
-              { first_name, last_name, bio, imageUrl, showcase, credits, showreel },
+              {
+                first_name,
+                last_name,
+                bio,
+                imageUrl,
+                showcase,
+                credits,
+                showreel,
+              },
               { merge: true },
             );
             console.log("Document updated successfully:", error);
-            return res.status(200).json({ message: "Document updated successfully" });
+            return res
+              .status(200)
+              .json({ message: "Document updated successfully" });
           })
           .catch((error) => {
             console.error("Error uploading profile picture:", error);
@@ -318,17 +344,17 @@ class AuthController {
       return res.status(500).json({ message: "Server error" });
     }
   }
-  
+
   static async createUsername(req, res) {
     const { username, email } = req.body;
-    const {user_id} = req.user;
+    const { user_id } = req.user;
     try {
       const docRef = admin
         .firestore()
         .collection("users")
         .doc(req.user.user_id);
       await docRef.set({ username }, { merge: true });
-      if(email !== req.user.email){
+      if (email !== req.user.email) {
         await admin.auth().updateUser(user_id, {
           email,
         });
@@ -345,10 +371,10 @@ class AuthController {
   }
 
   static async changePassword(req, res) {
-    const {password } = req.body;
+    const { password } = req.body;
     try {
       await admin.auth().updateUser(req.user?.user_id, {
-        password
+        password,
       });
       util.statusCode = 200;
       util.message = "Username created successfully";

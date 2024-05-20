@@ -20,52 +20,45 @@ class OpportunitiesController {
 
   static async getAllOpportunities(req, res) {
     const db = admin.firestore();
-
+    const { limit = 10, startAfter: startAfterId = null } = req.query; // Default limit to 10, startAfter to null
+  
     try {
       const opportunitiesData = [];
-
-      // Fetch opportunities data from Firestore cache or server
-      const querySnapshot = await db
+      let query = db
         .collection("opportunities")
         .where("status", "!=", "archived")
-        .get({ source: "cache" });
-
-      // Check if cached data is up-to-date
-      if (!querySnapshot.empty) {
-        const serverSnapshot = await db.collection("opportunities").get();
-        const serverUpdateTime = serverSnapshot.docs[0].updateTime.toDate();
-
-        if (serverUpdateTime === querySnapshot.docs[0].updateTime.toDate()) {
-          // Cached data is up-to-date, return it
-          querySnapshot.forEach((doc) => {
-            const opportunityData = doc.data();
-            opportunitiesData.push(opportunityData);
-          });
-
-          if (opportunitiesData.length > 0) {
-            util.statusCode = 200;
-            util.message = opportunitiesData;
-            return util.send(res);
-          } else {
-            util.statusCode = 404;
-            util.message = "Not found";
-            return util.send(res);
-          }
+        .orderBy("status")
+        .limit(parseInt(limit));
+  
+      // If startAfterId is provided, use it to fetch the next set of documents
+      if (startAfterId) {
+        const startAfterDoc = await db.collection("opportunities").doc(startAfterId).get();
+        if (startAfterDoc.exists) {
+          query = query.startAfter(startAfterDoc);
+        } else {
+          return res.status(400).json({ message: "Invalid startAfter ID" });
         }
       }
-
-      // Cached data is outdated or not available, fetch latest data from Firestore
-      const updatedData = [];
+  
+      // Fetch the documents
+      const querySnapshot = await query.get();
+  
       querySnapshot.forEach((doc) => {
-        updatedData.push(doc.data());
+        opportunitiesData.push({ id: doc.id, ...doc.data() });
       });
-
-      // Update cache with latest data
-      await db.collection("opportunities").get({ source: "server" });
-
-      util.statusCode = 200;
-      util.message = updatedData;
-      return util.send(res);
+  
+      if (opportunitiesData.length > 0) {
+        util.statusCode = 200;
+        util.message = {
+          opportunities: opportunitiesData,
+          nextStartAfterId: opportunitiesData[opportunitiesData.length - 1].id,
+        };
+        return util.send(res);
+      } else {
+        util.statusCode = 404;
+        util.message = "No opportunities found";
+        return util.send(res);
+      }
     } catch (error) {
       console.error("Error fetching opportunities:", error);
       util.statusCode = 500;
@@ -73,97 +66,134 @@ class OpportunitiesController {
       return util.send(res);
     }
   }
+  
 
   static async getAllOpportunitiesByUserId(req, res) {
     const db = admin.firestore();
+    const { user_id } = req.params;
+    const { limit = 10, startAfter: startAfterId = null } = req.query;
+  
+    if (!user_id) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+  
     try {
-      const { user_id } = req.params;
-
-      if (!user_id) {
-        return res.status(400).json({ message: "User ID is required" });
-      }
-
       const opportunitiesData = [];
-
-      // Fetch all documents from the "opportunities" collection where user_id matches
-      const querySnapshot = await db
+      let query = db
         .collection("opportunities")
         .where("user_id", "==", user_id)
-        .get();
-
-      // Iterate over each document
+        .limit(parseInt(limit));
+  
+      if (startAfterId) {
+        const startAfterDoc = await db.collection("opportunities").doc(startAfterId).get();
+        if (startAfterDoc.exists) {
+          query = query.startAfter(startAfterDoc);
+        } else {
+          return res.status(400).json({ message: "Invalid startAfter ID" });
+        }
+      }
+  
+      const querySnapshot = await query.get();
+  
       querySnapshot.forEach((doc) => {
-        const opportunity = doc.data();
-        opportunitiesData.push(opportunity);
+        opportunitiesData.push({ id: doc.id, ...doc.data() });
       });
-
-      return res.status(200).json(opportunitiesData);
+  
+      if (opportunitiesData.length > 0) {
+        return res.status(200).json({
+          opportunities: opportunitiesData,
+          nextStartAfterId: opportunitiesData[opportunitiesData.length - 1].id,
+        });
+      } else {
+        return res.status(404).json({ message: "No opportunities found" });
+      }
     } catch (error) {
       console.error("Error fetching opportunities by user ID:", error);
       return res.status(500).json({ message: "Server error" });
     }
   }
+  
 
   static async getOpportunityById(req, res) {
     const db = admin.firestore();
+    const { opportunity_id } = req.params;
+  
+    if (!opportunity_id) {
+      return res.status(400).json({ message: "Opportunity ID is required" });
+    }
+  
     try {
-      const { opportunity_id } = req.params;
-
-      if (!opportunity_id) {
-        return res.status(400).json({ message: "Opportunity ID is required" });
-      }
-
-      // Fetch the opportunity document from Firestore
       const opportunityRef = db.collection("opportunities").doc(opportunity_id);
       const docSnapshot = await opportunityRef.get();
-
+  
       if (!docSnapshot.exists) {
         return res.status(404).json({ message: "Opportunity not found" });
       }
-
-      // Extract the data of the opportunity
+  
       const opportunityData = docSnapshot.data();
-
       return res.status(200).json(opportunityData);
     } catch (error) {
       console.error("Error fetching opportunity by ID:", error);
       return res.status(500).json({ message: "Server error" });
     }
   }
+  
 
   static async getOpportunitiesByStatus(req, res) {
     const db = admin.firestore();
+    const { status } = req.params;
+    const { limit = 10, startAfter: startAfterId = null } = req.query;
+  
+    if (!status || !["open", "in_progress", "completed"].includes(status)) {
+      util.statusCode = 400;
+      util.message = "Invalid or missing opportunity status";
+      return util.send(res);
+    }
+  
     try {
-      const { status } = req.params;
-
-      if (!status || !["open", "in_progress", "completed"].includes(status)) {
-        util.statusCode = 400;
-        util.message = "Invalid or missing opportunity status";
+      const opportunitiesData = [];
+      let query = db
+        .collection("opportunities")
+        .where("status", "==", status)
+        .limit(parseInt(limit));
+  
+      if (startAfterId) {
+        const startAfterDoc = await db.collection("opportunities").doc(startAfterId).get();
+        if (startAfterDoc.exists) {
+          query = query.startAfter(startAfterDoc);
+        } else {
+          util.statusCode = 400;
+          util.message = "Invalid startAfter ID";
+          return util.send(res);
+        }
+      }
+  
+      const querySnapshot = await query.get();
+  
+      querySnapshot.forEach((doc) => {
+        opportunitiesData.push({ id: doc.id, ...doc.data() });
+      });
+  
+      if (opportunitiesData.length > 0) {
+        util.statusCode = 200;
+        util.message = {
+          opportunities: opportunitiesData,
+          nextStartAfterId: opportunitiesData[opportunitiesData.length - 1].id,
+        };
+        return util.send(res);
+      } else {
+        util.statusCode = 404;
+        util.message = "No opportunities found";
         return util.send(res);
       }
-
-      const collectionPath = `opportunities`;
-      const querySnapshot = await db
-        .collection(collectionPath)
-        .where("status", "==", status)
-        .get();
-
-      const opportunities = [];
-
-      querySnapshot.forEach((doc) => {
-        opportunities.push(doc.data());
-      });
-
-      util.statusCode = 200;
-      util.message = opportunities;
-      return util.send(res);
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching opportunities by status:", error);
       util.statusCode = 500;
       util.message = error.message || "Server error";
       return util.send(res);
     }
   }
+  
 
   static async deleteOpportunityById(req, res) {
     const db = admin.firestore();

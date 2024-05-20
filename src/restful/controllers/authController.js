@@ -260,17 +260,28 @@ class AuthController {
 
   static async updateUser(req, res) {
     try {
-      const { first_name, last_name, bio } = req.body;
+      const { first_name, last_name, bio, profile_meta } = req.body;
       const file = req.files?.imageUrl;
+  
+      let profileDataObject;
+      try {
+        // Parse profile_meta only if it's a string
+        profileDataObject = typeof profile_meta === "string" ? JSON.parse(profile_meta) : profile_meta;
+      } catch (e) {
+        console.error("Error parsing profile data:", e);
+        return res.status(400).json({ message: "Invalid profile data" });
+      }
+  
+      // Extract showcase, credits, and showreel from the profile data object
+      const { showcase, credits, showreel } = profileDataObject;
+  
       if (!file || file === undefined || file === null) {
         const docRef = admin
           .firestore()
           .collection("users")
           .doc(req.user.user_id);
-        await docRef.set({ first_name, last_name, bio }, { merge: true });
-        util.statusCode = 200;
-        util.message = "Document updated successfully";
-        return util.send(res);
+        await docRef.set({ first_name, last_name, bio, showcase, credits, showreel }, { merge: true });
+        return res.status(200).json({ message: "Document updated successfully" });
       } else {
         const storageRef = admin
           .storage()
@@ -282,7 +293,7 @@ class AuthController {
             firebaseStorageDownloadTokens: uuidv4(),
           },
         });
-
+  
         uploadTask
           .then(async (snapshot) => {
             const imageUrl = snapshot[0].metadata.mediaLink;
@@ -291,27 +302,23 @@ class AuthController {
               .collection("users")
               .doc(req.user.user_id);
             await docRef.set(
-              { first_name, last_name, bio, imageUrl },
+              { first_name, last_name, bio, imageUrl, showcase, credits, showreel },
               { merge: true },
             );
-            util.statusCode = 200;
-            util.message = "Document updated successfully";
-            return util.send(res);
+            console.log("Document updated successfully:", error);
+            return res.status(200).json({ message: "Document updated successfully" });
           })
           .catch((error) => {
-            util.statusCode = 500;
-            util.message = error.message || "Server error";
-            return util.send(res);
+            console.error("Error uploading profile picture:", error);
+            return res.status(500).json({ message: "Server error" });
           });
       }
     } catch (error) {
-      console.error("Error updating profile picture:", error);
-      util.statusCode = 500;
-      util.message = error.mesage || "Server error";
-      return util.send(res);
+      console.error("Error updating profile:", error);
+      return res.status(500).json({ message: "Server error" });
     }
   }
-
+  
   static async createUsername(req, res) {
     const { username, email } = req.body;
     const {user_id} = req.user;

@@ -211,9 +211,7 @@ class OpportunitiesController {
 
       // Validate type field
       if (!type || !["job", "pitch", "campaign"].includes(type)) {
-        return res
-          .status(400)
-          .json({ message: "Invalid or missing opportunity type", statusCode: 400 });
+        throw new Error("Invalid or missing opportunity type");
       }
 
       // Get required fields based on the type
@@ -236,9 +234,9 @@ class OpportunitiesController {
         .status(200)
         .json({ message: "Opportunity updated successfully", statusCode: 200 });
     } catch (error) {
+      console.log(error)
       console.error("Error updating opportunity:", error);
-      // Handle unexpected errors
-      return res.status(500).json({ message: "Server error", statusCode: 500 });
+      return res.status(500).json({ message: error?.message || "Server error", statusCode: 500 });
     }
   }
 

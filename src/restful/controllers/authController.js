@@ -10,6 +10,7 @@ const { transporter } = require("../../helper/mailHelper");
 const otpGenerator = require("otp-generator");
 const admin = require("firebase-admin");
 const { v4: uuidv4 } = require("uuid");
+const jwt = require("jsonwebtoken");
 
 dotenv.config();
 /**
@@ -124,6 +125,35 @@ class AuthController {
       util.statusCode = 500;
       util.message = errorMessage;
       return util.send(res);
+    }
+  }
+
+  static async forgetPassword(req, res) {
+    try {
+      const { email } = req.body;
+      const userRecord = await admin.auth().getUserByEmail(email);
+      if (userRecord.email !== email) {
+        return res.status(404).json({ res: "This email is not registered" });
+      }
+      const secret = process.env.JWT_SECRET + userRecord.uid;
+    const payload = {
+      uid: userRecord.uid,
+      email,
+    };
+    const token = jwt.sign(payload, secret, { expiresIn: "15m" });
+    const link = `${process.env.FRONT_END_URL}/reset-password/${userRecord.uid}/${token}`;
+    const mailOptions = {
+      from: process.env.EMAIL,
+      to: email,
+      subject: "Password Reset Request for Your Creator Platform Account",
+      html: SendPasswordReset(link),
+    };
+    await transporter.sendMail(mailOptions);
+    return res
+    .status(200)
+    .json({ message: "Password reset email sent successfully" });
+    } catch (error) {
+      return res.status(500).json({ message: error.message || "Server error" });
     }
   }
 

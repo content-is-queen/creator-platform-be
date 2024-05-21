@@ -328,6 +328,27 @@ class AuthController {
       return util.send(res);
     }
   }
+
+  static async checkEmailExists(req, res) {
+    const { email } = req.query;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    try {
+      const userRecord = await admin.auth().getUserByEmail(email);
+      if (userRecord) {
+        return res.status(200).json({ exists: true });
+      }
+    } catch (error) {
+      if (error.code === 'auth/user-not-found') {
+        return res.status(200).json({ exists: false });
+      }
+      console.error("Error checking email existence:", error);
+      return res.status(500).json({ message: error.message || "Server error" });
+    }
+  }
 }
 
 exports.AuthController = AuthController;

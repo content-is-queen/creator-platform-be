@@ -138,10 +138,9 @@ class AuthController {
       const secret = process.env.JWT_SECRET + userRecord.uid;
     const payload = {
       uid: userRecord.uid,
-      email,
     };
     const token = jwt.sign(payload, secret, { expiresIn: "15m" });
-    const link = `${process.env.FRONT_END_URL}/reset-password/${userRecord.uid}/${token}`;
+    const link = `${process.env.FRONT_END_URL}/reset-password?token=${token}`;
     const mailOptions = {
       from: process.env.EMAIL,
       to: email,
@@ -158,29 +157,18 @@ class AuthController {
   }
 
   static async resetUserPassword(req, res) {
+    const { password, uid } = req.body;
     try {
-      const { email } = req.body;
-      const actionCodeSettings = {
-        url: `${process.env.FRONT_END_URL}/login`,
-        handleCodeInApp: true,
-      };
-      const resetLink = await admin
-        .auth()
-        .generatePasswordResetLink(email, actionCodeSettings);
-      const mailOptions = {
-        from: process.env.EMAIL,
-        to: email,
-        subject: "Password Reset Request for Your Creator Platform Account",
-        html: SendPasswordReset(resetLink),
-      };
-      await transporter.sendMail(mailOptions);
-
-      return res
-        .status(200)
-        .json({ message: "Password reset email sent successfully" });
+      await admin.auth().updateUser(uid, {
+        password
+      });
+      util.statusCode = 200;
+      util.message = "Password updated succesfully";
+      return util.send(res);
     } catch (error) {
-      console.error("Error resetting user password:", error);
-      return res.status(500).json({ message: error.message || "Server error" });
+      util.statusCode = 500;
+      util.message = error.message || "Server error";
+      return util.send(res);
     }
   }
 
@@ -352,7 +340,6 @@ class AuthController {
       util.message = "Password updated succesfully";
       return util.send(res);
     } catch (error) {
-      console.error("Error updating password:", error);
       util.statusCode = 500;
       util.message = error.message || "Server error";
       return util.send(res);

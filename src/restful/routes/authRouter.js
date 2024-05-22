@@ -11,7 +11,7 @@ router.get("/users", AuthController.getAllUsers);
 router.post("/signup", AuthController.signup);
 router.post("/verify", AuthController.verifyOtp);
 router.post("/forgot", AuthController.forgetPassword);
-// router.post("/reset", AuthController.resetUserPassword);
+router.post("/reset", AuthController.resetUserPassword);
 router.post("/password", protect, AuthController.changePassword);
 router.get("/user/:user_id", AuthController.getPublicUser);
 

@@ -211,9 +211,7 @@ class OpportunitiesController {
 
       // Validate type field
       if (!type || !["job", "pitch", "campaign"].includes(type)) {
-        return res
-          .status(400)
-          .json({ message: "Invalid or missing opportunity type" });
+        throw new Error("Invalid or missing opportunity type");
       }
 
       // Get required fields based on the type
@@ -222,7 +220,7 @@ class OpportunitiesController {
       // Prepare the update object with only provided fields
       const updateData = {};
       requiredFields.forEach((field) => {
-        // eslint-disable-next-line no-prototype-builtins
+        // Check if the field is provided in the request body
         if (req.body.hasOwnProperty(field)) {
           updateData[field] = req.body[field];
         }
@@ -234,70 +232,72 @@ class OpportunitiesController {
       // Return success response
       return res
         .status(200)
-        .json({ message: "Opportunity updated successfully" });
+        .json({ message: "Opportunity updated successfully", statusCode: 200 });
     } catch (error) {
+      console.log(error)
       console.error("Error updating opportunity:", error);
-      return res.status(500).json({ message: "Server error" });
+      return res.status(500).json({ message: error?.message || "Server error", statusCode: 500 });
     }
   }
+
 
   static async createOpportunity(req, res, type) {
     const db = admin.firestore();
     try {
-      // Generate UUID for opportunity_id
-      const opportunity_id = uuidv4();
+        // Generate UUID for opportunity_id
+        const opportunity_id = uuidv4();
 
-      // Extract opportunity data from request body
-      const { ...opportunityData } = req.body;
+        // Extract opportunity data from request body
+        const { ...opportunityData } = req.body;
 
-      // Set default status to "open" if not provided
-      // eslint-disable-next-line no-prototype-builtins
-      if (!opportunityData.hasOwnProperty("status")) {
-        opportunityData.status = "open";
-      }
+        // Set default status to "open" if not provided
+        if (!opportunityData.hasOwnProperty("status")) {
+            opportunityData.status = "open";
+        }
 
-      // Validate required fields
-      const requiredFields = getRequiredFields(type);
-      const isValid = requiredFields.every((field) =>
-        Object.prototype.hasOwnProperty.call(opportunityData, field),
-      );
-      if (!isValid) {
-        util.statusCode = 400;
-        util.message = `Missing or invalid fields for ${type} opportunity`;
+        // Validate required fields
+        const requiredFields = getRequiredFields(type);
+        const isValid = requiredFields.every((field) =>
+            Object.prototype.hasOwnProperty.call(opportunityData, field) && opportunityData[field].trim() !== ""
+        );
+        if (!isValid) {
+            util.statusCode = 400;
+            util.message = `Missing or invalid fields for ${type} opportunity`;
+            return util.send(res);
+        }
+
+        // Check if opportunity with same ID already exists
+        const existingOpportunity = await db
+            .collection("opportunities")
+            .doc(opportunity_id)
+            .get();
+        if (existingOpportunity.exists) {
+            util.statusCode = 400;
+            util.message = "Opportunity with same ID already exists";
+            return util.send(res);
+        }
+
+        // Store the opportunity data in the opportunities collection
+        await db
+            .collection("opportunities")
+            .doc(opportunity_id)
+            .set({
+                opportunity_id,
+                type,
+                ...opportunityData,
+            });
+
+        util.statusCode = 201;
+        util.message = "Opportunity created successfully";
         return util.send(res);
-      }
-
-      // Check if opportunity with same ID already exists
-      const existingOpportunity = await db
-        .collection("opportunities")
-        .doc(opportunity_id)
-        .get();
-      if (existingOpportunity.exists) {
-        util.statusCode = 400;
-        util.message = "Opportunity with same ID already exists";
-        return util.send(res);
-      }
-
-      // Store the opportunity data in the opportunities collection
-      await db
-        .collection("opportunities")
-        .doc(opportunity_id)
-        .set({
-          opportunity_id,
-          type,
-          ...opportunityData,
-        });
-
-      util.statusCode = 201;
-      util.message = "Opportunity created successfully";
-      return util.send(res);
     } catch (error) {
-      console.error(error);
-      util.statusCode = 500;
-      util.message = error.message || "Server error";
-      return util.send(res);
+        console.error(error);
+        util.statusCode = 500;
+        util.message = error.message || "Server error";
+        return util.send(res);
     }
-  }
+}
+
 
   static async createJobOpportunity(req, res) {
     return OpportunitiesController.createOpportunity(req, res, "job");

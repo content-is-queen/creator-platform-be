@@ -70,7 +70,7 @@ class AuthController {
 
         await usersCollectionRef
           .doc(user.uid)
-          .set({ uid: user.uid, first_name, last_name, role,isActivated:true, ...other });
+          .set({ uid: user.uid, first_name, last_name, role, isActivated: true, ...other });
 
         util.statusCode = 200;
         util.setSuccess(200, "Success", { email, uid });
@@ -109,7 +109,7 @@ class AuthController {
       const updatedClaims = {
         ...currentClaims,
         emailVerified: true,
-        isActivated:true
+        isActivated: true
       };
       await admin.auth().setCustomUserClaims(uid, updatedClaims);
       await db.collection("otp").doc(email).delete();
@@ -312,45 +312,41 @@ class AuthController {
     }
   }
 
-  static async createUsername(req, res) {
-    const { username, email } = req.body;
-    const {user_id} = req.user;
+  static async changePassword(req, res) {
+    const { password } = req.body;
     try {
-      const docRef = admin
-        .firestore()
-        .collection("users")
-        .doc(req.user.user_id);
-      await docRef.set({ username }, { merge: true });
-      if(email !== req.user.email){
-        await admin.auth().updateUser(user_id, {
-          email,
-        });
-      }
+      await admin.auth().updateUser(req.user?.user_id, {
+        password
+      });
       util.statusCode = 200;
-      util.message = "Username created successfully";
+      util.message = "Password updated succesfully";
       return util.send(res);
     } catch (error) {
-      console.error("Error creating username:", error);
+      console.error("Error updating password:", error);
       util.statusCode = 500;
       util.message = error.message || "Server error";
       return util.send(res);
     }
   }
 
-  static async changePassword(req, res) {
-    const {password } = req.body;
+  static async checkEmailExists(req, res) {
+    const { email } = req.query;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
     try {
-      await admin.auth().updateUser(req.user?.user_id, {
-        password
-      });
-      util.statusCode = 200;
-      util.message = "Username created successfully";
-      return util.send(res);
+      const userRecord = await admin.auth().getUserByEmail(email);
+      if (userRecord) {
+        return res.status(200).json({ exists: true });
+      }
     } catch (error) {
-      console.error("Error creating username:", error);
-      util.statusCode = 500;
-      util.message = error.message || "Server error";
-      return util.send(res);
+      if (error.code === 'auth/user-not-found') {
+        return res.status(200).json({ exists: false });
+      }
+      console.error("Error checking email existence:", error);
+      return res.status(500).json({ message: error.message || "Server error" });
     }
   }
 }

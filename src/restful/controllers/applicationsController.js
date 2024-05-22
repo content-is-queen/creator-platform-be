@@ -134,12 +134,10 @@ class ApplicationsController {
         await applicationRef.update({ status });
 
         if (status === "accepted") {
-            const roomId = uuidv4();
+            const roomId = 'chat_'+(creator_id < brand_id? creator_id+"_"+brand_id : brand_id+"_"+creator_id)
             const userIds = [creator_id, brand_id];
-
             // Call createRoom function with data
             await createRoomDirect(db, roomId, userIds);
-
             util.statusCode = 200;
             util.message = "Application status updated successfully, room created"  ;
                 // Include roomId in the message

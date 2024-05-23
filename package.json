@@ -5,7 +5,9 @@
   "main": "src/index.js",
   "scripts": {
     "dev": "nodemon --exec babel-node src/index.js",
-    "deploy": "firebase deploy --only functions:api"
+    "deploy": "firebase deploy --only functions:api",
+    "format": "prettier --write ."
+
   },
   "author": "Bizimungu Pascal",
   "license": "ISC",

@@ -1,4 +1,4 @@
-const stripe = require('stripe')('sk_test_your_secret_key_here'); // Replace with your secret key
+const stripe = require('stripe')('rk_test_51PEYUjA0tTttcwfy68vzV9o31xyP7m1SFLnhWbUVmgD6snDwaEPTyroswitGAKhysvCO8hr3NRwpvB7Zxf3IKMbS00WFZaCH12'); // Replace with your secret key
 
 const createSubscription = async (req, res) => {
     try {

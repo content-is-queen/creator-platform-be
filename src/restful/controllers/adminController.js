@@ -189,7 +189,7 @@ class AdminController {
         return {
           ...opportunityData,
           numberOfApplications: opportunityApplicationsCount[opportunityId] || 0,
-          userName: userData ? userData.first_name + " " + userData.first_name : "Unknown",
+          full_name: userData.first_name + " " + userData.first_name
         };
       });
   

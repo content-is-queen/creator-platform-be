@@ -30,8 +30,9 @@ class AuthController {
     const { first_name, last_name, email, password, role, ...other } = req.body;
 
     const db = admin.firestore();
+    let user = null;
     try {
-      const user = await admin.auth().createUser({
+      user = await admin.auth().createUser({
         email,
         password,
       });
@@ -83,12 +84,16 @@ class AuthController {
         return util.send(res);
       }
     } catch (error) {
+      if (user && user.uid) {
+        await admin.auth().deleteUser(user.uid);
+      }
       const errorMessage = error?.errorInfo?.message;
       util.statusCode = 500;
       util.message = errorMessage || error.message || "Server error";
       return util.send(res);
     }
   }
+
 
   static async verifyOtp(req, res) {
     try {

@@ -20,7 +20,7 @@ class OpportunitiesController {
 
   static async getAllOpportunities(req, res) {
     const db = admin.firestore();
-    const { limit = 10, startAfter: startAfterId = null } = req.query; // Default limit to 10, startAfter to null
+    const { limit = 2, startAfter: startAfterId = null } = req.query; // Default limit to 10, startAfter to null
   
     try {
       const opportunitiesData = [];

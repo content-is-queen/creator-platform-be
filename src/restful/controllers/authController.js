@@ -354,6 +354,30 @@ class AuthController {
       return res.status(500).json({ message: error.message || "Server error" });
     }
   }
+
+  static async changeEmail(req, res) {
+    const { email } = req.body;
+    const {user_id} = req.user;
+    try {
+      if(email !== req.user.email){
+      const docRef = admin
+        .firestore()
+        .collection("users")
+        .doc(req.user.user_id);
+      await docRef.set({ email }, { merge: true });
+        await admin.auth().updateUser(user_id, {
+          email,
+        });
+      }
+      util.statusCode = 200;
+      util.message = "Email changed successfully";
+      return util.send(res);
+    } catch (error) {
+      util.statusCode = 500;
+      util.message = error.message || "Server error";
+      return util.send(res);
+    }
+  }
 }
 
 exports.AuthController = AuthController;

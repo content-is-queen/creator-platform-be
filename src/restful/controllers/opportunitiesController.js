@@ -20,28 +20,28 @@ class OpportunitiesController {
 
   static async getAllOpportunities(req, res) {
     const db = admin.firestore();
-
+  
     try {
       const opportunitiesData = [];
-
+  
       // Fetch opportunities data from Firestore cache or server
       const querySnapshot = await db
         .collection("opportunities")
         .where("status", "!=", "archived")
         .get({ source: "cache" });
-
+  
       // Check if cached data is up-to-date
       if (!querySnapshot.empty) {
         const serverSnapshot = await db.collection("opportunities").get();
         const serverUpdateTime = serverSnapshot.docs[0].updateTime.toDate();
-
-        if (serverUpdateTime === querySnapshot.docs[0].updateTime.toDate()) {
+  
+        if (serverUpdateTime.getTime() === querySnapshot.docs[0].updateTime.toDate().getTime()) {
           // Cached data is up-to-date, return it
           querySnapshot.forEach((doc) => {
             const opportunityData = doc.data();
             opportunitiesData.push(opportunityData);
           });
-
+  
           if (opportunitiesData.length > 0) {
             util.statusCode = 200;
             util.message = opportunitiesData;
@@ -53,16 +53,16 @@ class OpportunitiesController {
           }
         }
       }
-
+  
       // Cached data is outdated or not available, fetch latest data from Firestore
       const updatedData = [];
       querySnapshot.forEach((doc) => {
         updatedData.push(doc.data());
       });
-
+  
       // Update cache with latest data
       await db.collection("opportunities").get({ source: "server" });
-
+  
       util.statusCode = 200;
       util.message = updatedData;
       return util.send(res);
@@ -73,6 +73,10 @@ class OpportunitiesController {
       return util.send(res);
     }
   }
+  
+  
+  
+
 
   static async getAllOpportunitiesByUserId(req, res) {
     const db = admin.firestore();

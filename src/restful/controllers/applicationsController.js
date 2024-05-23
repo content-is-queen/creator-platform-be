@@ -35,27 +35,51 @@ class ApplicationsController {
   static async getAllApplications(req, res) {
     const db = admin.firestore();
     try {
-      const applicationsData = [];
-  
-      // Fetch all documents from the "applications" collection
-      const querySnapshot = await db.collection("applications").get();
-  
-      // Iterate over each document
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        applicationsData.push(data);
-      });
-  
-      util.statusCode = 200;
-      util.message = applicationsData;
-      return util.send(res);
+        const applicationsData = [];
+
+        // Fetch applications data from Firestore cache or server
+        const querySnapshot = await db.collection("applications").get({ source: "cache" });
+
+        // Check if cached data is available
+        if (!querySnapshot.empty) {
+            // Cached data is available, return it
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                applicationsData.push(data);
+            });
+
+            if (applicationsData.length > 0) {
+                util.statusCode = 200;
+                util.message = applicationsData;
+                return util.send(res);
+            } else {
+                util.statusCode = 404;
+                util.message = "Not found";
+                return util.send(res);
+            }
+        }
+
+        // Cached data is not available, fetch latest data from Firestore
+        const updatedData = [];
+        const serverSnapshot = await db.collection("applications").get({ source: "server" });
+        serverSnapshot.forEach((doc) => {
+            updatedData.push(doc.data());
+        });
+
+        // Update cache with latest data
+        await db.collection("applications").get({ source: "cache" });
+
+        util.statusCode = 200;
+        util.message = updatedData;
+        return util.send(res);
     } catch (error) {
-      console.log(error);
-      util.statusCode = 500;
-      util.message = error.message || "Server error";
-      return util.send(res);
+        console.log(error);
+        util.statusCode = 500;
+        util.message = error.message || "Server error";
+        return util.send(res);
     }
-  }
+}
+
 
   static async getApplicationById(req, res) {
     const db = admin.firestore();

@@ -10,9 +10,17 @@ dotenv.config();
 class ChatController {
   static async sendMessage(req, res) {
     try {
-      const { fullName, id, profile_image, receiver, sender, message } = req.body;
+      const { fullName, id, profile_image, receiver, sender, message } =
+        req.body;
 
-      if (!message || !sender || !receiver || !profile_image || !id || !fullName) {
+      if (
+        !message ||
+        !sender ||
+        !receiver ||
+        !profile_image ||
+        !id ||
+        !fullName
+      ) {
         return res.status(400).json({ error: "Invalid request" });
       }
 
@@ -27,7 +35,11 @@ class ChatController {
       };
 
       const batch = db.batch();
-      batch.set(roomRef, { id, fullName, lastMessage: message }, { merge: true });
+      batch.set(
+        roomRef,
+        { id, fullName, lastMessage: message },
+        { merge: true },
+      );
       const messagesRef = roomRef.collection("messages").doc();
       batch.set(messagesRef, messageData);
 
@@ -44,12 +56,15 @@ class ChatController {
       const { receiverId } = req.params;
       const db = admin.firestore();
       const roomRef = db.collection("rooms").doc(receiverId);
-      const messagesRef = roomRef.collection("messages").orderBy('createdAt', 'desc').limit(10);
+      const messagesRef = roomRef
+        .collection("messages")
+        .orderBy("createdAt", "desc")
+        .limit(10);
 
       const messagesSnapshot = await messagesRef.get();
-      const messages = messagesSnapshot.docs.map(doc => ({
+      const messages = messagesSnapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       }));
 
       res.status(200).json(messages);
@@ -64,9 +79,9 @@ class ChatController {
       const db = admin.firestore();
       const userCollections = await db.collection("users").get();
 
-      const userList = userCollections.docs.map(doc => ({
+      const userList = userCollections.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       }));
 
       res.status(200).json(userList);
@@ -79,7 +94,7 @@ class ChatController {
   static async getUserProfiles(req, res) {
     try {
       const users = await admin.auth().listUsers();
-      const userProfiles = users.users.map(userRecord => userRecord.toJSON());
+      const userProfiles = users.users.map((userRecord) => userRecord.toJSON());
 
       res.status(200).json(userProfiles);
     } catch (error) {
@@ -89,7 +104,7 @@ class ChatController {
   }
 
   static async createRoom(req, res) {
-    console.log("is this being called")
+    console.log("is this being called");
     try {
       const { id, fullName, userIds } = req.body;
 
@@ -105,7 +120,7 @@ class ChatController {
         fullName,
         lastMessage: "",
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        userIds
+        userIds,
       };
 
       await roomRef.set(roomData);
@@ -129,7 +144,7 @@ class ChatController {
       const roomRef = db.collection("rooms").doc(roomId);
 
       await roomRef.update({
-        userIds: admin.firestore.FieldValue.arrayUnion(userId)
+        userIds: admin.firestore.FieldValue.arrayUnion(userId),
       });
 
       res.json({ success: true });

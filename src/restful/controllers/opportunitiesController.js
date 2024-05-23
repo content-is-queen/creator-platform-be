@@ -140,7 +140,9 @@ class OpportunitiesController {
       }
 
       await opportunityRef.update({ status: "archived" });
-      return res.status(200).json({ message: "Opportunity archived successfully" });
+      return res
+        .status(200)
+        .json({ message: "Opportunity archived successfully" });
     } catch (error) {
       console.error("Error archiving opportunity:", error);
       return res.status(500).json({ message: "Server error" });
@@ -173,10 +175,14 @@ class OpportunitiesController {
       });
 
       await opportunityRef.update(updateData);
-      return res.status(200).json({ message: "Opportunity updated successfully", statusCode: 200 });
+      return res
+        .status(200)
+        .json({ message: "Opportunity updated successfully", statusCode: 200 });
     } catch (error) {
       console.error("Error updating opportunity:", error);
-      return res.status(500).json({ message: error.message || "Server error", statusCode: 500 });
+      return res
+        .status(500)
+        .json({ message: error.message || "Server error", statusCode: 500 });
     }
   }
 
@@ -207,19 +213,25 @@ class OpportunitiesController {
         return util.send(res);
       }
 
-      const existingOpportunity = await db.collection("opportunities").doc(opportunity_id).get();
+      const existingOpportunity = await db
+        .collection("opportunities")
+        .doc(opportunity_id)
+        .get();
       if (existingOpportunity.exists) {
         util.statusCode = 400;
         util.message = "Opportunity with same ID already exists";
         return util.send(res);
       }
 
-      await db.collection("opportunities").doc(opportunity_id).set({
-        opportunity_id,
-        type,
-        prompt,
-        ...opportunityData,
-      });
+      await db
+        .collection("opportunities")
+        .doc(opportunity_id)
+        .set({
+          opportunity_id,
+          type,
+          prompt,
+          ...opportunityData,
+        });
 
       util.statusCode = 201;
       util.message = "Opportunity created successfully";

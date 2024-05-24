@@ -39,6 +39,26 @@ class ChatController {
     }
   }
 
+  static async getRoomInfo(req, res) {
+    try {
+      const roomId = req.params.roomId;
+      const db = admin.firestore();
+      const roomRef = db.collection("rooms").doc(roomId);
+      const roomSnapshot = await roomRef.get();
+
+      if (!roomSnapshot.exists) {
+        return res.status(404).json({ error: "Room not found" });
+      }
+
+      const roomData = roomSnapshot.data();
+      res.status(200).json(roomData);
+    } catch (error) {
+      console.error("Error fetching room info:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+
+
   static async receiveMessages(req, res) {
     try {
       const { receiverId } = req.params;
@@ -87,6 +107,21 @@ class ChatController {
       res.status(500).json({ error: "Internal server error" });
     }
   }
+
+  static async getMessages(req, res) {
+    try {
+      const roomId = req.params.roomId;
+      const db = admin.firestore();
+      const messagesRef = db.collection("rooms").doc(roomId).collection("messages");
+      const snapshot = await messagesRef.get();
+      const messages = snapshot.docs.map(doc => doc.data());
+      res.status(200).json(messages);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+  
 
   static async createRoom(req, res) {
     console.log("is this being called")

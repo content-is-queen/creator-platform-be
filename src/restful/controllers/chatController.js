@@ -8,29 +8,34 @@ dotenv.config();
  * @classdesc ChatController
  */
 class ChatController {
+
   static async sendMessage(req, res) {
     try {
       const { fullName, id, profile_image, receiver, sender, message } = req.body;
-
+  
       if (!message || !sender || !receiver || !profile_image || !id || !fullName) {
         return res.status(400).json({ error: "Invalid request" });
       }
-
+  
+      console.log("Message:", message); // Log the message to check its content
+  
       const db = admin.firestore();
       const roomRef = db.collection("rooms").doc(id);
-
+  
       const messageData = {
         message,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         sender,
         receiver,
       };
-
+  
       const batch = db.batch();
-      batch.set(roomRef, { id, fullName, lastMessage: message }, { merge: true });
       const messagesRef = roomRef.collection("messages").doc();
       batch.set(messagesRef, messageData);
-
+  
+      // Update the lastMessage field with the latest message
+      batch.update(roomRef, { lastMessage: message });
+  
       await batch.commit();
       res.json({ success: true });
     } catch (error) {
@@ -38,6 +43,8 @@ class ChatController {
       res.status(500).json({ error: "Internal server error" });
     }
   }
+  
+  
 
   static async getRoomInfo(req, res) {
     try {
@@ -57,7 +64,29 @@ class ChatController {
       res.status(500).json({ error: "Internal server error" });
     }
   }
-
+  static async getUserRooms(req, res) {
+    try {
+      const { userId } = req.params; // Assuming you have user information in the request
+      const db = admin.firestore();
+      const roomsRef = db.collection("rooms").where("userIds", "array-contains", userId);
+      const roomsSnapshot = await roomsRef.get();
+  
+      const userRooms = [];
+      roomsSnapshot.forEach((roomDoc) => {
+        const roomData = roomDoc.data();
+        userRooms.push({
+          id: roomDoc.id,
+          ...roomData,
+        });
+      });
+  
+      res.status(200).json(userRooms);
+    } catch (error) {
+      console.error("Error fetching user rooms:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+  
 
   static async receiveMessages(req, res) {
     try {

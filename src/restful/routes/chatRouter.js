@@ -20,5 +20,6 @@ router.post("/create-room", ChatController.createRoom); // Endpoint for creating
 router.post("/add-user-to-room", ChatController.addUserToRoom); // New endpoint for adding users to a room
 router.get("/:roomId/allmessages", ChatController.getMessages);
 router.get("/rooms/:roomId", ChatController.getRoomInfo);
+router.get("/user-rooms/:userId", ChatController.getUserRooms);
 
 module.exports.chatRouter = router;

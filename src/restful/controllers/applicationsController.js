@@ -1,8 +1,6 @@
 const dotenv = require("dotenv");
 const { Util } = require("../../helper/utils");
 const admin = require("firebase-admin");
-const { v4: uuidv4 } = require('uuid');
-const ChatController = require("../controllers/chatController"); 
 
 dotenv.config();
 

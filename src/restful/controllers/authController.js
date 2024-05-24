@@ -69,16 +69,14 @@ class AuthController {
       if (emailSent) {
         const usersCollectionRef = db.collection("users");
 
-        await usersCollectionRef
-          .doc(user.uid)
-          .set({
-            uid: user.uid,
-            first_name,
-            last_name,
-            role,
-            isActivated: true,
-            ...other,
-          });
+        await usersCollectionRef.doc(user.uid).set({
+          uid: user.uid,
+          first_name,
+          last_name,
+          role,
+          isActivated: true,
+          ...other,
+        });
 
         util.statusCode = 200;
         util.setSuccess(200, "Success", { email, uid });

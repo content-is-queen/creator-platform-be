@@ -9,7 +9,6 @@ dotenv.config();
  * @classdesc OpportunitiesController
  */
 
-
 const util = new Util();
 class OpportunitiesController {
   /**
@@ -234,79 +233,79 @@ class OpportunitiesController {
         .status(200)
         .json({ message: "Opportunity updated successfully", statusCode: 200 });
     } catch (error) {
-      console.log(error)
+      console.log(error);
       console.error("Error updating opportunity:", error);
-      return res.status(500).json({ message: error?.message || "Server error", statusCode: 500 });
+      return res
+        .status(500)
+        .json({ message: error?.message || "Server error", statusCode: 500 });
     }
   }
 
-static async createOpportunity(req, res, type) {
-  const db = admin.firestore();
-  try {
-    // Generate UUID for opportunity_id
-    const opportunity_id = uuidv4();
+  static async createOpportunity(req, res, type) {
+    const db = admin.firestore();
+    try {
+      // Generate UUID for opportunity_id
+      const opportunity_id = uuidv4();
 
-    // Extract opportunity data from request body
-    const { prompt, ...opportunityData } = req.body;
+      // Extract opportunity data from request body
+      const { prompt, ...opportunityData } = req.body;
 
-    // Set default status to "open" if not provided
-    if (!opportunityData.hasOwnProperty("status")) {
-      opportunityData.status = "open";
-    }
+      // Set default status to "open" if not provided
+      if (!opportunityData.hasOwnProperty("status")) {
+        opportunityData.status = "open";
+      }
 
-    // Validate required fields
-    const requiredFields = getRequiredFields(type);
-    const missingFields = requiredFields.filter(field => {
-      const value = opportunityData[field];
-      return (
-        !opportunityData.hasOwnProperty(field) ||
-        (typeof value === "string" && value.trim() === "") ||
-        (Array.isArray(value) && value.length === 0)
-      );
-    });
-
-    if (missingFields.length > 0) {
-      console.log("Missing or invalid fields:", missingFields);
-      util.statusCode = 400;
-      util.message = `Missing or invalid fields for ${type} opportunity: ${missingFields.join(", ")}`;
-      return util.send(res);
-    }
-
-    // Check if opportunity with same ID already exists
-    const existingOpportunity = await db
-      .collection("opportunities")
-      .doc(opportunity_id)
-      .get();
-
-    if (existingOpportunity.exists) {
-      util.statusCode = 400;
-      util.message = "Opportunity with same ID already exists";
-      return util.send(res);
-    }
-
-    // Store the opportunity data in the opportunities collection
-    await db
-      .collection("opportunities")
-      .doc(opportunity_id)
-      .set({
-        opportunity_id,
-        type,
-        prompt, // Include the prompt value in the stored data
-        ...opportunityData,
+      // Validate required fields
+      const requiredFields = getRequiredFields(type);
+      const missingFields = requiredFields.filter((field) => {
+        const value = opportunityData[field];
+        return (
+          !opportunityData.hasOwnProperty(field) ||
+          (typeof value === "string" && value.trim() === "") ||
+          (Array.isArray(value) && value.length === 0)
+        );
       });
 
-    util.statusCode = 201;
-    util.message = "Opportunity created successfully";
-    return util.send(res);
-  } catch (error) {
-    console.error(error);
-    util.statusCode = 500;
-    util.message = error.message || "Server error";
-    return util.send(res);
+      if (missingFields.length > 0) {
+        console.log("Missing or invalid fields:", missingFields);
+        util.statusCode = 400;
+        util.message = `Missing or invalid fields for ${type} opportunity: ${missingFields.join(", ")}`;
+        return util.send(res);
+      }
+
+      // Check if opportunity with same ID already exists
+      const existingOpportunity = await db
+        .collection("opportunities")
+        .doc(opportunity_id)
+        .get();
+
+      if (existingOpportunity.exists) {
+        util.statusCode = 400;
+        util.message = "Opportunity with same ID already exists";
+        return util.send(res);
+      }
+
+      // Store the opportunity data in the opportunities collection
+      await db
+        .collection("opportunities")
+        .doc(opportunity_id)
+        .set({
+          opportunity_id,
+          type,
+          prompt, // Include the prompt value in the stored data
+          ...opportunityData,
+        });
+
+      util.statusCode = 201;
+      util.message = "Opportunity created successfully";
+      return util.send(res);
+    } catch (error) {
+      console.error(error);
+      util.statusCode = 500;
+      util.message = error.message || "Server error";
+      return util.send(res);
+    }
   }
-}
-
-
 
   static async createJobOpportunity(req, res) {
     return OpportunitiesController.createOpportunity(req, res, "job");

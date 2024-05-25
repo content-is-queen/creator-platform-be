@@ -53,17 +53,13 @@ class AdminController {
     const { user_id } = req.params;
     try {
       const db = admin.firestore();
-      const userRecord = await admin.auth().getUser(user_id);
-      const currentClaims = userRecord.customClaims || {};
-      const updatedClaims = {
-        ...currentClaims,
-        isActivated: true,
-      };
-      await admin.auth().setCustomUserClaims(user_id, updatedClaims);
+      await admin.auth().updateUser(user_id, { disabled: true });
       const usersCollectionRef = db.collection("users");
-      await usersCollectionRef.doc(user_id).set({ isActivated: true });
+      await usersCollectionRef
+        .doc(user_id)
+        .set({ disabled: true }, { merge: true });
       util.statusCode = 200;
-      util.setSuccess(200, "User activated successfull!");
+      util.setSuccess(200, "User activated successfully!");
       return util.send(res);
     } catch (error) {
       console.log(error);
@@ -77,17 +73,13 @@ class AdminController {
     const { user_id } = req.params;
     try {
       const db = admin.firestore();
-      const userRecord = await admin.auth().getUser(user_id);
-      const currentClaims = userRecord.customClaims || {};
-      const updatedClaims = {
-        ...currentClaims,
-        isActivated: false,
-      };
-      await admin.auth().setCustomUserClaims(user_id, updatedClaims);
+      await admin.auth().updateUser(user_id, { disabled: true });
       const usersCollectionRef = db.collection("users");
-      await usersCollectionRef.doc(user_id).set({ isActivated: false });
+      await usersCollectionRef
+        .doc(user_id)
+        .set({ disabled: false }, { merge: true });
       util.statusCode = 200;
-      util.setSuccess(200, "User Deactivated successfull!");
+      util.setSuccess(200, "User deactivated successfully!");
       return util.send(res);
     } catch (error) {
       console.log(error);

@@ -4,7 +4,6 @@ const admin = require("firebase-admin");
 const { Util } = require("../../helper/utils");
 /* eslint-disable quotes */
 
-
 dotenv.config();
 /**
  * @class AuthController
@@ -21,7 +20,8 @@ class AdminController {
    */
 
   static async adminCreateUser(req, res) {
-    const { first_name, last_name, email, password, role, isActivated } = req.body;
+    const { first_name, last_name, email, password, role, isActivated } =
+      req.body;
 
     const db = admin.firestore();
     try {
@@ -31,14 +31,16 @@ class AdminController {
       });
 
       const uid = user.uid;
-      await admin.auth().setCustomUserClaims(uid, { role, isActivated, emailVerified: true, });
+      await admin
+        .auth()
+        .setCustomUserClaims(uid, { role, isActivated, emailVerified: true });
       const usersCollectionRef = db.collection("users");
-        await usersCollectionRef
+      await usersCollectionRef
         .doc(user.uid)
         .set({ uid: user.uid, first_name, last_name, role, isActivated });
-        util.statusCode = 200;
-        util.setSuccess(200, "User created successfull!");
-        return util.send(res);
+      util.statusCode = 200;
+      util.setSuccess(200, "User created successfull!");
+      return util.send(res);
     } catch (error) {
       const errorMessage = error?.errorInfo?.message;
       util.statusCode = 500;
@@ -47,13 +49,15 @@ class AdminController {
     }
   }
 
-  static async adminActivateUser(req,res){
+  static async adminActivateUser(req, res) {
     const { user_id } = req.params;
     try {
       const db = admin.firestore();
       await admin.auth().updateUser(user_id, { disabled: true });
       const usersCollectionRef = db.collection("users");
-      await usersCollectionRef.doc(user_id).set({ disabled: true }, { merge: true });
+      await usersCollectionRef
+        .doc(user_id)
+        .set({ disabled: true }, { merge: true });
       util.statusCode = 200;
       util.setSuccess(200, "User activated successfully!");
       return util.send(res);
@@ -71,7 +75,9 @@ class AdminController {
       const db = admin.firestore();
       await admin.auth().updateUser(user_id, { disabled: true });
       const usersCollectionRef = db.collection("users");
-      await usersCollectionRef.doc(user_id).set({ disabled: false }, { merge: true });
+      await usersCollectionRef
+        .doc(user_id)
+        .set({ disabled: false }, { merge: true });
       util.statusCode = 200;
       util.setSuccess(200, "User deactivated successfully!");
       return util.send(res);
@@ -81,34 +87,34 @@ class AdminController {
       util.message = error.mesage || "Server error";
       return util.send(res);
     }
-}
+  }
 
   static async admingetAllUsers(req, res) {
-      try {
-          const db = admin.firestore();
-          const usersCollection = db.collection("users");
-          
-          const querySnapshot = await usersCollection.get();
-          
-          const users = [];
-          
-          if (!querySnapshot.empty) {
-              querySnapshot.forEach((doc) => {
-                  const userObj = doc.data();
-            // Only push objects with a uid field
-            if (userObj.hasOwnProperty("uid")) {
-              users.push(userObj);
-            }
-          });
-        }
-  
-        return res.status(200).json(users);
-      } catch (error) {
-        console.log(error);
-        util.statusCode = 500;
-        util.message = error.mesage || "Server error";
-        return util.send(res);
+    try {
+      const db = admin.firestore();
+      const usersCollection = db.collection("users");
+
+      const querySnapshot = await usersCollection.get();
+
+      const users = [];
+
+      if (!querySnapshot.empty) {
+        querySnapshot.forEach((doc) => {
+          const userObj = doc.data();
+          // Only push objects with a uid field
+          if (userObj.hasOwnProperty("uid")) {
+            users.push(userObj);
+          }
+        });
       }
+
+      return res.status(200).json(users);
+    } catch (error) {
+      console.log(error);
+      util.statusCode = 500;
+      util.message = error.mesage || "Server error";
+      return util.send(res);
+    }
   }
 
   static async adminDeleteUser(req, res) {

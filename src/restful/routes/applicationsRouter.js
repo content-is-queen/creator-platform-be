@@ -1,6 +1,8 @@
 const { Router } = require("express");
-const { ApplicationsController } = require("../controllers/applicationsController");
-const rateLimit = require('express-rate-limit');
+const {
+  ApplicationsController,
+} = require("../controllers/applicationsController");
+const rateLimit = require("express-rate-limit");
 
 const router = Router();
 
@@ -8,7 +10,10 @@ const router = Router();
 router.get("/", ApplicationsController.getAllApplications);
 
 // GET applications by opportunity ID
-router.get("/opportunity/:opportunity_id", ApplicationsController.getAllApplicationsById);
+router.get(
+  "/opportunity/:opportunity_id",
+  ApplicationsController.getAllApplicationsById,
+);
 
 // GET application by ID
 router.get("/:application_id", ApplicationsController.getApplicationById);

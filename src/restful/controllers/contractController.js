@@ -130,7 +130,8 @@ class ContractController {
     const db = admin.firestore();
     try {
       const { contract_id } = req.params;
-      const { status, description, deadline, duration, compensation } = req.body;
+      const { status, description, deadline, duration, compensation } =
+        req.body;
 
       // Fetch the contract document
       const contractRef = db.collection("contracts").doc(contract_id);

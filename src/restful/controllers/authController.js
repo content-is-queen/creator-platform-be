@@ -71,7 +71,14 @@ class AuthController {
 
         await usersCollectionRef
           .doc(user.uid)
-          .set({ uid: user.uid, first_name, last_name, role, isActivated: true, ...other });
+          .set({
+            uid: user.uid,
+            first_name,
+            last_name,
+            role,
+            isActivated: true,
+            ...other,
+          });
 
         util.statusCode = 200;
         util.setSuccess(200, "Success", { email, uid });
@@ -94,7 +101,6 @@ class AuthController {
     }
   }
 
-
   static async verifyOtp(req, res) {
     try {
       const { email, otp, uid } = req.body;
@@ -114,7 +120,7 @@ class AuthController {
       const updatedClaims = {
         ...currentClaims,
         emailVerified: true,
-        isActivated: true
+        isActivated: true,
       };
       await admin.auth().setCustomUserClaims(uid, updatedClaims);
       await db.collection("otp").doc(email).delete();
@@ -321,7 +327,7 @@ class AuthController {
     const { password } = req.body;
     try {
       await admin.auth().updateUser(req.user?.user_id, {
-        password
+        password,
       });
       util.statusCode = 200;
       util.message = "Password updated succesfully";
@@ -347,7 +353,7 @@ class AuthController {
         return res.status(200).json({ exists: true });
       }
     } catch (error) {
-      if (error.code === 'auth/user-not-found') {
+      if (error.code === "auth/user-not-found") {
         return res.status(200).json({ exists: false });
       }
       console.error("Error checking email existence:", error);
@@ -357,14 +363,14 @@ class AuthController {
 
   static async changeEmail(req, res) {
     const { email } = req.body;
-    const {user_id} = req.user;
+    const { user_id } = req.user;
     try {
-      if(email !== req.user.email){
-      const docRef = admin
-        .firestore()
-        .collection("users")
-        .doc(req.user.user_id);
-      await docRef.set({ email }, { merge: true });
+      if (email !== req.user.email) {
+        const docRef = admin
+          .firestore()
+          .collection("users")
+          .doc(req.user.user_id);
+        await docRef.set({ email }, { merge: true });
         await admin.auth().updateUser(user_id, {
           email,
         });

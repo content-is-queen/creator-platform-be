@@ -2,4 +2,4 @@
 
 ## Issue ticket number and link
 
-Note: please remember to run
+Reminder: please remember to run `npm run format` before opening PR

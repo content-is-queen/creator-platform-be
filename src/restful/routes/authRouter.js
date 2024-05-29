@@ -15,4 +15,7 @@ router.post("/username", protect, AuthController.createUsername);
 router.post("/password", protect, AuthController.changePassword);
 router.get("/user/:user_id", AuthController.getPublicUser);
 
+// Define the route to add an episode to the user's credits
+router.post("/add-episode-to-credits", protect, AuthController.addEpisodeToCredits);
+
 module.exports.authRouter = router;

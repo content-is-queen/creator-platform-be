@@ -265,43 +265,52 @@ class AuthController {
     }
   }
 
-  
   static async updateUser(req, res) {
     try {
       const { first_name, last_name, bio, profile_meta } = req.body;
       const file = req.files?.imageUrl;
-
+  
+      if (!first_name || !last_name || !bio || !profile_meta) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+  
       let profileDataObject;
       try {
-        // Parse profile_meta only if it's a string
-        profileDataObject =
-          typeof profile_meta === "string"
-            ? JSON.parse(profile_meta)
-            : profile_meta;
+        profileDataObject = typeof profile_meta === "string" ? JSON.parse(profile_meta) : profile_meta;
       } catch (e) {
         console.error("Error parsing profile data:", e);
         return res.status(400).json({ message: "Invalid profile data" });
       }
-
-      // Extract showcase, credits, and showreel from the profile data object
+  
+      if (!profileDataObject || typeof profileDataObject !== "object" ||
+          !Array.isArray(profileDataObject.showcase) || !Array.isArray(profileDataObject.credits)) {
+        return res.status(400).json({ message: "Invalid profile_meta structure" });
+      }
+  
       const { showcase, credits, showreel } = profileDataObject;
-
-      if (!file || file === undefined || file === null) {
-        const docRef = admin
-          .firestore()
-          .collection("users")
-          .doc(req.user.user_id);
-        await docRef.set(
-          { first_name, last_name, bio, showcase, credits, showreel },
-          { merge: true },
-        );
-        return res
-          .status(200)
-          .json({ message: "Document updated successfully" });
-      } else {
-        const storageRef = admin
-          .storage()
-          .bucket(`gs://contentisqueen-97ae5.appspot.com`);
+  
+      if (!Array.isArray(showcase) || !Array.isArray(credits)) {
+        return res.status(400).json({ message: "Invalid showcase or credits array" });
+      }
+  
+      const validShowcase = showcase.filter(link => typeof link === "string");
+      const validCredits = credits.filter(credit => credit && typeof credit === "object" && typeof credit.role === "string" && typeof credit.link === "string");
+  
+      const docRef = admin.firestore().collection("users").doc(req.user.user_id);
+  
+      const updateData = {
+        first_name,
+        last_name,
+        bio,
+        profile_meta: {
+          showcase: validShowcase,
+          credits: validCredits,
+          showreel
+        }
+      };
+  
+      if (file) {
+        const storageRef = admin.storage().bucket(`gs://contentisqueen-97ae5.appspot.com`);
         const uploadTask = storageRef.upload(file.tempFilePath, {
           public: true,
           destination: `profile/picture/${uuidv4()}_${file.name}`,
@@ -309,41 +318,26 @@ class AuthController {
             firebaseStorageDownloadTokens: uuidv4(),
           },
         });
-
-        uploadTask
-          .then(async (snapshot) => {
-            const imageUrl = snapshot[0].metadata.mediaLink;
-            const docRef = admin
-              .firestore()
-              .collection("users")
-              .doc(req.user.user_id);
-            await docRef.set(
-              {
-                first_name,
-                last_name,
-                bio,
-                imageUrl,
-                showcase,
-                credits,
-                showreel,
-              },
-              { merge: true },
-            );
-            console.log("Document updated successfully:", error);
-            return res
-              .status(200)
-              .json({ message: "Document updated successfully" });
-          })
-          .catch((error) => {
-            console.error("Error uploading profile picture:", error);
-            return res.status(500).json({ message: "Server error" });
-          });
+  
+        await uploadTask.then(async (snapshot) => {
+          const imageUrl = snapshot[0].metadata.mediaLink;
+          updateData.imageUrl = imageUrl;
+        }).catch((error) => {
+          console.error("Error uploading profile picture:", error);
+          return res.status(500).json({ message: "Server error" });
+        });
       }
+  
+      await docRef.set(updateData, { merge: true });
+  
+      return res.status(200).json({ message: "Document updated successfully" });
+  
     } catch (error) {
       console.error("Error updating profile:", error);
       return res.status(500).json({ message: "Server error" });
     }
   }
+  
 
   static async createUsername(req, res) {
     const { username, email } = req.body;
@@ -386,6 +380,56 @@ class AuthController {
       return util.send(res);
     }
   }
+
+static async addEpisodeToCredits(req, res) {
+  try {
+    const { user_id } = req.user;
+    const { episode } = req.body;
+
+    if (!episode) {
+      return res.status(400).json({ message: "Episode data is required" });
+    }
+
+    // Get a reference to the Firestore database
+    const db = admin.firestore();
+
+    // Get the user's profile document
+    const userRef = db.collection("users").doc(user_id);
+    const userDoc = await userRef.get();
+
+    if (!userDoc.exists) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Update the user's profile with the new episode
+    const userData = userDoc.data();
+    const { profile_meta } = userData;
+    const existingCredits = profile_meta?.credits || [];
+
+    // Check if the episode already exists in the credits
+    const episodeExists = existingCredits.some(credit => credit.link === episode.link);
+
+    if (episodeExists) {
+      return res.status(400).json({ message: "Episode already added" });
+    }
+
+    // Add the new episode to the existing credits array
+    const updatedProfileMeta = {
+      ...profile_meta,
+      credits: [...existingCredits, episode],
+    };
+
+    // Update the user's profile document
+    await userRef.update({ profile_meta: updatedProfileMeta });
+
+    return res.status(200).json({ message: "Episode added to credits" });
+  } catch (error) {
+    console.error("Error adding episode to credits:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
 }
+
+}
+
 
 exports.AuthController = AuthController;

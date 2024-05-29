@@ -5,7 +5,7 @@ const util = new Util();
 const allowedRole = (roles) => {
   return (req, res, next) => {
     const userRole = req?.user?.role;
-    if (roles.includes(userRole) || req.user.email ===process.env.EMAIL)   {
+    if (roles.includes(userRole) || req.user.email === process.env.EMAIL) {
       next();
     } else {
       util.statusCode = 400;

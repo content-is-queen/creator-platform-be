@@ -10,6 +10,7 @@ const { transporter } = require("../../helper/mailHelper");
 const otpGenerator = require("otp-generator");
 const admin = require("firebase-admin");
 const { v4: uuidv4 } = require("uuid");
+const Joi = require("joi");
 
 dotenv.config();
 /**
@@ -19,6 +20,38 @@ dotenv.config();
 
 const util = new Util();
 
+// Validation schema for creator
+const creatorSchema = Joi.object({
+  first_name: Joi.string().required(),
+  last_name: Joi.string().required(),
+  bio: Joi.string().required(),
+  goals: Joi.string().required(),
+  podcast_name: Joi.string().required(),
+  podcast_url: Joi.string().uri().required(),
+  profile_photo: Joi.string().required(),
+  profile_meta: Joi.object({
+    showreel: Joi.string().uri().required(),
+    showcase: Joi.array().items(Joi.string().uri().max(6)).required(),
+    credits: Joi.array().items(
+      Joi.object({
+        show: Joi.string().required(),
+        role: Joi.string().required(),
+      }),
+    ),
+  }).required(),
+});
+
+// Validation schema for brand
+const brandSchema = Joi.object({
+  first_name: Joi.string().required(),
+  last_name: Joi.string().required(),
+  organisation_name: Joi.string().required(),
+  bio: Joi.string().required(),
+  goals: Joi.string().required(),
+  profile_photo: Joi.string().required(),
+  profile_meta: Joi.string().required(),
+});
+
 class AuthController {
   /**
    * @param {Object} req request Object.
@@ -27,11 +60,28 @@ class AuthController {
    */
 
   static async signup(req, res) {
-    const { first_name, last_name, email, password, role, ...other } = req.body;
-
-    const db = admin.firestore();
-    let user = null;
     try {
+      // Define validation schema using Joi
+      const schema = Joi.object({
+        first_name: Joi.string().required(),
+        last_name: Joi.string().required(),
+        email: Joi.string().email().required(),
+        password: Joi.string().required(),
+        role: Joi.string().valid("creator", "brand").required(),
+        // Add validation for other fields if needed
+      });
+
+      // Validate request body against schema
+      await schema.validateAsync(req.body);
+
+      // Proceed with signup logic if validation succeeds
+      const { first_name, last_name, email, password, role, ...other } =
+        req.body;
+
+      const db = admin.firestore();
+      let user = null;
+
+      // Create user in Firebase Authentication
       user = await admin.auth().createUser({
         email,
         password,
@@ -40,6 +90,7 @@ class AuthController {
       const uid = user.uid;
       await admin.auth().setCustomUserClaims(uid, { role });
 
+      // Generate OTP
       const code = otpGenerator.generate(5, {
         digits: true,
         upperCase: false,
@@ -47,10 +98,12 @@ class AuthController {
         alphabets: false,
       });
 
+      // Save OTP in Firestore
       await db.collection("otp").doc(email).set({
         otp: code,
       });
 
+      // Send verification email
       const emailTemplate = sendOtpEmail({
         name: first_name,
         email: user.email,
@@ -67,6 +120,7 @@ class AuthController {
       const emailSent = await transporter.sendMail(mailOptions);
 
       if (emailSent) {
+        // Save user details in Firestore
         const usersCollectionRef = db.collection("users");
 
         await usersCollectionRef.doc(user.uid).set({
@@ -269,14 +323,29 @@ class AuthController {
 
   static async updateUser(req, res) {
     try {
+      // Define validation schema using Joi
+      const schema = Joi.object({
+        first_name: Joi.string(),
+        last_name: Joi.string(),
+        bio: Joi.string(),
+        // Add validation for other fields if needed
+      });
+
+      // Validate request body against schema
+      await schema.validateAsync(req.body);
+
+      // Proceed with update logic if validation succeeds
       const { first_name, last_name, bio } = req.body;
       const file = req.files?.imageUrl;
+
       if (!file || file === undefined || file === null) {
+        // Update user document in Firestore
         const docRef = admin
           .firestore()
           .collection("users")
           .doc(req.user.user_id);
         await docRef.set({ first_name, last_name, bio }, { merge: true });
+
         util.statusCode = 200;
         util.message = "Document updated successfully";
         return util.send(res);
@@ -303,6 +372,7 @@ class AuthController {
               { first_name, last_name, bio, imageUrl },
               { merge: true },
             );
+
             util.statusCode = 200;
             util.message = "Document updated successfully";
             return util.send(res);
@@ -314,9 +384,9 @@ class AuthController {
           });
       }
     } catch (error) {
-      console.error("Error updating profile picture:", error);
+      console.error("Error updating user profile:", error);
       util.statusCode = 500;
-      util.message = error.mesage || "Server error";
+      util.message = error.message || "Server error";
       return util.send(res);
     }
   }

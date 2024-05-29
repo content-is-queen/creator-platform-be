@@ -14,5 +14,6 @@ router.post("/reset", AuthController.resetUserPassword);
 router.post("/username", protect, AuthController.createUsername);
 router.post("/password", protect, AuthController.changePassword);
 router.get("/user/:user_id", AuthController.getPublicUser);
+router.post("/userSubscription/:user_id", AuthController.updateUserSubscription);
 
 module.exports.authRouter = router;

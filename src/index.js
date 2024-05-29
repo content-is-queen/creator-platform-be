@@ -6,6 +6,7 @@ const { initializeApp, cert } = require("firebase-admin/app");
 const fileUploader = require("express-fileupload");
 const router = require("./restful/routes");
 const apiLogger = require("./helper/apiCallLog");
+
 const serviceAccount = {
   type: process.env.SERVICE_ACCOUNT_TYPE,
   project_id: process.env.PROJECT_ID,
@@ -19,7 +20,9 @@ const serviceAccount = {
   client_x509_cert_url: process.env.CLIENT_X509_CERT_URL,
   universe_domain: process.env.UNIVERSE_DOMAIN,
 };
+
 dotenv.config();
+
 const PORT = 5000;
 const app = express();
 app.use(cors());

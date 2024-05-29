@@ -21,36 +21,36 @@ dotenv.config();
 const util = new Util();
 
 // Validation schema for creator
-const creatorSchema = Joi.object({
-  first_name: Joi.string().required(),
-  last_name: Joi.string().required(),
-  bio: Joi.string().required(),
-  goals: Joi.string().required(),
-  podcast_name: Joi.string().required(),
-  podcast_url: Joi.string().uri().required(),
-  profile_photo: Joi.string().required(),
-  profile_meta: Joi.object({
-    showreel: Joi.string().uri().required(),
-    showcase: Joi.array().items(Joi.string().uri().max(6)).required(),
-    credits: Joi.array().items(
-      Joi.object({
-        show: Joi.string().required(),
-        role: Joi.string().required(),
-      }),
-    ),
-  }).required(),
-});
-
-// Validation schema for brand
-const brandSchema = Joi.object({
-  first_name: Joi.string().required(),
-  last_name: Joi.string().required(),
-  organisation_name: Joi.string().required(),
-  bio: Joi.string().required(),
-  goals: Joi.string().required(),
-  profile_photo: Joi.string().required(),
-  profile_meta: Joi.string().required(),
-});
+const schema = {
+  brand: Joi.object({
+    first_name: Joi.string().required(),
+    last_name: Joi.string().required(),
+    organisation_name: Joi.string().required(),
+    bio: Joi.string().required(),
+    goals: Joi.string().required(),
+    profile_photo: Joi.string().required(),
+    profile_meta: Joi.string().required(),
+  }),
+  creator: Joi.object({
+    first_name: Joi.string().required(),
+    last_name: Joi.string().required(),
+    bio: Joi.string().required(),
+    goals: Joi.string().required(),
+    podcast_name: Joi.string().required(),
+    podcast_url: Joi.string().uri().required(),
+    profile_photo: Joi.string().required(),
+    profile_meta: Joi.object({
+      showreel: Joi.string().uri().required(),
+      showcase: Joi.array().items(Joi.string().uri().max(6)).required(),
+      credits: Joi.array().items(
+        Joi.object({
+          show: Joi.string().required(),
+          role: Joi.string().required(),
+        }),
+      ),
+    }).required(),
+  }),
+};
 
 class AuthController {
   /**
@@ -62,21 +62,36 @@ class AuthController {
   static async signup(req, res) {
     try {
       // Define validation schema using Joi
-      const schema = Joi.object({
-        first_name: Joi.string().required(),
-        last_name: Joi.string().required(),
-        email: Joi.string().email().required(),
-        password: Joi.string().required(),
-        role: Joi.string().valid("creator", "brand").required(),
-        // Add validation for other fields if needed
-      });
-
-      // Validate request body against schema
-      await schema.validateAsync(req.body);
+      const schema = {
+        brand: Joi.object({
+          first_name: Joi.string(),
+          last_name: Joi.string(),
+          email: Joi.string(),
+          password: Joi.string(),
+          organisation_name: Joi.string(),
+          bio: Joi.string(),
+          goals: Joi.string(),
+          role: Joi.string(),
+        }),
+        creator: Joi.object({
+          first_name: Joi.string(),
+          last_name: Joi.string(),
+          email: Joi.string(),
+          password: Joi.string(),
+          bio: Joi.string(),
+          goals: Joi.string(),
+          podcast_name: Joi.string().allow(""),
+          podcast_link: Joi.string().uri().allow(""),
+          role: Joi.string().allow(""),
+        }),
+      };
 
       // Proceed with signup logic if validation succeeds
       const { first_name, last_name, email, password, role, ...other } =
         req.body;
+
+      // Validate request body against schema
+      await schema[role].validateAsync(req.body);
 
       const db = admin.firestore();
       let user = null;
@@ -143,9 +158,6 @@ class AuthController {
         return util.send(res);
       }
     } catch (error) {
-      if (user && user.uid) {
-        await admin.auth().deleteUser(user.uid);
-      }
       const errorMessage = error?.errorInfo?.message;
       util.statusCode = 500;
       util.message = errorMessage || error.message || "Server error";

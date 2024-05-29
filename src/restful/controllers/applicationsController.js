@@ -12,6 +12,17 @@ const util = new Util();
 async function createRoomDirect(db, roomId, userIds) {
   try {
     const roomRef = db.collection("rooms").doc(roomId);
+    const roomSnapshot = await roomRef.get();
+
+    if (roomSnapshot.exists) {
+      const existingRoomData = roomSnapshot.data();
+      return {
+        status: 200,
+        roomId,
+        room: existingRoomData,
+      };
+    }
+
     const roomData = {
       id: roomId,
       userIds,
@@ -21,7 +32,11 @@ async function createRoomDirect(db, roomId, userIds) {
 
     await roomRef.set(roomData);
 
-    return { success: true, room: roomData };
+    return {
+      status: 200,
+      roomId,
+      room: roomData,
+    };
   } catch (error) {
     console.error("Error creating room:", error);
     throw new Error("Internal server error");
@@ -136,7 +151,7 @@ class ApplicationsController {
       await applicationRef.update({ status });
 
       if (status === "accepted") {
-        const roomId = uuidv4();
+        const roomId = user_id + "_" + creator_id;
         const userIds = [user_id, creator_id];
 
         // Call createRoom function with data

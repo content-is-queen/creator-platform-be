@@ -281,15 +281,15 @@ class OpportunitiesController {
     try {
       // Generate UUID for opportunity_id
       const opportunity_id = uuidv4();
-
+  
       // Extract opportunity data from request body
-      const { prompt, ...opportunityData } = req.body;
-
+      const { user_id, ...opportunityData } = req.body;
+  
       // Set default status to "open" if not provided
-      if (!Object.prototype.hasOwn.call(opportunityData, "status")) {
+      if (!Object.prototype.hasOwnProperty.call(opportunityData, "status")) {
         opportunityData.status = "open";
       }
-
+  
       // Validate required fields
       const requiredFields = getRequiredFields(type);
       const isValid = requiredFields.every((field) =>
@@ -300,7 +300,17 @@ class OpportunitiesController {
         util.message = `Missing or invalid fields for ${type} opportunity`;
         return util.send(res);
       }
-
+  
+      // Fetch user data to get imageURL
+      const userDoc = await db.collection("users").doc(user_id).get();
+      if (!userDoc.exists) {
+        util.statusCode = 400;
+        util.message = "Invalid user ID";
+        return util.send(res);
+      }
+      const userData = userDoc.data();
+      const imageURL = userData.imageURL;
+  
       // Check if opportunity with same ID already exists
       const existingOpportunity = await db
         .collection("opportunities")
@@ -311,7 +321,7 @@ class OpportunitiesController {
         util.message = "Opportunity with same ID already exists";
         return util.send(res);
       }
-
+  
       // Store the opportunity data in the opportunities collection
       await db
         .collection("opportunities")
@@ -319,10 +329,10 @@ class OpportunitiesController {
         .set({
           opportunity_id,
           type,
-          prompt,
+          imageURL, // Add the imageURL to the opportunity data
           ...opportunityData,
         });
-
+  
       util.statusCode = 201;
       util.message = "Opportunity created successfully";
       return util.send(res);
@@ -333,6 +343,7 @@ class OpportunitiesController {
       return util.send(res);
     }
   }
+  
 
   static async createJobOpportunity(req, res) {
     return OpportunitiesController.createOpportunity(req, res, "job");

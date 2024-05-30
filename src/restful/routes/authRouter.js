@@ -5,7 +5,7 @@ const { protect } = require("../../middleware");
 const router = Router();
 
 router.get("/user", protect, AuthController.getUser);
-router.patch("/user", protect, AuthController.updateUser);
+router.put("/user", protect, AuthController.updateUser);
 
 router.get("/users", AuthController.getAllUsers);
 router.post("/signup", AuthController.signup);

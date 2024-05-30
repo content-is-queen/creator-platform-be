@@ -5,7 +5,10 @@
   "main": "src/index.js",
   "scripts": {
     "dev": "nodemon --exec babel-node src/index.js",
-    "deploy": "firebase deploy --only functions:api"
+    "deploy": "firebase deploy --only functions:api",
+    "check":"npx prettier ./src --check",
+    "format": "npx prettier ./src --write",
+    "lint":"npx eslint . --ext .js"
   },
   "author": "Bizimungu Pascal",
   "license": "ISC",
@@ -35,6 +38,7 @@
     "firebase": "^10.9.0",
     "firebase-admin": "^12.0.0",
     "firebase-functions": "^4.9.0",
+    "joi": "^17.13.1",
     "nodemailer": "^6.9.13",
     "otp-generator": "^4.0.1",
     "prettier": "^3.2.5",

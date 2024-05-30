@@ -11,9 +11,10 @@ router.get("/users", AuthController.getAllUsers);
 router.post("/signup", AuthController.signup);
 router.post("/verify", AuthController.verifyOtp);
 router.post("/reset", AuthController.resetUserPassword);
-router.post("/username", protect, AuthController.createUsername);
 router.post("/password", protect, AuthController.changePassword);
+router.post("/emailupdate", protect, AuthController.changeEmail);
 router.get("/user/:user_id", AuthController.getPublicUser);
 router.post("/userSubscription/:user_id", AuthController.updateUserSubscription);
+router.get("/check-email", AuthController.checkEmailExists);
 
 module.exports.authRouter = router;

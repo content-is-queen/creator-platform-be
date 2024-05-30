@@ -292,10 +292,8 @@ class OpportunitiesController {
 
       // Validate required fields
       const requiredFields = getRequiredFields(type);
-      const isValid = requiredFields.every(
-        (field) =>
-          Object.prototype.hasOwn.call(opportunityData, field) &&
-          opportunityData[field].trim() !== "",
+      const isValid = requiredFields.every((field) =>
+        Object.prototype.hasOwnProperty.call(opportunityData, field),
       );
       if (!isValid) {
         util.statusCode = 400;

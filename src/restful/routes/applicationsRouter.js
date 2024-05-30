@@ -20,8 +20,8 @@ router.get("/:application_id", ApplicationsController.getApplicationById);
 // POST a new application
 router.post("/", ApplicationsController.createApplication);
 
-// PUT update an existing application
-router.put("/:application_id", ApplicationsController.updateApplication);
+// PATCH update an existing application
+router.patch("/:application_id", ApplicationsController.updateApplication);
 
 // DELETE an application
 router.delete("/:application_id", ApplicationsController.deleteApplication);

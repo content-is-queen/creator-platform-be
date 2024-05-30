@@ -61,31 +61,6 @@ class AuthController {
 
   static async signup(req, res) {
     try {
-      // Define validation schema using Joi
-      const schema = {
-        brand: Joi.object({
-          first_name: Joi.string(),
-          last_name: Joi.string(),
-          email: Joi.string(),
-          password: Joi.string(),
-          organisation_name: Joi.string(),
-          bio: Joi.string(),
-          goals: Joi.string(),
-          role: Joi.string(),
-        }),
-        creator: Joi.object({
-          first_name: Joi.string(),
-          last_name: Joi.string(),
-          email: Joi.string(),
-          password: Joi.string(),
-          bio: Joi.string(),
-          goals: Joi.string(),
-          podcast_name: Joi.string().allow(""),
-          podcast_link: Joi.string().uri().allow(""),
-          role: Joi.string().allow(""),
-        }),
-      };
-
       // Proceed with signup logic if validation succeeds
       const { first_name, last_name, email, password, role, ...other } =
         req.body;
@@ -335,17 +310,6 @@ class AuthController {
 
   static async updateUser(req, res) {
     try {
-      // Define validation schema using Joi
-      const schema = Joi.object({
-        first_name: Joi.string(),
-        last_name: Joi.string(),
-        bio: Joi.string(),
-        // Add validation for other fields if needed
-      });
-
-      // Validate request body against schema
-      await schema.validateAsync(req.body);
-
       // Proceed with update logic if validation succeeds
       const { first_name, last_name, bio } = req.body;
       const file = req.files?.imageUrl;
@@ -359,7 +323,7 @@ class AuthController {
         await docRef.set({ first_name, last_name, bio }, { merge: true });
 
         util.statusCode = 200;
-        util.message = "Document updated successfully";
+        util.message = "User updated successfully";
         return util.send(res);
       } else {
         const storageRef = admin

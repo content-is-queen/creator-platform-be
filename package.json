@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "nodemon --exec babel-node src/index.js",
     "deploy": "firebase deploy --only functions:api",
+    "check":"npx prettier ./src --check",
     "format": "npx prettier ./src --write"
   },
   "author": "Bizimungu Pascal",

@@ -294,7 +294,7 @@ class AuthController {
           const userObj = doc.data();
 
           // Only push objects with a uid field
-          if (userObj.hasOwnProperty("uid")) {
+          if (Object.prototype.hasOwn.call(userObj, "uid")) {
             users.push(userObj);
           }
         });

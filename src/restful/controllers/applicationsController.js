@@ -1,6 +1,7 @@
 const dotenv = require("dotenv");
 const { Util } = require("../../helper/utils");
 const admin = require("firebase-admin");
+const { v4: uuidv4 } = require("uuid");
 
 dotenv.config();
 
@@ -40,8 +41,6 @@ async function createRoomDirect(db, roomId, userIds) {
     throw new Error("Internal server error");
   }
 }
-
-// }
 
 class ApplicationsController {
   static async getAllApplications(req, res) {
@@ -103,16 +102,44 @@ class ApplicationsController {
     const db = admin.firestore();
     const { user_id, opportunity_id, proposal, creator_id } = req.body;
     try {
+      // Fetch the user document
+      const userRef = db.collection("users").doc(user_id);
+      const userDoc = await userRef.get();
+
+      if (!userDoc.exists) {
+        util.statusCode = 404;
+        util.message = "User not found";
+        return util.send(res);
+      }
+
+      const userData = userDoc.data();
+
+      // Check the number of applications made by the creator
+      if (
+        userData.opportunities_applied_count >=
+        userData.max_opportunities_applied
+      ) {
+        util.statusCode = 400;
+        util.message = `You can only apply to up to ${userData.max_opportunities_applied} opportunities.`;
+        return util.send(res);
+      }
+
       const applicationRef = db.collection("applications").doc();
       const newApplicationData = {
         application_id: applicationRef.id,
         user_id,
         opportunity_id,
         proposal,
-        creator_id, // the opportuties user_id
+        creator_id, // the opportunities user_id
         status: "pending",
       };
       await applicationRef.set(newApplicationData);
+
+      // Increment the opportunities_applied_count for the user
+      await userRef.update({
+        opportunities_applied_count: admin.firestore.FieldValue.increment(1),
+      });
+
       util.statusCode = 201;
       util.message = newApplicationData;
       return util.send(res);
@@ -127,7 +154,15 @@ class ApplicationsController {
   static async updateApplication(req, res) {
     const db = admin.firestore();
     const { application_id } = req.params;
-    const { status, user_id, creator_id } = req.body;
+    const {
+      status,
+      user_id,
+      creator_id,
+      user_name,
+      user_image_url,
+      creator_name,
+      creator_image_url,
+    } = req.body;
 
     try {
       const applicationRef = db.collection("applications").doc(application_id);
@@ -141,7 +176,7 @@ class ApplicationsController {
       await applicationRef.update({ status });
 
       if (status === "accepted") {
-        const roomId = user_id + "_" + creator_id;
+        const roomId = uuidv4();
         const userIds = [user_id, creator_id];
 
         // Call createRoom function with data

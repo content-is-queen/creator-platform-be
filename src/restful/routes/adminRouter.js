@@ -36,4 +36,9 @@ router.delete(
   AdminController.adminDeleteUser,
 );
 
+router.post(
+  "/userSubscription/:user_id",
+  AuthController.updateUserSubscription,
+);
+
 module.exports.adminRouter = router;

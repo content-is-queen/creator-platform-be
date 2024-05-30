@@ -71,7 +71,14 @@ class AuthController {
 
         await usersCollectionRef
           .doc(user.uid)
-          .set({ uid: user.uid, first_name, last_name, role, isActivated: true, ...other });
+          .set({
+            uid: user.uid,
+            first_name,
+            last_name,
+            role,
+            isActivated: true,
+            ...other,
+          });
 
         util.statusCode = 200;
         util.setSuccess(200, "Success", { email, uid });
@@ -94,7 +101,6 @@ class AuthController {
     }
   }
 
-
   static async verifyOtp(req, res) {
     try {
       const { email, otp, uid } = req.body;
@@ -114,7 +120,7 @@ class AuthController {
       const updatedClaims = {
         ...currentClaims,
         emailVerified: true,
-        isActivated: true
+        isActivated: true,
       };
       await admin.auth().setCustomUserClaims(uid, updatedClaims);
       await db.collection("otp").doc(email).delete();
@@ -268,14 +274,20 @@ class AuthController {
       const { first_name, last_name, bio, profile_meta } = req.body;
       const parsedProfileMeta = JSON.parse(profile_meta); // Ensure profile_meta is parsed as an object
       const file = req.files?.imageUrl;
-  
+
       if (!file) {
         // If there's no file, update user data directly in Firestore
-        const docRef = admin.firestore().collection('users').doc(req.user.user_id);
-        await docRef.set({ first_name, last_name, bio, profile_meta: parsedProfileMeta }, { merge: true });
-  
+        const docRef = admin
+          .firestore()
+          .collection("users")
+          .doc(req.user.user_id);
+        await docRef.set(
+          { first_name, last_name, bio, profile_meta: parsedProfileMeta },
+          { merge: true },
+        );
+
         util.statusCode = 200;
-        util.message = 'User data updated successfully';
+        util.message = "User data updated successfully";
         return util.send(res);
       } else {
         // If there's a file, upload it to Firebase Storage
@@ -288,45 +300,52 @@ class AuthController {
             firebaseStorageDownloadTokens: uuidv4(),
           },
         });
-  
+
         uploadTask
           .then(async (snapshot) => {
             // Once uploaded, get the image URL and update user data in Firestore
             const imageUrl = snapshot[0].metadata.mediaLink;
-            const docRef = admin.firestore().collection('users').doc(req.user.user_id);
+            const docRef = admin
+              .firestore()
+              .collection("users")
+              .doc(req.user.user_id);
             await docRef.set(
-              { first_name, last_name, bio, imageUrl, profile_meta: parsedProfileMeta },
-              { merge: true }
+              {
+                first_name,
+                last_name,
+                bio,
+                imageUrl,
+                profile_meta: parsedProfileMeta,
+              },
+              { merge: true },
             );
-  
+
             util.statusCode = 200;
-            util.message = 'User data updated successfully';
+            util.message = "User data updated successfully";
             return util.send(res);
           })
           .catch((error) => {
             // Handle errors during file upload
-            console.error('Error uploading image:', error);
+            console.error("Error uploading image:", error);
             util.statusCode = 500;
-            util.message = 'Failed to upload image';
+            util.message = "Failed to upload image";
             return util.send(res);
           });
       }
     } catch (error) {
       // Handle other errors
-      console.error('Error updating user data:', error);
+      console.error("Error updating user data:", error);
       util.statusCode = 500;
-      util.message = 'Server error';
+      util.message = "Server error";
       return util.send(res);
     }
-  };
-  
-  
+  }
 
   static async changePassword(req, res) {
     const { password } = req.body;
     try {
       await admin.auth().updateUser(req.user?.user_id, {
-        password
+        password,
       });
       util.statusCode = 200;
       util.message = "Password updated succesfully";
@@ -352,7 +371,7 @@ class AuthController {
         return res.status(200).json({ exists: true });
       }
     } catch (error) {
-      if (error.code === 'auth/user-not-found') {
+      if (error.code === "auth/user-not-found") {
         return res.status(200).json({ exists: false });
       }
       console.error("Error checking email existence:", error);
@@ -362,14 +381,14 @@ class AuthController {
 
   static async changeEmail(req, res) {
     const { email } = req.body;
-    const {user_id} = req.user;
+    const { user_id } = req.user;
     try {
-      if(email !== req.user.email){
-      const docRef = admin
-        .firestore()
-        .collection("users")
-        .doc(req.user.user_id);
-      await docRef.set({ email }, { merge: true });
+      if (email !== req.user.email) {
+        const docRef = admin
+          .firestore()
+          .collection("users")
+          .doc(req.user.user_id);
+        await docRef.set({ email }, { merge: true });
         await admin.auth().updateUser(user_id, {
           email,
         });

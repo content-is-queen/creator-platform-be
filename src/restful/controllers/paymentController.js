@@ -27,13 +27,11 @@ const createCheckoutSession = async (req, res) => {
     res.status(200).json({ id: session.id });
   } catch (error) {
     console.error("Error creating checkout session backend:", error);
-    res
-      .status(500)
-      .json({
-        error: {
-          message: "An error occurred while creating the checkout session.",
-        },
-      });
+    res.status(500).json({
+      error: {
+        message: "An error occurred while creating the checkout session.",
+      },
+    });
   }
 };
 

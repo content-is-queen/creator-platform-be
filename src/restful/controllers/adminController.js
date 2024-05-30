@@ -102,7 +102,7 @@ class AdminController {
         querySnapshot.forEach((doc) => {
           const userObj = doc.data();
           // Only push objects with a uid field
-          if (userObj.hasOwnProperty("uid")) {
+          if (Object.prototype.hasOwnProperty.call(userObj, "uid")) {
             users.push(userObj);
           }
         });

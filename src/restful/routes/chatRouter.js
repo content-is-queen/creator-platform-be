@@ -7,7 +7,7 @@ router.get("/users", ChatController.getUsers);
 router.get("/messages/:receiverId", ChatController.receiveMessages);
 router.get("/profiles", ChatController.getUserProfiles);
 router.post("/create-room", ChatController.createRoom);
-router.post("/add-user-to-room", ChatController.addUserToRoom); 
+router.post("/add-user-to-room", ChatController.addUserToRoom);
 router.get("/rooms/:roomId", ChatController.getRoomInfo);
 router.get("/user-rooms/:userId", ChatController.getUserRooms);
 

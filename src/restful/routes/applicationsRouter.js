@@ -2,7 +2,6 @@ const { Router } = require("express");
 const {
   ApplicationsController,
 } = require("../controllers/applicationsController");
-const rateLimit = require("express-rate-limit");
 
 const router = Router();
 

@@ -3,9 +3,6 @@ const dotenv = require("dotenv");
 const { v4: uuidv4 } = require("uuid"); // Import uuidv4 directly
 
 const admin = require("firebase-admin");
-const { Util } = require("../../helper/utils");
-
-const util = new Util();
 
 dotenv.config();
 

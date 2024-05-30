@@ -115,7 +115,10 @@ class ApplicationsController {
       const userData = userDoc.data();
 
       // Check the number of applications made by the creator
-      if (userData.opportunities_applied_count >= userData.max_opportunities_applied) {
+      if (
+        userData.opportunities_applied_count >=
+        userData.max_opportunities_applied
+      ) {
         util.statusCode = 400;
         util.message = `You can only apply to up to ${userData.max_opportunities_applied} opportunities.`;
         return util.send(res);
@@ -151,7 +154,7 @@ class ApplicationsController {
   static async updateApplication(req, res) {
     const db = admin.firestore();
     const { application_id } = req.params;
-    const { status, user_id, creator_id, user_name, user_image_url, creator_name, creator_image_url } = req.body;
+    const { status, user_id, creator_id } = req.body;
 
     try {
       const applicationRef = db.collection("applications").doc(application_id);
@@ -226,13 +229,20 @@ class ApplicationsController {
           applications.push({ id: doc.id, ...doc.data() });
         });
       } else {
-        console.log(`No applications found for opportunity_id: ${opportunity_id}`);
+        console.log(
+          `No applications found for opportunity_id: ${opportunity_id}`,
+        );
       }
 
       return res.status(200).json(applications);
     } catch (error) {
-      console.error(`Error fetching applications for opportunity_id: ${opportunity_id}`, error);
-      return res.status(500).json({ message: "Server error", error: error.message });
+      console.error(
+        `Error fetching applications for opportunity_id: ${opportunity_id}`,
+        error,
+      );
+      return res
+        .status(500)
+        .json({ message: "Server error", error: error.message });
     }
   }
 }

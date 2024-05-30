@@ -3,9 +3,7 @@ const { AdminController } = require("../controllers/adminController");
 const { protect } = require("../../middleware/index");
 const { default: allowedRole } = require("../../helper/allowedRole");
 
-
 const router = Router();
-
 
 router.post(
   "/users",
@@ -40,9 +38,8 @@ router.delete(
 
 // New route to update user limits
 router.patch(
- "/updateUserLimits/:user_id",
- AdminController.adminUpdateUserLimits,
+  "/updateUserLimits/:user_id",
+  AdminController.adminUpdateUserLimits,
 );
-
 
 module.exports.adminRouter = router;

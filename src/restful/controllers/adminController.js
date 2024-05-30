@@ -6,9 +6,9 @@ const { Util } = require("../../helper/utils");
 
 dotenv.config();
 /**
-* @class AuthController
-* @classdesc AuthController
-*/
+ * @class AuthController
+ * @classdesc AuthController
+ */
 
 const util = new Util();
 
@@ -20,7 +20,8 @@ class AdminController {
    */
 
   static async adminCreateUser(req, res) {
-    const { first_name, last_name, email, password, role, isActivated } = req.body;
+    const { first_name, last_name, email, password, role, isActivated } =
+      req.body;
 
     const db = admin.firestore();
     try {
@@ -30,9 +31,13 @@ class AdminController {
       });
 
       const uid = user.uid;
-      await admin.auth().setCustomUserClaims(uid, { role, isActivated, emailVerified: true });
+      await admin
+        .auth()
+        .setCustomUserClaims(uid, { role, isActivated, emailVerified: true });
       const usersCollectionRef = db.collection("users");
-      await usersCollectionRef.doc(user.uid).set({ uid: user.uid, first_name, last_name, role, isActivated });
+      await usersCollectionRef
+        .doc(user.uid)
+        .set({ uid: user.uid, first_name, last_name, role, isActivated });
       util.statusCode = 200;
       util.setSuccess(200, "User created successfully!");
       return util.send(res);
@@ -50,7 +55,9 @@ class AdminController {
       const db = admin.firestore();
       await admin.auth().updateUser(user_id, { disabled: false });
       const usersCollectionRef = db.collection("users");
-      await usersCollectionRef.doc(user_id).set({ disabled: false }, { merge: true });
+      await usersCollectionRef
+        .doc(user_id)
+        .set({ disabled: false }, { merge: true });
       util.statusCode = 200;
       util.setSuccess(200, "User activated successfully!");
       return util.send(res);
@@ -68,7 +75,9 @@ class AdminController {
       const db = admin.firestore();
       await admin.auth().updateUser(user_id, { disabled: true });
       const usersCollectionRef = db.collection("users");
-      await usersCollectionRef.doc(user_id).set({ disabled: true }, { merge: true });
+      await usersCollectionRef
+        .doc(user_id)
+        .set({ disabled: true }, { merge: true });
       util.statusCode = 200;
       util.setSuccess(200, "User deactivated successfully!");
       return util.send(res);

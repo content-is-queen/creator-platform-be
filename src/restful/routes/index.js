@@ -29,7 +29,6 @@ router.use(`/${API_VERSION}/contracts`, contractRouter);
 router.use(`/${API_VERSION}/admin`, adminRouter);
 router.use(`/${API_VERSION}/payments`, paymentsRouter);
 
-
 router.all(`/${API_VERSION}/`, (req, res) => {
   return res
     .status(200)

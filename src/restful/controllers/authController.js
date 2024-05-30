@@ -332,6 +332,7 @@ class AuthController {
       return util.send(res);
     }
   }
+  
 
   static async updateUser(req, res) {
     try {

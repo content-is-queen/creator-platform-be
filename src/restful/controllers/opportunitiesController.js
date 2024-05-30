@@ -283,7 +283,7 @@ class OpportunitiesController {
       const opportunity_id = uuidv4();
 
       // Extract opportunity data from request body
-      const { ...opportunityData } = req.body;
+      const { prompt, ...opportunityData } = req.body;
 
       // Set default status to "open" if not provided
       if (!Object.prototype.hasOwn.call(opportunityData, "status")) {
@@ -319,6 +319,7 @@ class OpportunitiesController {
         .set({
           opportunity_id,
           type,
+          prompt,
           ...opportunityData,
         });
 

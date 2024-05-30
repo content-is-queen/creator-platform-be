@@ -26,4 +26,5 @@ router.patch("/:application_id", ApplicationsController.updateApplication);
 // DELETE an application
 router.delete("/:application_id", ApplicationsController.deleteApplication);
 
+
 module.exports.applicationsRouter = router;

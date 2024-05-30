@@ -428,6 +428,28 @@ class AuthController {
       return util.send(res);
     }
   }
+
+  static async updateUserSubscription(req, res) {
+    console.log("this is being called update users");
+    try {
+      const { subscribed } = req.body;
+      const { user_id } = req.params; // Assuming you have access to the user's ID
+      console.log(user_id);
+      const docRef = admin.firestore().collection("users").doc(user_id); // Use the user's ID to locate the document in the users collection
+
+      await docRef.set({ subscribed }, { merge: true }); // Update the 'subscribed' field
+
+      util.statusCode = 200;
+      util.message = "User subscribed status updated successfully";
+      return util.send(res);
+    } catch (error) {
+      console.error("Error updating user subscribed status:", error);
+      util.statusCode = 500;
+      util.message = error.message || "Server error";
+      return util.send(res);
+    }
+  }
+
 }
 
 exports.AuthController = AuthController;

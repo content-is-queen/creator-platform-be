@@ -255,7 +255,7 @@ class OpportunitiesController {
       const updateData = {};
       requiredFields.forEach((field) => {
         // Check if the field is provided in the request body
-        if (Object.prototype.hasOwn.call(req.body, field)) {
+        if (Object.prototype.hasOwn(req.body, field)) {
           updateData[field] = req.body[field];
         }
       });
@@ -279,21 +279,46 @@ class OpportunitiesController {
   static async createOpportunity(req, res, type) {
     const db = admin.firestore();
     try {
+      const { user_id } = req.body;
+
+      // Fetch the user document
+      const userRef = db.collection("users").doc(user_id);
+      const userDoc = await userRef.get();
+
+      if (!userDoc.exists) {
+        util.statusCode = 404;
+        util.message = "User not found";
+        return util.send(res);
+      }
+
+      const userData = userDoc.data();
+
+      // Check the number of opportunities posted by the brand
+      if (
+        userData.opportunities_posted_count >= userData.max_opportunities_posted
+      ) {
+        util.statusCode = 400;
+        util.message = `You can only post up to ${userData.max_opportunities_posted} opportunities.`;
+        return util.send(res);
+      }
+
       // Generate UUID for opportunity_id
       const opportunity_id = uuidv4();
 
       // Extract opportunity data from request body
-      const { prompt, ...opportunityData } = req.body;
+      const { ...opportunityData } = req.body;
 
       // Set default status to "open" if not provided
-      if (!Object.prototype.hasOwn.call(opportunityData, "status")) {
+      if (!Object.prototype.hasOwn(opportunityData, "status")) {
         opportunityData.status = "open";
       }
 
       // Validate required fields
       const requiredFields = getRequiredFields(type);
-      const isValid = requiredFields.every((field) =>
-        Object.prototype.hasOwnProperty.call(opportunityData, field),
+      const isValid = requiredFields.every(
+        (field) =>
+          Object.prototype.hasOwnProperty.call(opportunityData, field) &&
+          opportunityData[field].trim() !== "",
       );
       if (!isValid) {
         util.statusCode = 400;
@@ -319,9 +344,13 @@ class OpportunitiesController {
         .set({
           opportunity_id,
           type,
-          prompt,
           ...opportunityData,
         });
+
+      // Increment the opportunities_posted_count for the user
+      await userRef.update({
+        opportunities_posted_count: admin.firestore.FieldValue.increment(1),
+      });
 
       util.statusCode = 201;
       util.message = "Opportunity created successfully";

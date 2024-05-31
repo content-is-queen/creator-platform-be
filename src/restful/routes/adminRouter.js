@@ -36,4 +36,10 @@ router.delete(
   AdminController.adminDeleteUser,
 );
 
+// New route to update user limits
+router.patch(
+  "/updateUserLimits/:user_id",
+  AdminController.adminUpdateUserLimits,
+);
+
 module.exports.adminRouter = router;

@@ -168,7 +168,7 @@ class ApplicationsController {
       await applicationRef.update({ status });
 
       if (status === "accepted") {
-        const roomId = uuidv4();
+        const roomId = user_id + "_" + creator_id;
         const userIds = [user_id, creator_id];
 
         // Call createRoom function with data

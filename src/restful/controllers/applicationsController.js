@@ -154,15 +154,7 @@ class ApplicationsController {
   static async updateApplication(req, res) {
     const db = admin.firestore();
     const { application_id } = req.params;
-    const {
-      status,
-      user_id,
-      creator_id,
-      user_name,
-      user_image_url,
-      creator_name,
-      creator_image_url,
-    } = req.body;
+    const { status, user_id, creator_id } = req.body;
 
     try {
       const applicationRef = db.collection("applications").doc(application_id);

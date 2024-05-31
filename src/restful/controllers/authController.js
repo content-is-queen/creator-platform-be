@@ -449,7 +449,6 @@ class AuthController {
       return util.send(res);
     }
   }
-
 }
 
 exports.AuthController = AuthController;

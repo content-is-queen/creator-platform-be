@@ -11,5 +11,5 @@ router.get("/users",protect,allowedRole(["admin"]),  AdminController.admingetAll
 router.put("/activate/:user_id",protect,allowedRole(["admin"]),  AdminController.adminActivateUser);
 router.put("/deactivate/:user_id",protect,allowedRole(["admin"]),  AdminController.adminDeActivateUser);
 router.delete("/delete/:user_id",protect,allowedRole(["admin"]),  AdminController.adminDeleteUser);
-
+router.get("/opportunities",protect,allowedRole(["admin"]), AdminController.getAllOpportunities);
 module.exports.adminRouter = router;

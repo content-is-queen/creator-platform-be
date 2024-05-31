@@ -180,6 +180,31 @@ class AdminController {
       return util.send(res);
     }
   }
+  
+  static async adminGetInfo(req, res) {
+    try {
+      const db = admin.firestore();
+      const usersQuery = await db.collection('users').get();
+      const subscribedUsersQuery = await db.collection('users').where('subscribed', '==', true).get();
+      const opportunitiesQuery = await db.collection('opportunities').get();
+      const completedOpportunitiesQuery = await db.collection('opportunities').where('status', '==', 'completed').get();
+      const infoData = [
+        { title: "Users", value: `${usersQuery.size}` },
+        { title: "Subscribed Users", value: `${subscribedUsersQuery.size}` },
+        { title: "Opportunities", value: `${opportunitiesQuery.size}` },
+        { title: "Completed Opportunities", value: `${completedOpportunitiesQuery.size}` },
+      ];
+  
+      util.setSuccess(200, "Admin data retirved successfully!", infoData);
+      return util.send(res);
+    } catch (error) {
+      util.statusCode = 500;
+      util.message = error.mesage || "Server error";
+      return util.send(res);
+    }
+  }
+  
+  
 }
 
 exports.AdminController = AdminController;

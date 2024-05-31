@@ -17,6 +17,12 @@ router.get(
   allowedRole(["admin"]),
   AdminController.admingetAllUsers,
 );
+router.get(
+  "/info",
+  protect,
+  allowedRole(["admin"]),
+  AdminController.adminGetInfo,
+);
 router.put(
   "/activate/:user_id",
   protect,

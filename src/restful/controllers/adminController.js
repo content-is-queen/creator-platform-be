@@ -37,7 +37,14 @@ class AdminController {
       const usersCollectionRef = db.collection("users");
       await usersCollectionRef
         .doc(user.uid)
-        .set({ uid: user.uid, first_name, last_name, role, isActivated });
+        .set({
+          uid: user.uid,
+          email,
+          first_name,
+          last_name,
+          role,
+          isActivated,
+        });
       util.statusCode = 200;
       util.setSuccess(200, "User created successfully!");
       return util.send(res);

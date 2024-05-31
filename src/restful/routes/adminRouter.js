@@ -11,12 +11,7 @@ router.post(
   allowedRole(["admin"]),
   AdminController.adminCreateUser,
 );
-router.get(
-  "/users",
-  protect,
-  allowedRole(["admin"]),
-  AdminController.admingetAllUsers,
-);
+router.get("/users", AdminController.admingetAllUsers);
 router.get(
   "/info",
   protect,
@@ -47,9 +42,6 @@ router.patch(
   "/updateUserLimits/:user_id",
   AdminController.adminUpdateUserLimits,
 );
-router.get(
-  "/opportunities",
-  AdminController.getAllOpportunities,
-);
+router.get("/opportunities", AdminController.getAllOpportunities);
 
 module.exports.adminRouter = router;

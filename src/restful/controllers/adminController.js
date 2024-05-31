@@ -214,7 +214,6 @@ class AdminController {
   }
 
   static async getAllOpportunities(req, res) {
-    console.log("getting alll ----------------------------------------------");
     const db = admin.firestore();
 
     try {
@@ -254,7 +253,7 @@ class AdminController {
             ...opportunityData,
             numberOfApplications:
               opportunityApplicationsCount[opportunityId] || 0,
-            full_name: userData.first_name + " " + userData.first_name,
+            full_name: userData?.first_name + " " + userData?.first_name,
           };
         },
       );

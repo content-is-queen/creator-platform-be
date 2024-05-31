@@ -49,8 +49,6 @@ router.patch(
 );
 router.get(
   "/opportunities",
-  protect,
-  allowedRole(["admin"]),
   AdminController.getAllOpportunities,
 );
 

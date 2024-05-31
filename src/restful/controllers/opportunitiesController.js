@@ -255,7 +255,7 @@ class OpportunitiesController {
       const updateData = {};
       requiredFields.forEach((field) => {
         // Check if the field is provided in the request body
-        if (Object.prototype.hasOwn(req.body, field)) {
+        if (Object.hasOwn(req.body, field)) {
           updateData[field] = req.body[field];
         }
       });
@@ -309,16 +309,14 @@ class OpportunitiesController {
       const { ...opportunityData } = req.body;
 
       // Set default status to "open" if not provided
-      if (!Object.prototype.hasOwn(opportunityData, "status")) {
+      if (!Object.hasOwn(opportunityData, "status")) {
         opportunityData.status = "open";
       }
 
       // Validate required fields
       const requiredFields = getRequiredFields(type);
-      const isValid = requiredFields.every(
-        (field) =>
-          Object.prototype.hasOwnProperty.call(opportunityData, field) &&
-          opportunityData[field].trim() !== "",
+      const isValid = requiredFields.every((field) =>
+        Object.hasOwn(opportunityData, field),
       );
       if (!isValid) {
         util.statusCode = 400;

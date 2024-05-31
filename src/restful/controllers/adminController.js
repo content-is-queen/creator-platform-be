@@ -180,21 +180,30 @@ class AdminController {
       return util.send(res);
     }
   }
-  
+
   static async adminGetInfo(req, res) {
     try {
       const db = admin.firestore();
-      const usersQuery = await db.collection('users').get();
-      const subscribedUsersQuery = await db.collection('users').where('subscribed', '==', true).get();
-      const opportunitiesQuery = await db.collection('opportunities').get();
-      const completedOpportunitiesQuery = await db.collection('opportunities').where('status', '==', 'completed').get();
+      const usersQuery = await db.collection("users").get();
+      const subscribedUsersQuery = await db
+        .collection("users")
+        .where("subscribed", "==", true)
+        .get();
+      const opportunitiesQuery = await db.collection("opportunities").get();
+      const completedOpportunitiesQuery = await db
+        .collection("opportunities")
+        .where("status", "==", "completed")
+        .get();
       const infoData = [
         { title: "Users", value: `${usersQuery.size}` },
         { title: "Subscribed Users", value: `${subscribedUsersQuery.size}` },
         { title: "Opportunities", value: `${opportunitiesQuery.size}` },
-        { title: "Completed Opportunities", value: `${completedOpportunitiesQuery.size}` },
+        {
+          title: "Completed Opportunities",
+          value: `${completedOpportunitiesQuery.size}`,
+        },
       ];
-  
+
       util.setSuccess(200, "Admin data retirved successfully!", infoData);
       return util.send(res);
     } catch (error) {
@@ -203,15 +212,17 @@ class AdminController {
       return util.send(res);
     }
   }
-  
+
   static async getAllOpportunities(req, res) {
     console.log("getting alll ----------------------------------------------");
     const db = admin.firestore();
-  
+
     try {
-      const applicationsSnapshot = await db.collectionGroup("applications").get();
+      const applicationsSnapshot = await db
+        .collectionGroup("applications")
+        .get();
       const opportunityApplicationsCount = {};
-      
+
       // Count the number of applications for each opportunity
       applicationsSnapshot.forEach((doc) => {
         const applicationData = doc.data();
@@ -222,29 +233,35 @@ class AdminController {
           opportunityApplicationsCount[opportunityId] = 1;
         }
       });
-  
+
       // Fetch opportunities separately
-      const opportunitiesSnapshot = await db.collection("opportunities").where("status", "!=", "archived").get();
-  
+      const opportunitiesSnapshot = await db
+        .collection("opportunities")
+        .where("status", "!=", "archived")
+        .get();
+
       // Fetch user data for each opportunity asynchronously
-      const opportunitiesDataPromises = opportunitiesSnapshot.docs.map(async (doc) => {
-        const opportunityData = doc.data();
-        const userId = opportunityData.user_id;
-        const userRef = db.collection("users").doc(userId);
-        const userDoc = await userRef.get();
-        const userData = userDoc.data();
-        const opportunityId = doc.id;
-  
-        return {
-          ...opportunityData,
-          numberOfApplications: opportunityApplicationsCount[opportunityId] || 0,
-          full_name: userData.first_name + " " + userData.first_name
-        };
-      });
-  
+      const opportunitiesDataPromises = opportunitiesSnapshot.docs.map(
+        async (doc) => {
+          const opportunityData = doc.data();
+          const userId = opportunityData.user_id;
+          const userRef = db.collection("users").doc(userId);
+          const userDoc = await userRef.get();
+          const userData = userDoc.data();
+          const opportunityId = doc.id;
+
+          return {
+            ...opportunityData,
+            numberOfApplications:
+              opportunityApplicationsCount[opportunityId] || 0,
+            full_name: userData.first_name + " " + userData.first_name,
+          };
+        },
+      );
+
       // Wait for all promises to resolve
       const opportunitiesData1 = await Promise.all(opportunitiesDataPromises);
-  
+
       if (opportunitiesData1.length > 0) {
         util.statusCode = 200;
         util.message = opportunitiesData1;
@@ -261,8 +278,6 @@ class AdminController {
       return util.send(res);
     }
   }
-  
-  
 }
 
 exports.AdminController = AdminController;

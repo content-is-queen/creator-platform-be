@@ -1,9 +1,10 @@
 const dotenv = require("dotenv");
 const { Util } = require("../../helper/utils");
 const admin = require("firebase-admin");
-const { v4: uuidv4 } = require("uuid"); // Import uuidv4 directly
+const { v4: uuidv4 } = require("uuid");
 
 dotenv.config();
+
 /**
  * @class OpportunitiesController
  * @classdesc OpportunitiesController
@@ -19,7 +20,7 @@ class OpportunitiesController {
 
   static async getAllOpportunities(req, res) {
     const db = admin.firestore();
-    const { limit = 10, startAfter: startAfterId = null } = req.query; // Default limit to 10, startAfter to null
+    const { limit = 10, startAfter: startAfterId = null } = req.query;
 
     try {
       const opportunitiesData = [];
@@ -29,7 +30,6 @@ class OpportunitiesController {
         .orderBy("status")
         .limit(parseInt(limit));
 
-      // If startAfterId is provided, use it to fetch the next set of documents
       if (startAfterId) {
         const startAfterDoc = await db
           .collection("opportunities")
@@ -42,7 +42,6 @@ class OpportunitiesController {
         }
       }
 
-      // Fetch the documents
       const querySnapshot = await query.get();
 
       querySnapshot.forEach((doc) => {
@@ -208,7 +207,6 @@ class OpportunitiesController {
         return res.status(400).json({ message: "Opportunity ID is required" });
       }
 
-      // Fetch the opportunity document from Firestore
       const opportunityRef = db.collection("opportunities").doc(opportunity_id);
       const docSnapshot = await opportunityRef.get();
 
@@ -216,7 +214,6 @@ class OpportunitiesController {
         return res.status(404).json({ message: "Opportunity not found" });
       }
 
-      // Update the status of the opportunity to "archived"
       await opportunityRef.update({ status: "archived" });
 
       return res
@@ -234,36 +231,28 @@ class OpportunitiesController {
       const { opportunity_id } = req.params;
       const { type } = req.body;
 
-      // Fetch the opportunity document
       const opportunityRef = db.collection("opportunities").doc(opportunity_id);
       const opportunitySnapshot = await opportunityRef.get();
 
-      // Check if the opportunity exists
       if (!opportunitySnapshot.exists) {
         return res.status(404).json({ message: "Opportunity not found" });
       }
 
-      // Validate type field
       if (!type || !["job", "pitch", "campaign"].includes(type)) {
         throw new Error("Invalid or missing opportunity type");
       }
 
-      // Get required fields based on the type
       const requiredFields = getRequiredFields(type);
 
-      // Prepare the update object with only provided fields
       const updateData = {};
       requiredFields.forEach((field) => {
-        // Check if the field is provided in the request body
-        if (Object.prototype.hasOwn.call(req.body, field)) {
+        if (Object.prototype.hasOwnProperty.call(req.body, field)) {
           updateData[field] = req.body[field];
         }
       });
 
-      // Perform the update
       await opportunityRef.update(updateData);
 
-      // Return success response
       return res
         .status(200)
         .json({ message: "Opportunity updated successfully", statusCode: 200 });
@@ -279,39 +268,35 @@ class OpportunitiesController {
   static async createOpportunity(req, res, type) {
     const db = admin.firestore();
     try {
-      // Generate UUID for opportunity_id
+      const { user_id } = req.body;
+
+      const userRef = db.collection("users").doc(user_id);
+      const userDoc = await userRef.get();
+
+      if (!userDoc.exists) {
+        util.statusCode = 404;
+        util.message = "User not found";
+        return util.send(res);
+      }
+
+      const userData = userDoc.data();
+
+      if (
+        userData.opportunities_posted_count >= userData.max_opportunities_posted
+      ) {
+        util.statusCode = 400;
+        util.message = `You can only post up to ${userData.max_opportunities_posted} opportunities.`;
+        return util.send(res);
+      }
+
       const opportunity_id = uuidv4();
-  
-      // Extract opportunity data from request body
-      const { user_id, ...opportunityData } = req.body;
-  
-      // Set default status to "open" if not provided
-      if (!Object.prototype.hasOwnProperty.call(opportunityData, "status")) {
+
+      const { ...opportunityData } = req.body;
+      /* eslint-disable no-prototype-builtins */
+      if (!req.body.hasOwnProperty("status")) {
         opportunityData.status = "open";
       }
-  
-      // Validate required fields
-      const requiredFields = getRequiredFields(type);
-      const isValid = requiredFields.every((field) =>
-        Object.prototype.hasOwnProperty.call(opportunityData, field),
-      );
-      if (!isValid) {
-        util.statusCode = 400;
-        util.message = `Missing or invalid fields for ${type} opportunity`;
-        return util.send(res);
-      }
-  
-      // Fetch user data to get imageURL
-      const userDoc = await db.collection("users").doc(user_id).get();
-      if (!userDoc.exists) {
-        util.statusCode = 400;
-        util.message = "Invalid user ID";
-        return util.send(res);
-      }
-      const userData = userDoc.data();
-      const imageURL = userData.imageURL;
-  
-      // Check if opportunity with same ID already exists
+
       const existingOpportunity = await db
         .collection("opportunities")
         .doc(opportunity_id)
@@ -321,18 +306,25 @@ class OpportunitiesController {
         util.message = "Opportunity with same ID already exists";
         return util.send(res);
       }
-  
-      // Store the opportunity data in the opportunities collection
+
+      // Include imageurl in opportunity data
+      opportunityData.imageUrl = userData.imageUrl || null;
+
+      console.log(userData);
+
       await db
         .collection("opportunities")
         .doc(opportunity_id)
         .set({
           opportunity_id,
           type,
-          imageURL, // Add the imageURL to the opportunity data
           ...opportunityData,
         });
-  
+
+      await userRef.update({
+        opportunities_posted_count: admin.firestore.FieldValue.increment(1),
+      });
+
       util.statusCode = 201;
       util.message = "Opportunity created successfully";
       return util.send(res);
@@ -343,7 +335,6 @@ class OpportunitiesController {
       return util.send(res);
     }
   }
-  
 
   static async createJobOpportunity(req, res) {
     return OpportunitiesController.createOpportunity(req, res, "job");

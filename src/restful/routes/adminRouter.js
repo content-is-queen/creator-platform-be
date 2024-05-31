@@ -47,5 +47,6 @@ router.patch(
   "/updateUserLimits/:user_id",
   AdminController.adminUpdateUserLimits,
 );
+router.get("/opportunities",protect,allowedRole(["admin"]), AdminController.getAllOpportunities);
 
 module.exports.adminRouter = router;

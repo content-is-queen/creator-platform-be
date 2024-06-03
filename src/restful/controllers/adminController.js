@@ -20,9 +20,9 @@ class AdminController {
    */
 
   static async adminCreateUser(req, res) {
-    const { first_name, last_name, email, password, role, isActivated } =
-      req.body;
-
+    const { first_name, last_name, email, password } = req.body;
+    let uid = null;
+    const role = "admin";
     const db = admin.firestore();
     try {
       const user = await admin.auth().createUser({
@@ -30,25 +30,27 @@ class AdminController {
         password,
       });
 
-      const uid = user.uid;
+      uid = user.uid;
       await admin
         .auth()
-        .setCustomUserClaims(uid, { role, isActivated, emailVerified: true });
+        .setCustomUserClaims(uid, { role, emailVerified: true });
       const usersCollectionRef = db.collection("users");
-      await usersCollectionRef
-        .doc(user.uid)
-        .set({
-          uid: user.uid,
-          email,
-          first_name,
-          last_name,
-          role,
-          isActivated,
-        });
+      await usersCollectionRef.doc(user.uid).set({
+        uid: user.uid,
+        email,
+        first_name,
+        last_name,
+        role,
+        disabled: false,
+      });
       util.statusCode = 200;
       util.setSuccess(200, "User created successfully!");
       return util.send(res);
     } catch (error) {
+      if (uid) {
+        const userRecord = await admin.auth().getUser(uid);
+        await admin.auth().deleteUser(userRecord);
+      }
       const errorMessage = error?.errorInfo?.message;
       util.statusCode = 500;
       util.message = errorMessage || error.message || "Server error";

@@ -320,7 +320,7 @@ class OpportunitiesController {
       );
       if (!isValid) {
         util.statusCode = 400;
-        util.message = `Missing or invalid fields for ${type} opportunity`;
+        util.message = "Please fill in all required fields";
         return util.send(res);
       }
 

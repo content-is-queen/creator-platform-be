@@ -20,35 +20,38 @@ dotenv.config();
 
 const util = new Util();
 
+const defaultSchema = {
+  first_name: Joi.string(),
+  last_name: Joi.string(),
+  email: Joi.string(),
+  password: Joi.string(),
+  bio: Joi.string(),
+  goals: Joi.string(),
+  role: Joi.string(),
+};
+
 // Validation schema for creator
 const schema = {
   brand: Joi.object({
-    first_name: Joi.string().required(),
-    last_name: Joi.string().required(),
-    organisation_name: Joi.string().required(),
-    bio: Joi.string().required(),
-    goals: Joi.string().required(),
-    profile_photo: Joi.string().required(),
-    profile_meta: Joi.string().required(),
+    ...defaultSchema,
+    organisation_name: Joi.string(),
+    profile_photo: Joi.string().allow(""),
   }),
   creator: Joi.object({
-    first_name: Joi.string().required(),
-    last_name: Joi.string().required(),
-    bio: Joi.string().required(),
-    goals: Joi.string().required(),
-    podcast_name: Joi.string().required(),
-    podcast_url: Joi.string().uri().required(),
-    profile_photo: Joi.string().required(),
+    ...defaultSchema,
+    podcast_name: Joi.string().allow(""),
+    podcast_url: Joi.string().uri().allow(""),
+    profile_photo: Joi.string().allow(""),
     profile_meta: Joi.object({
-      showreel: Joi.string().uri().required(),
-      showcase: Joi.array().items(Joi.string().uri().max(6)).required(),
+      showreel: Joi.string().uri(),
+      showcase: Joi.array().items(Joi.string().uri().max(6)),
       credits: Joi.array().items(
         Joi.object({
-          show: Joi.string().required(),
-          role: Joi.string().required(),
+          show: Joi.string(),
+          role: Joi.string(),
         }),
       ),
-    }).required(),
+    }).allow(""),
   }),
 };
 

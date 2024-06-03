@@ -393,6 +393,7 @@ function getTypeRequiredFields(type) {
         "experience",
         "skills",
         "education",
+        "salary",
         "terms",
         "deadline",
       ];

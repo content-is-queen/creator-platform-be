@@ -249,13 +249,13 @@ class OpportunitiesController {
       }
 
       // Get required fields based on the type
-      const requiredFields = getRequiredFields(type);
+      const requiredFields = getTypeRequiredFields(type);
 
       // Prepare the update object with only provided fields
       const updateData = {};
       requiredFields.forEach((field) => {
         // Check if the field is provided in the request body
-        if (req.body.hasOwnProperty(field)) {
+        if (Object.hasOwn(req.body, field)) {
           updateData[field] = req.body[field];
         }
       });
@@ -279,6 +279,29 @@ class OpportunitiesController {
   static async createOpportunity(req, res, type) {
     const db = admin.firestore();
     try {
+      const { user_id } = req.body;
+
+      // Fetch the user document
+      const userRef = db.collection("users").doc(user_id);
+      const userDoc = await userRef.get();
+
+      if (!userDoc.exists) {
+        util.statusCode = 404;
+        util.message = "User not found";
+        return util.send(res);
+      }
+
+      const userData = userDoc.data();
+
+      // Check the number of opportunities posted by the brand
+      if (
+        userData.opportunities_posted_count >= userData.max_opportunities_posted
+      ) {
+        util.statusCode = 400;
+        util.message = `You can only post up to ${userData.max_opportunities_posted} opportunities.`;
+        return util.send(res);
+      }
+
       // Generate UUID for opportunity_id
       const opportunity_id = uuidv4();
 
@@ -286,20 +309,18 @@ class OpportunitiesController {
       const { ...opportunityData } = req.body;
 
       // Set default status to "open" if not provided
-      if (!opportunityData.hasOwnProperty("status")) {
+      if (!Object.hasOwn(opportunityData, "status")) {
         opportunityData.status = "open";
       }
 
       // Validate required fields
-      const requiredFields = getRequiredFields(type);
-      const isValid = requiredFields.every(
-        (field) =>
-          Object.prototype.hasOwnProperty.call(opportunityData, field) &&
-          opportunityData[field].trim() !== "",
+      const requiredFields = getTypeRequiredFields(type);
+      const isValid = requiredFields.every((field) =>
+        Object.hasOwn(opportunityData, field),
       );
       if (!isValid) {
         util.statusCode = 400;
-        util.message = `Missing or invalid fields for ${type} opportunity`;
+        util.message = "Please fill in all required fields";
         return util.send(res);
       }
 
@@ -323,6 +344,11 @@ class OpportunitiesController {
           type,
           ...opportunityData,
         });
+
+      // Increment the opportunities_posted_count for the user
+      await userRef.update({
+        opportunities_posted_count: admin.firestore.FieldValue.increment(1),
+      });
 
       util.statusCode = 201;
       util.message = "Opportunity created successfully";
@@ -348,45 +374,47 @@ class OpportunitiesController {
   }
 }
 
-function getRequiredFields(type) {
+const requiredFields = ["title", "description", "user_id"];
+
+function getTypeRequiredFields(type) {
   switch (type) {
     case "job":
       return [
-        "title",
-        "user_id",
-        "company",
-        "description",
-        "skills",
-        "experience",
-        "location",
-        "compensation",
-        "deadline",
+        ...requiredFields,
+        "category",
         "contract_type",
+        "location",
+        "company",
+        "company_website",
+        "company_description",
+        "company_contact_name",
+        "company_contact_email",
+        "company_contact_tel",
+        "experience",
+        "skills",
+        "education",
+        "salary",
+        "terms",
+        "deadline",
       ];
     case "pitch":
       return [
-        "title",
-        "user_id",
-        "description",
+        ...requiredFields,
         "target",
-        "format",
-        "compensation",
-        "submission",
-        "deadline",
-        "contract_type",
+        "content_duration",
+        "content_type",
+        "key_message",
       ];
     case "campaign":
       return [
-        "title",
-        "user_id",
-        "brand",
-        "description",
+        ...requiredFields,
         "target",
         "compensation",
-        "format",
-        "requirements",
-        "deadline",
-        "contract_type",
+        "ad_type",
+        "length",
+        "budget",
+        "start_date",
+        "end_date",
       ];
     default:
       return [];

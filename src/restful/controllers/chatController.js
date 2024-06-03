@@ -69,6 +69,7 @@ class ChatController {
       res.status(500).json({ error: "Internal server error" });
     }
   }
+
   static async getUserRooms(req, res) {
     try {
       const { userId } = req.params; // Assuming you have user information in the request

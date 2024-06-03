@@ -10,6 +10,7 @@ const { transporter } = require("../../helper/mailHelper");
 const otpGenerator = require("otp-generator");
 const admin = require("firebase-admin");
 const { v4: uuidv4 } = require("uuid");
+const Joi = require("joi");
 
 dotenv.config();
 /**
@@ -19,6 +20,41 @@ dotenv.config();
 
 const util = new Util();
 
+const defaultSchema = {
+  first_name: Joi.string(),
+  last_name: Joi.string(),
+  email: Joi.string(),
+  password: Joi.string(),
+  bio: Joi.string(),
+  goals: Joi.string(),
+  role: Joi.string(),
+};
+
+// Validation schema for creator
+const schema = {
+  brand: Joi.object({
+    ...defaultSchema,
+    organisation_name: Joi.string(),
+    profile_photo: Joi.string().allow(""),
+  }),
+  creator: Joi.object({
+    ...defaultSchema,
+    podcast_name: Joi.string().allow(""),
+    podcast_url: Joi.string().uri().allow(""),
+    profile_photo: Joi.string().allow(""),
+    profile_meta: Joi.object({
+      showreel: Joi.string().uri(),
+      showcase: Joi.array().items(Joi.string().uri().max(6)),
+      credits: Joi.array().items(
+        Joi.object({
+          show: Joi.string(),
+          role: Joi.string(),
+        }),
+      ),
+    }).allow(""),
+  }),
+};
+
 class AuthController {
   /**
    * @param {Object} req request Object.
@@ -27,11 +63,18 @@ class AuthController {
    */
 
   static async signup(req, res) {
-    const { first_name, last_name, email, password, role, ...other } = req.body;
-
-    const db = admin.firestore();
-    let user = null;
     try {
+      // Proceed with signup logic if validation succeeds
+      const { first_name, last_name, email, password, role, ...other } =
+        req.body;
+
+      // Validate request body against schema
+      await schema[role].validateAsync(req.body);
+
+      const db = admin.firestore();
+      let user = null;
+
+      // Create user in Firebase Authentication
       user = await admin.auth().createUser({
         email,
         password,
@@ -69,16 +112,14 @@ class AuthController {
       if (emailSent) {
         const usersCollectionRef = db.collection("users");
 
-        await usersCollectionRef
-          .doc(user.uid)
-          .set({
-            uid: user.uid,
-            first_name,
-            last_name,
-            role,
-            isActivated: true,
-            ...other,
-          });
+        await usersCollectionRef.doc(user.uid).set({
+          uid: user.uid,
+          first_name,
+          last_name,
+          role,
+          isActivated: true,
+          ...other,
+        });
 
         util.statusCode = 200;
         util.setSuccess(200, "Success", { email, uid });
@@ -91,9 +132,6 @@ class AuthController {
         return util.send(res);
       }
     } catch (error) {
-      if (user && user.uid) {
-        await admin.auth().deleteUser(user.uid);
-      }
       const errorMessage = error?.errorInfo?.message;
       util.statusCode = 500;
       util.message = errorMessage || error.message || "Server error";
@@ -255,7 +293,7 @@ class AuthController {
           const userObj = doc.data();
 
           // Only push objects with a uid field
-          if (userObj.hasOwnProperty("uid")) {
+          if (Object.hasOwn(userObj, "uid")) {
             users.push(userObj);
           }
         });
@@ -272,7 +310,6 @@ class AuthController {
   static async updateUser(req, res) {
     try {
       const { first_name, last_name, bio, profile_meta } = req.body;
-      const parsedProfileMeta = JSON.parse(profile_meta); // Ensure profile_meta is parsed as an object
       const file = req.files?.imageUrl;
 
       if (!file) {
@@ -282,12 +319,12 @@ class AuthController {
           .collection("users")
           .doc(req.user.user_id);
         await docRef.set(
-          { first_name, last_name, bio, profile_meta: parsedProfileMeta },
+          { first_name, last_name, bio, profile_meta },
           { merge: true },
         );
 
         util.statusCode = 200;
-        util.message = "User data updated successfully";
+        util.message = "User updated successfully";
         return util.send(res);
       } else {
         // If there's a file, upload it to Firebase Storage
@@ -315,7 +352,7 @@ class AuthController {
                 last_name,
                 bio,
                 imageUrl,
-                profile_meta: parsedProfileMeta,
+                profile_meta,
               },
               { merge: true },
             );
@@ -397,6 +434,27 @@ class AuthController {
       util.message = "Email changed successfully";
       return util.send(res);
     } catch (error) {
+      util.statusCode = 500;
+      util.message = error.message || "Server error";
+      return util.send(res);
+    }
+  }
+
+  static async updateUserSubscription(req, res) {
+    console.log("this is being called update users");
+    try {
+      const { subscribed } = req.body;
+      const { user_id } = req.params; // Assuming you have access to the user's ID
+      console.log(user_id);
+      const docRef = admin.firestore().collection("users").doc(user_id); // Use the user's ID to locate the document in the users collection
+
+      await docRef.set({ subscribed }, { merge: true }); // Update the 'subscribed' field
+
+      util.statusCode = 200;
+      util.message = "User subscribed status updated successfully";
+      return util.send(res);
+    } catch (error) {
+      console.error("Error updating user subscribed status:", error);
       util.statusCode = 500;
       util.message = error.message || "Server error";
       return util.send(res);

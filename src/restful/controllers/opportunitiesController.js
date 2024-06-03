@@ -244,8 +244,10 @@ class OpportunitiesController {
 
       const requiredFields = getRequiredFields(type);
 
+
       const updateData = {};
       requiredFields.forEach((field) => {
+
         if (Object.prototype.hasOwnProperty.call(req.body, field)) {
           updateData[field] = req.body[field];
         }
@@ -286,6 +288,47 @@ class OpportunitiesController {
       ) {
         util.statusCode = 400;
         util.message = `You can only post up to ${userData.max_opportunities_posted} opportunities.`;
+
+      // Fetch the user document
+      const userRef = db.collection("users").doc(user_id);
+      const userDoc = await userRef.get();
+
+      if (!userDoc.exists) {
+        util.statusCode = 404;
+        util.message = "User not found";
+        return util.send(res);
+      }
+
+      const userData = userDoc.data();
+
+      // Check the number of opportunities posted by the brand
+      if (
+        userData.opportunities_posted_count >= userData.max_opportunities_posted
+      ) {
+        util.statusCode = 400;
+        util.message = `You can only post up to ${userData.max_opportunities_posted} opportunities.`;
+        return util.send(res);
+      }
+
+      // Generate UUID for opportunity_id
+      const opportunity_id = uuidv4();
+
+      // Extract opportunity data from request body
+      const { ...opportunityData } = req.body;
+
+      // Set default status to "open" if not provided
+      if (!Object.hasOwn(opportunityData, "status")) {
+        opportunityData.status = "open";
+      }
+
+      // Validate required fields
+      const requiredFields = getTypeRequiredFields(type);
+      const isValid = requiredFields.every((field) =>
+        Object.hasOwn(opportunityData, field),
+      );
+      if (!isValid) {
+        util.statusCode = 400;
+        util.message = "Please fill in all required fields";
         return util.send(res);
       }
 
@@ -321,6 +364,7 @@ class OpportunitiesController {
           ...opportunityData,
         });
 
+      // Increment the opportunities_posted_count for the user
       await userRef.update({
         opportunities_posted_count: admin.firestore.FieldValue.increment(1),
       });
@@ -349,45 +393,46 @@ class OpportunitiesController {
   }
 }
 
-function getRequiredFields(type) {
+const requiredFields = ["title", "description", "user_id"];
+
+function getTypeRequiredFields(type) {
   switch (type) {
     case "job":
       return [
-        "title",
-        "user_id",
-        "company",
-        "description",
-        "skills",
-        "experience",
-        "location",
-        "compensation",
-        "deadline",
+        ...requiredFields,
+        "category",
         "contract_type",
+        "location",
+        "company",
+        "company_website",
+        "company_description",
+        "company_contact_name",
+        "company_contact_email",
+        "company_contact_tel",
+        "experience",
+        "skills",
+        "education",
+        "terms",
+        "deadline",
       ];
     case "pitch":
       return [
-        "title",
-        "user_id",
-        "description",
+        ...requiredFields,
         "target",
-        "format",
-        "compensation",
-        "submission",
-        "deadline",
-        "contract_type",
+        "content_duration",
+        "content_type",
+        "key_message",
       ];
     case "campaign":
       return [
-        "title",
-        "user_id",
-        "brand",
-        "description",
+        ...requiredFields,
         "target",
         "compensation",
-        "format",
-        "requirements",
-        "deadline",
-        "contract_type",
+        "ad_type",
+        "length",
+        "budget",
+        "start_date",
+        "end_date",
       ];
     default:
       return [];

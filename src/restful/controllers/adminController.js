@@ -39,7 +39,7 @@ class AdminController {
         .doc(user.uid)
         .set({ uid: user.uid, first_name, last_name, role, isActivated });
       util.statusCode = 200;
-      util.setSuccess(200, "User created successfull!");
+      util.setSuccess(200, "User created successfully!");
       return util.send(res);
     } catch (error) {
       const errorMessage = error?.errorInfo?.message;
@@ -53,18 +53,18 @@ class AdminController {
     const { user_id } = req.params;
     try {
       const db = admin.firestore();
-      await admin.auth().updateUser(user_id, { disabled: true });
+      await admin.auth().updateUser(user_id, { disabled: false });
       const usersCollectionRef = db.collection("users");
       await usersCollectionRef
         .doc(user_id)
-        .set({ disabled: true }, { merge: true });
+        .set({ disabled: false }, { merge: true });
       util.statusCode = 200;
       util.setSuccess(200, "User activated successfully!");
       return util.send(res);
     } catch (error) {
       console.log(error);
       util.statusCode = 500;
-      util.message = error.mesage || "Server error";
+      util.message = error.message || "Server error";
       return util.send(res);
     }
   }
@@ -77,14 +77,14 @@ class AdminController {
       const usersCollectionRef = db.collection("users");
       await usersCollectionRef
         .doc(user_id)
-        .set({ disabled: false }, { merge: true });
+        .set({ disabled: true }, { merge: true });
       util.statusCode = 200;
       util.setSuccess(200, "User deactivated successfully!");
       return util.send(res);
     } catch (error) {
       console.log(error);
       util.statusCode = 500;
-      util.message = error.mesage || "Server error";
+      util.message = error.message || "Server error";
       return util.send(res);
     }
   }
@@ -102,7 +102,7 @@ class AdminController {
         querySnapshot.forEach((doc) => {
           const userObj = doc.data();
           // Only push objects with a uid field
-          if (Object.prototype.hasOwnProperty.call(userObj, "uid")) {
+          if (userObj.hasOwn("uid")) {
             users.push(userObj);
           }
         });
@@ -112,7 +112,7 @@ class AdminController {
     } catch (error) {
       console.log(error);
       util.statusCode = 500;
-      util.message = error.mesage || "Server error";
+      util.message = error.message || "Server error";
       return util.send(res);
     }
   }
@@ -134,6 +134,44 @@ class AdminController {
 
       util.statusCode = 200;
       util.setSuccess(200, "User deleted successfully!");
+      return util.send(res);
+    } catch (error) {
+      console.log(error);
+      util.statusCode = 500;
+      util.message = error.message || "Server error";
+      return util.send(res);
+    }
+  }
+
+  static async adminUpdateUserLimits(req, res) {
+    const { user_id } = req.params;
+    const { max_opportunities_posted, max_opportunities_applied } = req.body;
+
+    const db = admin.firestore();
+
+    try {
+      const userRef = db.collection("users").doc(user_id);
+      const userDoc = await userRef.get();
+
+      if (!userDoc.exists) {
+        util.statusCode = 404;
+        util.message = "User not found";
+        return util.send(res);
+      }
+
+      const updateData = {};
+
+      if (max_opportunities_posted !== undefined) {
+        updateData.max_opportunities_posted = max_opportunities_posted;
+      }
+      if (max_opportunities_applied !== undefined) {
+        updateData.max_opportunities_applied = max_opportunities_applied;
+      }
+
+      await userRef.update(updateData);
+
+      util.statusCode = 200;
+      util.setSuccess(200, "User limits updated successfully!");
       return util.send(res);
     } catch (error) {
       console.log(error);

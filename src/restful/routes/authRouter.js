@@ -15,5 +15,9 @@ router.post("/password", protect, AuthController.changePassword);
 router.post("/emailupdate", protect, AuthController.changeEmail);
 router.get("/user/:user_id", AuthController.getPublicUser);
 router.get("/check-email", AuthController.checkEmailExists);
+router.post(
+  "/userSubscription/:user_id",
+  AuthController.updateUserSubscription,
+);
 
 module.exports.authRouter = router;

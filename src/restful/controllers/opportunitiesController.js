@@ -249,7 +249,7 @@ class OpportunitiesController {
       }
 
       // Get required fields based on the type
-      const requiredFields = getRequiredFields(type);
+      const requiredFields = getTypeRequiredFields(type);
 
       // Prepare the update object with only provided fields
       const updateData = {};
@@ -314,7 +314,7 @@ class OpportunitiesController {
       }
 
       // Validate required fields
-      const requiredFields = getRequiredFields(type);
+      const requiredFields = getTypeRequiredFields(type);
       const isValid = requiredFields.every((field) =>
         Object.hasOwn(opportunityData, field),
       );
@@ -374,45 +374,46 @@ class OpportunitiesController {
   }
 }
 
-function getRequiredFields(type) {
+const requiredFields = ["title", "description", "user_id"];
+
+function getTypeRequiredFields(type) {
   switch (type) {
     case "job":
       return [
-        "title",
-        "user_id",
-        "company",
-        "description",
-        "skills",
-        "experience",
-        "location",
-        "compensation",
-        "deadline",
+        ...requiredFields,
+        "category",
         "contract_type",
+        "location",
+        "company",
+        "company_website",
+        "company_description",
+        "company_contact_name",
+        "company_contact_email",
+        "company_contact_tel",
+        "experience",
+        "skills",
+        "education",
+        "terms",
+        "deadline",
       ];
     case "pitch":
       return [
-        "title",
-        "user_id",
-        "description",
+        ...requiredFields,
         "target",
-        "format",
-        "compensation",
-        "submission",
-        "deadline",
-        "contract_type",
+        "content_duration",
+        "content_type",
+        "key_message",
       ];
     case "campaign":
       return [
-        "title",
-        "user_id",
-        "brand",
-        "description",
+        ...requiredFields,
         "target",
         "compensation",
-        "format",
-        "requirements",
-        "deadline",
-        "contract_type",
+        "ad_type",
+        "length",
+        "budget",
+        "start_date",
+        "end_date",
       ];
     default:
       return [];

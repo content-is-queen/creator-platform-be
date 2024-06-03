@@ -83,6 +83,7 @@ class AuthController {
       const uid = user.uid;
       await admin.auth().setCustomUserClaims(uid, { role });
 
+      // Generate OTP
       const code = otpGenerator.generate(5, {
         digits: true,
         upperCase: false,
@@ -90,10 +91,12 @@ class AuthController {
         alphabets: false,
       });
 
+      // Save OTP in Firestore
       await db.collection("otp").doc(email).set({
         otp: code,
       });
 
+      // Send verification email
       const emailTemplate = sendOtpEmail({
         name: first_name,
         email: user.email,
@@ -110,6 +113,7 @@ class AuthController {
       const emailSent = await transporter.sendMail(mailOptions);
 
       if (emailSent) {
+        // Save user details in Firestore
         const usersCollectionRef = db.collection("users");
 
         await usersCollectionRef.doc(user.uid).set({
@@ -309,6 +313,7 @@ class AuthController {
 
   static async updateUser(req, res) {
     try {
+      // Proceed with update logic if validation succeeds
       const { first_name, last_name, bio, profile_meta } = req.body;
       const file = req.files?.imageUrl;
 

@@ -266,7 +266,8 @@ class AuthController {
         last_name: userData.last_name,
         role: userData.role,
         imageUrl: userData.imageUrl, // Assuming this field exists in the user document
-        bio: userData.bio, // Assuming this field exists in the user document
+        bio: userData.bio,
+        uid: userData.uid, // Assuming this field exists in the user document
       };
 
       util.statusCode = 200;

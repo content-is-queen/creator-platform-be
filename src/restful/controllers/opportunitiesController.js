@@ -315,6 +315,11 @@ class OpportunitiesController {
         opportunityData.status = "open";
       }
 
+      // If company details are not provided, use organisation_name from user data
+      if (!opportunityData.company) {
+        opportunityData.company = userData.organisation_name || null;
+      }
+
       // Validate required fields
       const requiredFields = getTypeRequiredFields(type);
       const isValid = requiredFields.every((field) =>

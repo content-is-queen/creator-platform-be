@@ -42,16 +42,14 @@ const schema = {
     podcast_name: Joi.string().allow(""),
     podcast_url: Joi.string().uri().allow(""),
     profile_photo: Joi.string().allow(""),
-    profile_meta: Joi.object({
-      showreel: Joi.string().uri(),
-      showcase: Joi.array().items(Joi.string().uri().max(6)),
-      credits: Joi.array().items(
-        Joi.object({
-          show: Joi.string(),
-          role: Joi.string(),
-        }),
-      ),
-    }).allow(""),
+    showreel: Joi.string().uri().allow(""),
+    showcase: Joi.array().items(Joi.string().uri().max(6)).allow(""),
+    credits: Joi.array().items(
+      Joi.object({
+        episode_link: Joi.string(),
+        role: Joi.string(),
+      }).allow(""),
+    ),
   }),
 };
 
@@ -314,8 +312,8 @@ class AuthController {
 
   static async updateUser(req, res) {
     try {
-      // Proceed with update logic if validation succeeds
-      const { first_name, last_name, bio, profile_meta } = req.body;
+      // Only
+      const { ...valuesToUpdate } = req.body;
       const file = req.files?.imageUrl;
 
       if (!file) {
@@ -324,10 +322,7 @@ class AuthController {
           .firestore()
           .collection("users")
           .doc(req.user.user_id);
-        await docRef.set(
-          { first_name, last_name, bio, profile_meta },
-          { merge: true },
-        );
+        await docRef.set({ ...valuesToUpdate }, { merge: true });
 
         util.statusCode = 200;
         util.message = "User updated successfully";
@@ -358,7 +353,8 @@ class AuthController {
                 last_name,
                 bio,
                 imageUrl,
-                profile_meta,
+                credits,
+                showcase,
               },
               { merge: true },
             );

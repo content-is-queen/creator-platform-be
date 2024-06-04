@@ -314,27 +314,30 @@ class AuthController {
   static async updateUser(req, res) {
     try {
       // Proceed with update logic if validation succeeds
-      const { first_name, last_name, bio } = req.body;
+      const { first_name, last_name, bio, profile_meta } = req.body;
       const file = req.files?.imageUrl;
 
-      if (!file || file === undefined || file === null) {
-        // Update user document in Firestore
+      if (!file) {
+        // If there's no file, update user data directly in Firestore
         const docRef = admin
           .firestore()
           .collection("users")
           .doc(req.user.user_id);
-        await docRef.set({ first_name, last_name, bio }, { merge: true });
+        await docRef.set(
+          { first_name, last_name, bio, profile_meta },
+          { merge: true },
+        );
 
         util.statusCode = 200;
         util.message = "User updated successfully";
         return util.send(res);
       } else {
-        const storageRef = admin
-          .storage()
-          .bucket(`gs://contentisqueen-97ae5.appspot.com`);
+        // If there's a file, upload it to Firebase Storage
+        const storageRef = admin.storage().bucket();
+        const fileName = `profile/picture/${uuidv4()}_${file.name}`;
         const uploadTask = storageRef.upload(file.tempFilePath, {
           public: true,
-          destination: `profile/picture/${uuidv4()}_${file.name}`,
+          destination: fileName,
           metadata: {
             firebaseStorageDownloadTokens: uuidv4(),
           },
@@ -342,30 +345,40 @@ class AuthController {
 
         uploadTask
           .then(async (snapshot) => {
+            // Once uploaded, get the image URL and update user data in Firestore
             const imageUrl = snapshot[0].metadata.mediaLink;
             const docRef = admin
               .firestore()
               .collection("users")
               .doc(req.user.user_id);
             await docRef.set(
-              { first_name, last_name, bio, imageUrl },
+              {
+                first_name,
+                last_name,
+                bio,
+                imageUrl,
+                profile_meta,
+              },
               { merge: true },
             );
 
             util.statusCode = 200;
-            util.message = "Document updated successfully";
+            util.message = "User data updated successfully";
             return util.send(res);
           })
           .catch((error) => {
+            // Handle errors during file upload
+            console.error("Error uploading image:", error);
             util.statusCode = 500;
-            util.message = error.message || "Server error";
+            util.message = "Failed to upload image";
             return util.send(res);
           });
       }
     } catch (error) {
-      console.error("Error updating user profile:", error);
+      // Handle other errors
+      console.error("Error updating user data:", error);
       util.statusCode = 500;
-      util.message = error.message || "Server error";
+      util.message = "Server error";
       return util.send(res);
     }
   }

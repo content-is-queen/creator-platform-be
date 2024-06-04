@@ -20,38 +20,35 @@ dotenv.config();
 
 const util = new Util();
 
-const defaultSchema = {
-  first_name: Joi.string(),
-  last_name: Joi.string(),
-  email: Joi.string(),
-  password: Joi.string(),
-  bio: Joi.string(),
-  goals: Joi.string(),
-  role: Joi.string(),
-};
-
 // Validation schema for creator
 const schema = {
   brand: Joi.object({
-    ...defaultSchema,
-    organisation_name: Joi.string(),
-    profile_photo: Joi.string().allow(""),
+    first_name: Joi.string().required(),
+    last_name: Joi.string().required(),
+    organisation_name: Joi.string().required(),
+    bio: Joi.string().required(),
+    goals: Joi.string().required(),
+    profile_photo: Joi.string().required(),
+    profile_meta: Joi.string().required(),
   }),
   creator: Joi.object({
-    ...defaultSchema,
-    podcast_name: Joi.string().allow(""),
-    podcast_url: Joi.string().uri().allow(""),
-    profile_photo: Joi.string().allow(""),
+    first_name: Joi.string().required(),
+    last_name: Joi.string().required(),
+    bio: Joi.string().required(),
+    goals: Joi.string().required(),
+    podcast_name: Joi.string().required(),
+    podcast_url: Joi.string().uri().required(),
+    profile_photo: Joi.string().required(),
     profile_meta: Joi.object({
-      showreel: Joi.string().uri(),
-      showcase: Joi.array().items(Joi.string().uri().max(6)),
+      showreel: Joi.string().uri().required(),
+      showcase: Joi.array().items(Joi.string().uri().max(6)).required(),
       credits: Joi.array().items(
         Joi.object({
-          show: Joi.string(),
-          role: Joi.string(),
+          show: Joi.string().required(),
+          role: Joi.string().required(),
         }),
       ),
-    }).allow(""),
+    }).required(),
   }),
 };
 
@@ -311,33 +308,31 @@ class AuthController {
     }
   }
 
+  
   static async updateUser(req, res) {
     try {
       // Proceed with update logic if validation succeeds
-      const { first_name, last_name, bio, profile_meta } = req.body;
+      const { first_name, last_name, bio } = req.body;
       const file = req.files?.imageUrl;
 
-      if (!file) {
-        // If there's no file, update user data directly in Firestore
+      if (!file || file === undefined || file === null) {
+        // Update user document in Firestore
         const docRef = admin
           .firestore()
           .collection("users")
           .doc(req.user.user_id);
-        await docRef.set(
-          { first_name, last_name, bio, profile_meta },
-          { merge: true },
-        );
+        await docRef.set({ first_name, last_name, bio }, { merge: true });
 
         util.statusCode = 200;
         util.message = "User updated successfully";
         return util.send(res);
       } else {
-        // If there's a file, upload it to Firebase Storage
-        const storageRef = admin.storage().bucket();
-        const fileName = `profile/picture/${uuidv4()}_${file.name}`;
+        const storageRef = admin
+          .storage()
+          .bucket(`gs://contentisqueen-97ae5.appspot.com`);
         const uploadTask = storageRef.upload(file.tempFilePath, {
           public: true,
-          destination: fileName,
+          destination: `profile/picture/${uuidv4()}_${file.name}`,
           metadata: {
             firebaseStorageDownloadTokens: uuidv4(),
           },
@@ -345,43 +340,35 @@ class AuthController {
 
         uploadTask
           .then(async (snapshot) => {
-            // Once uploaded, get the image URL and update user data in Firestore
             const imageUrl = snapshot[0].metadata.mediaLink;
             const docRef = admin
               .firestore()
               .collection("users")
               .doc(req.user.user_id);
             await docRef.set(
-              {
-                first_name,
-                last_name,
-                bio,
-                imageUrl,
-                profile_meta,
-              },
+              { first_name, last_name, bio, imageUrl },
               { merge: true },
             );
 
             util.statusCode = 200;
-            util.message = "User data updated successfully";
+            util.message = "Document updated successfully";
             return util.send(res);
           })
           .catch((error) => {
-            // Handle errors during file upload
-            console.error("Error uploading image:", error);
             util.statusCode = 500;
-            util.message = "Failed to upload image";
+            util.message = error.message || "Server error";
             return util.send(res);
           });
       }
     } catch (error) {
-      // Handle other errors
-      console.error("Error updating user data:", error);
+      console.error("Error updating user profile:", error);
       util.statusCode = 500;
-      util.message = "Server error";
+      util.message = error.message || "Server error";
       return util.send(res);
     }
   }
+
+
 
   static async changePassword(req, res) {
     const { password } = req.body;

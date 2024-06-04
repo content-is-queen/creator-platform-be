@@ -100,7 +100,9 @@ class OpportunitiesController {
       const querySnapshot = await query.get();
 
       querySnapshot.forEach((doc) => {
-        opportunitiesData.push({ id: doc.id, ...doc.data() });
+        if (doc.data().status !== "archived") {
+          opportunitiesData.push({ id: doc.id, ...doc.data() });
+        }
       });
 
       if (opportunitiesData.length > 0) {

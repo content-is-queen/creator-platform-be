@@ -100,7 +100,9 @@ class OpportunitiesController {
       const querySnapshot = await query.get();
 
       querySnapshot.forEach((doc) => {
-        opportunitiesData.push({ id: doc.id, ...doc.data() });
+        if (doc.data().status !== "archived") {
+          opportunitiesData.push({ id: doc.id, ...doc.data() });
+        }
       });
 
       if (opportunitiesData.length > 0) {
@@ -249,13 +251,13 @@ class OpportunitiesController {
       }
 
       // Get required fields based on the type
-      const requiredFields = getRequiredFields(type);
+      const requiredFields = getTypeRequiredFields(type);
 
       // Prepare the update object with only provided fields
       const updateData = {};
       requiredFields.forEach((field) => {
         // Check if the field is provided in the request body
-        if (Object.prototype.hasOwn(req.body, field)) {
+        if (Object.hasOwn(req.body, field)) {
           updateData[field] = req.body[field];
         }
       });
@@ -309,20 +311,18 @@ class OpportunitiesController {
       const { ...opportunityData } = req.body;
 
       // Set default status to "open" if not provided
-      if (!Object.prototype.hasOwn(opportunityData, "status")) {
+      if (!Object.hasOwn(opportunityData, "status")) {
         opportunityData.status = "open";
       }
 
       // Validate required fields
-      const requiredFields = getRequiredFields(type);
-      const isValid = requiredFields.every(
-        (field) =>
-          Object.prototype.hasOwnProperty.call(opportunityData, field) &&
-          opportunityData[field].trim() !== "",
+      const requiredFields = getTypeRequiredFields(type);
+      const isValid = requiredFields.every((field) =>
+        Object.hasOwn(opportunityData, field),
       );
       if (!isValid) {
         util.statusCode = 400;
-        util.message = `Missing or invalid fields for ${type} opportunity`;
+        util.message = "Please fill in all required fields";
         return util.send(res);
       }
 
@@ -376,45 +376,47 @@ class OpportunitiesController {
   }
 }
 
-function getRequiredFields(type) {
+const requiredFields = ["title", "description", "user_id"];
+
+function getTypeRequiredFields(type) {
   switch (type) {
     case "job":
       return [
-        "title",
-        "user_id",
-        "company",
-        "description",
-        "skills",
-        "experience",
-        "location",
-        "compensation",
-        "deadline",
+        ...requiredFields,
+        "category",
         "contract_type",
+        "location",
+        "company",
+        "company_website",
+        "company_description",
+        "company_contact_name",
+        "company_contact_email",
+        "company_contact_tel",
+        "experience",
+        "skills",
+        "education",
+        "salary",
+        "terms",
+        "deadline",
       ];
     case "pitch":
       return [
-        "title",
-        "user_id",
-        "description",
+        ...requiredFields,
         "target",
-        "format",
-        "compensation",
-        "submission",
-        "deadline",
-        "contract_type",
+        "content_duration",
+        "content_type",
+        "key_message",
       ];
     case "campaign":
       return [
-        "title",
-        "user_id",
-        "brand",
-        "description",
+        ...requiredFields,
         "target",
         "compensation",
-        "format",
-        "requirements",
-        "deadline",
-        "contract_type",
+        "ad_type",
+        "length",
+        "budget",
+        "start_date",
+        "end_date",
       ];
     default:
       return [];

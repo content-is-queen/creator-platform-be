@@ -315,6 +315,11 @@ class OpportunitiesController {
         opportunityData.status = "open";
       }
 
+      // If company details are not provided, use organisation_name from user data
+      if (!opportunityData.company) {
+        opportunityData.company = userData.organisation_name || null;
+      }
+
       // Add imageUrl of the user who created the opportunity
       if (userData.imageUrl) {
         opportunityData.user_imageUrl = userData.imageUrl;

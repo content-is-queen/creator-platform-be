@@ -312,14 +312,7 @@ class AuthController {
 
   static async updateUser(req, res) {
     try {
-      const {
-        first_name,
-        last_name,
-        bio,
-        credits,
-        showcase,
-        ...valuesToUpdate
-      } = req.body;
+      const { ...valuesToUpdate } = req.body;
       const file = req.files?.imageUrl;
 
       if (!file) {
@@ -328,10 +321,7 @@ class AuthController {
           .firestore()
           .collection("users")
           .doc(req.user.user_id);
-        await docRef.set(
-          { ...valuesToUpdate, first_name, last_name, bio, credits, showcase },
-          { merge: true },
-        );
+        await docRef.set({ ...valuesToUpdate }, { merge: true });
 
         util.statusCode = 200;
         util.message = "User updated successfully";

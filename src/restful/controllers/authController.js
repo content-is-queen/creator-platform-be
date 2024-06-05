@@ -32,23 +32,18 @@ const schema = {
     profile_meta: Joi.string().required(),
   }),
   creator: Joi.object({
-    first_name: Joi.string().required(),
-    last_name: Joi.string().required(),
-    bio: Joi.string().required(),
-    goals: Joi.string().required(),
-    podcast_name: Joi.string().required(),
-    podcast_url: Joi.string().uri().required(),
-    profile_photo: Joi.string().required(),
-    profile_meta: Joi.object({
-      showreel: Joi.string().uri().required(),
-      showcase: Joi.array().items(Joi.string().uri().max(6)).required(),
-      credits: Joi.array().items(
-        Joi.object({
-          show: Joi.string().required(),
-          role: Joi.string().required(),
-        }),
-      ),
-    }).required(),
+    ...defaultSchema,
+    podcast_name: Joi.string().allow(""),
+    podcast_url: Joi.string().uri().allow(""),
+    profile_photo: Joi.string().allow(""),
+    showreel: Joi.string().uri().allow(""),
+    showcase: Joi.array().items(Joi.string().uri().max(6)).allow(""),
+    credits: Joi.array().items(
+      Joi.object({
+        episode_link: Joi.string(),
+        role: Joi.string(),
+      }).allow(""),
+    ),
   }),
 };
 
@@ -265,9 +260,9 @@ class AuthController {
         first_name: userData.first_name,
         last_name: userData.last_name,
         role: userData.role,
-        imageUrl: userData.imageUrl, // Assuming this field exists in the user document
+        imageUrl: userData.imageUrl,
         bio: userData.bio,
-        uid: userData.uid, // Assuming this field exists in the user document
+        uid: userData.uid,
       };
 
       util.statusCode = 200;
@@ -312,8 +307,8 @@ class AuthController {
   
   static async updateUser(req, res) {
     try {
-      // Proceed with update logic if validation succeeds
-      const { first_name, last_name, bio } = req.body;
+      // Only
+      const { ...valuesToUpdate } = req.body;
       const file = req.files?.imageUrl;
 
       if (!file || file === undefined || file === null) {
@@ -322,7 +317,7 @@ class AuthController {
           .firestore()
           .collection("users")
           .doc(req.user.user_id);
-        await docRef.set({ first_name, last_name, bio }, { merge: true });
+        await docRef.set({ ...valuesToUpdate }, { merge: true });
 
         util.statusCode = 200;
         util.message = "User updated successfully";
@@ -347,7 +342,10 @@ class AuthController {
               .collection("users")
               .doc(req.user.user_id);
             await docRef.set(
-              { first_name, last_name, bio, imageUrl },
+              {
+                imageUrl,
+                ...valuesToUpdate,
+              },
               { merge: true },
             );
 

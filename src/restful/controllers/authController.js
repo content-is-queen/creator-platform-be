@@ -119,6 +119,7 @@ class AuthController {
           first_name,
           last_name,
           role,
+          email,
           isActivated: true,
           ...other,
         });

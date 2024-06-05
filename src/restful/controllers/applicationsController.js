@@ -176,23 +176,22 @@ class ApplicationsController {
 
         // Call createRoom function with data
         await createRoomDirect(db, roomId, userIds);
-        const userRef = db.collection('users').doc(creator_id);
+        const userRef = db.collection("users").doc(creator_id);
         const doc = await userRef.get();
         if (doc.exists) {
-          const { first_name, email } = doc.data()
+          const { first_name, email } = doc.data();
           if (email) {
             const emailTemplate = SendAcceptEmail(first_name);
-    
+
             const mailOptions = {
               from: process.env.EMAIL,
               to: email,
-              subject: 'Creator Platform Application Update',
+              subject: "Creator Platform Application Update",
               html: emailTemplate,
             };
-    
+
             await transporter.sendMail(mailOptions);
-      
-          } 
+          }
         }
         util.statusCode = 200;
         util.message = "Application status updated successfully, room created";

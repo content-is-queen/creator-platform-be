@@ -19,11 +19,10 @@ class NotificationsController {
    * @returns {Object} response Object.
    */
 
- 
   static async sendNotification(req, res) {
     const { token, title, body, user_id } = req.body;
     try {
-    await admin.messaging().send({
+      await admin.messaging().send({
         token,
         notification: {
           title,
@@ -34,33 +33,34 @@ class NotificationsController {
       const notificationData = {
         title,
         body,
-        timestamp: admin.firestore.FieldValue.serverTimestamp()
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
       };
 
-      await admin.firestore()
-        .collection('users')
+      await admin
+        .firestore()
+        .collection("users")
         .doc(user_id)
-        .collection('notifications')
+        .collection("notifications")
         .add(notificationData);
 
       util.statusCode = 200;
-      util.message = 'Notification sent successfully';
+      util.message = "Notification sent successfully";
       return util.send(res);
     } catch (error) {
-        util.statusCode = 500;
-        util.message = error.message || "Failed to send verification email";
-        return util.send(res);
+      util.statusCode = 500;
+      util.message = error.message || "Failed to send verification email";
+      return util.send(res);
     }
   }
 
   static async saveFcmToken(req, res) {
     const { fcm_token, user_id } = req.body;
     try {
-      const userRef = admin.firestore().collection('users').doc(user_id);
+      const userRef = admin.firestore().collection("users").doc(user_id);
       await userRef.set({ fcm_token }, { merge: true });
 
       util.statusCode = 200;
-      util.message = 'FCM token saved successfully';
+      util.message = "FCM token saved successfully";
       return util.send(res);
     } catch (error) {
       util.statusCode = 500;
@@ -71,62 +71,88 @@ class NotificationsController {
 
   static async getAllNotifications(req, res) {
     const { user_id } = req.user;
-    const notificationsRef = admin.firestore()
-      .collection('users')
+    const notificationsRef = admin
+      .firestore()
+      .collection("users")
       .doc(user_id)
-      .collection('notifications');
-  
+      .collection("notifications");
+
     try {
       // Attempt to fetch from cache first
-      const cacheSnapshot = await notificationsRef.orderBy('timestamp', 'desc').get({ source: 'cache' });
-      let notifications = cacheSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  
+      const cacheSnapshot = await notificationsRef
+        .orderBy("timestamp", "desc")
+        .get({ source: "cache" });
+      let notifications = cacheSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
       if (notifications.length > 0) {
         // Cache exists, check if it's up-to-date
-        const serverSnapshot = await notificationsRef.orderBy('timestamp', 'desc').limit(1).get();
+        const serverSnapshot = await notificationsRef
+          .orderBy("timestamp", "desc")
+          .limit(1)
+          .get();
         if (!serverSnapshot.empty) {
           const latestServerNotification = serverSnapshot.docs[0];
-          const latestServerTimestamp = latestServerNotification.updateTime || latestServerNotification.createTime;
-          const latestCacheTimestamp = cacheSnapshot.docs[0].updateTime || cacheSnapshot.docs[0].createTime;
-  
+          const latestServerTimestamp =
+            latestServerNotification.updateTime ||
+            latestServerNotification.createTime;
+          const latestCacheTimestamp =
+            cacheSnapshot.docs[0].updateTime ||
+            cacheSnapshot.docs[0].createTime;
+
           if (latestServerTimestamp.isEqual(latestCacheTimestamp)) {
-            util.setSuccess(200,'Notifications retrieved successfully', notifications)
+            util.setSuccess(
+              200,
+              "Notifications retrieved successfully",
+              notifications,
+            );
             return util.send(res);
           }
         }
       }
 
-      const freshSnapshot = await notificationsRef.orderBy('timestamp', 'desc').get();
-      notifications = freshSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  
-      util.setSuccess(200,'Notifications retrieved successfully', notifications)
+      const freshSnapshot = await notificationsRef
+        .orderBy("timestamp", "desc")
+        .get();
+      notifications = freshSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      util.setSuccess(
+        200,
+        "Notifications retrieved successfully",
+        notifications,
+      );
       return util.send(res);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      console.error("Error fetching notifications:", error);
       util.statusCode = 500;
-      util.message = error.message || 'Failed to retrieve notifications';
+      util.message = error.message || "Failed to retrieve notifications";
       return util.send(res);
     }
   }
-  
 
   static async clearAllNotifications(req, res) {
     const { user_id } = req.user;
 
     try {
-      const snapshot = await admin.firestore()
-        .collection('users')
+      const snapshot = await admin
+        .firestore()
+        .collection("users")
         .doc(user_id)
-        .collection('notifications')
+        .collection("notifications")
         .get();
 
       const batch = admin.firestore().batch();
-      snapshot.docs.forEach(doc => batch.delete(doc.ref));
+      snapshot.docs.forEach((doc) => batch.delete(doc.ref));
 
       await batch.commit();
 
       util.statusCode = 200;
-      util.message = 'All notifications cleared successfully';
+      util.message = "All notifications cleared successfully";
       return util.send(res);
     } catch (error) {
       util.statusCode = 500;
@@ -134,7 +160,6 @@ class NotificationsController {
       return util.send(res);
     }
   }
-
 }
 
 exports.NotificationsController = NotificationsController;

@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-export const SendAcceptEmail= (name) => {
+export const SendAcceptEmail = (name) => {
   const template = `<!DOCTYPE html>
   <html lang="en">
   

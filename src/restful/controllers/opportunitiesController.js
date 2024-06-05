@@ -320,6 +320,11 @@ class OpportunitiesController {
         opportunityData.company = userData.organisation_name || null;
       }
 
+      // Add imageUrl of the user who created the opportunity
+      if (userData.imageUrl) {
+        opportunityData.user_imageUrl = userData.imageUrl;
+      }
+
       // Validate required fields
       const requiredFields = getTypeRequiredFields(type);
       const isValid = requiredFields.every((field) =>

@@ -467,6 +467,40 @@ class AuthController {
       return util.send(res);
     }
   }
+
+  static async checkSubscription(req, res) {
+    try {
+      const { user_id } = req.params;
+
+      if (!user_id) {
+        util.statusCode = 400;
+        util.message = "User ID is required";
+        return util.send(res);
+      }
+
+      const db = admin.firestore();
+      const docRef = db.collection("users").doc(user_id);
+      const docSnapshot = await docRef.get();
+
+      if (!docSnapshot.exists) {
+        util.statusCode = 404;
+        util.message = "User not found";
+        return util.send(res);
+      }
+
+      const userData = docSnapshot.data();
+      const isSubscribed = userData.subscribed || false;
+
+      util.statusCode = 200;
+      util.message = { subscribed: isSubscribed };
+      return util.send(res);
+    } catch (error) {
+      console.error("Error checking subscription:", error);
+      util.statusCode = 500;
+      util.message = error.message || "Server error";
+      return util.send(res);
+    }
+  }
 }
 
 exports.AuthController = AuthController;

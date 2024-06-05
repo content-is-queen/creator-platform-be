@@ -5,7 +5,7 @@ const { protect } = require("../../middleware");
 
 const router = Router();
 
-router.post("/send", protect, NotificationsController.sendNotification);
+router.post("/send", NotificationsController.sendNotification);
 router.post("/save", NotificationsController.saveFcmToken );
 router.get("/all", protect, NotificationsController.getAllNotifications);
 router.delete("/clear", protect, NotificationsController.clearAllNotifications);

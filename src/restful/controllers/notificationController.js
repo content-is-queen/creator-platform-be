@@ -21,8 +21,7 @@ class NotificationsController {
 
  
   static async sendNotification(req, res) {
-    const { token, title, body } = req.body;
-    const { user_id } = req.user;
+    const { token, title, body, user_id } = req.body;
     try {
     await admin.messaging().send({
         token,

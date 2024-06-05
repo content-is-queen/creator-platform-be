@@ -134,6 +134,7 @@ class AuthController {
         return util.send(res);
       }
     } catch (error) {
+      console.log(error);
       const errorMessage = error?.errorInfo?.message;
       util.statusCode = 500;
       util.message = errorMessage || error.message || "Server error";
@@ -268,7 +269,8 @@ class AuthController {
         role: userData.role,
         imageUrl: userData.imageUrl,
         bio: userData.bio,
-        uid: userData.uid,
+        uid: userData.uid, // Assuming this field exists in the user document
+        fcm_token: userData.fcm_token,// Assuming this field exists in the user document
       };
 
       util.statusCode = 200;

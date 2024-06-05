@@ -20,8 +20,8 @@ const createCheckoutSession = async (req, res) => {
         },
       ],
       mode: "subscription", // Or 'payment' for one-time payments
-      success_url: `${origin}/checkout?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/checkout`,
+      success_url: `${origin}/plus?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/plus`,
     });
 
     res.status(200).json({ id: session.id });

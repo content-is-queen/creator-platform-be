@@ -21,7 +21,7 @@ router.get("/:application_id", ApplicationsController.getApplicationById);
 router.post("/", ApplicationsController.createApplication);
 
 // PATCH update an existing application
-router.patch("/:application_id", ApplicationsController.updateApplication);
+router.put("/:application_id", ApplicationsController.updateApplication);
 
 // DELETE an application
 router.delete("/:application_id", ApplicationsController.deleteApplication);

@@ -11,6 +11,9 @@ const otpGenerator = require("otp-generator");
 const admin = require("firebase-admin");
 const { v4: uuidv4 } = require("uuid");
 const Joi = require("joi");
+const sharp = require("sharp");
+const fs = require("fs");
+const path = require("path");
 
 dotenv.config();
 /**
@@ -20,16 +23,22 @@ dotenv.config();
 
 const util = new Util();
 
+const defaultSchema = {
+  first_name: Joi.string(),
+  last_name: Joi.string(),
+  email: Joi.string(),
+  password: Joi.string(),
+  bio: Joi.string(),
+  goals: Joi.string(),
+  role: Joi.string(),
+};
+
 // Validation schema for creator
 const schema = {
   brand: Joi.object({
-    first_name: Joi.string().required(),
-    last_name: Joi.string().required(),
-    organisation_name: Joi.string().required(),
-    bio: Joi.string().required(),
-    goals: Joi.string().required(),
-    profile_photo: Joi.string().required(),
-    profile_meta: Joi.string().required(),
+    ...defaultSchema,
+    organisation_name: Joi.string(),
+    profile_photo: Joi.string().allow(""),
   }),
   creator: Joi.object({
     ...defaultSchema,
@@ -304,15 +313,14 @@ class AuthController {
     }
   }
 
-  
   static async updateUser(req, res) {
     try {
       // Only
       const { ...valuesToUpdate } = req.body;
       const file = req.files?.imageUrl;
 
-      if (!file || file === undefined || file === null) {
-        // Update user document in Firestore
+      if (!file) {
+        // If there's no file, update user data directly in Firestore
         const docRef = admin
           .firestore()
           .collection("users")
@@ -323,19 +331,44 @@ class AuthController {
         util.message = "User updated successfully";
         return util.send(res);
       } else {
+        const tempFilePath = file.tempFilePath;
+        const outputFilePath = path.join(__dirname, `temp_${uuidv4()}.jpg`);
+
+        const originalFileSize = fs.statSync(tempFilePath).size;
+        console.log(`Original file size: ${originalFileSize} bytes`);
+
+        await sharp(tempFilePath)
+          .resize(200, 200, { fit: sharp.fit.cover })
+          .jpeg({ quality: 60 }) // Adjusted compression quality to 60
+          .toFile(outputFilePath);
+
+        const processedFileSize = fs.statSync(outputFilePath).size;
+        console.log(`Processed file size: ${processedFileSize} bytes`);
+
+        // Check the dimensions of the processed image
+        const metadata = await sharp(outputFilePath).metadata();
+        console.log(
+          `Processed image dimensions: ${metadata.width}x${metadata.height}`,
+        );
+
+        // Ensure the dimensions are within the limits
+        if (metadata.width > 200 || metadata.height > 200) {
+          throw new Error("Processed image dimensions exceed 200x200 pixels");
+        }
+
         const storageRef = admin
           .storage()
           .bucket(`gs://contentisqueen-97ae5.appspot.com`);
-        const uploadTask = storageRef.upload(file.tempFilePath, {
+        const uploadTask = storageRef.upload(outputFilePath, {
           public: true,
           destination: `profile/picture/${uuidv4()}_${file.name}`,
           metadata: {
             firebaseStorageDownloadTokens: uuidv4(),
           },
         });
-
         uploadTask
           .then(async (snapshot) => {
+            // Once uploaded, get the image URL and update user data in Firestore
             const imageUrl = snapshot[0].metadata.mediaLink;
             const docRef = admin
               .firestore()
@@ -350,24 +383,25 @@ class AuthController {
             );
 
             util.statusCode = 200;
-            util.message = "Document updated successfully";
+            util.message = "User data updated successfully";
             return util.send(res);
           })
           .catch((error) => {
+            // Handle errors during file upload
+            console.error("Error uploading image:", error);
             util.statusCode = 500;
-            util.message = error.message || "Server error";
+            util.message = "Failed to upload image";
             return util.send(res);
           });
       }
     } catch (error) {
-      console.error("Error updating user profile:", error);
+      // Handle other errors
+      console.error("Error updating user data:", error);
       util.statusCode = 500;
-      util.message = error.message || "Server error";
+      util.message = "Server error";
       return util.send(res);
     }
   }
-
-
 
   static async changePassword(req, res) {
     const { password } = req.body;

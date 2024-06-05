@@ -262,7 +262,7 @@ class AdminController {
             ...opportunityData,
             numberOfApplications:
               opportunityApplicationsCount[opportunityId] || 0,
-            full_name: userData?.first_name + " " + userData?.first_name,
+            full_name: userData?.first_name + " " + userData?.last_name,
           };
         },
       );

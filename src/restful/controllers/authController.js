@@ -270,7 +270,7 @@ class AuthController {
         imageUrl: userData.imageUrl,
         bio: userData.bio,
         uid: userData.uid, // Assuming this field exists in the user document
-        fcm_token: userData.fcm_token,// Assuming this field exists in the user document
+        fcm_token: userData.fcm_token, // Assuming this field exists in the user document
       };
 
       util.statusCode = 200;

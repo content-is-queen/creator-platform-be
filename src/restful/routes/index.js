@@ -8,6 +8,7 @@ const { contractRouter } = require("./contractRouter");
 const { adminRouter } = require("./adminRouter");
 const { paymentsRouter } = require("./paymentRouter");
 const rateLimit = require("express-rate-limit");
+const { notificationsController } = require("./notificationRouter");
 
 // Define rate limiting options
 const limiter = rateLimit({
@@ -27,6 +28,7 @@ router.use(`/${API_VERSION}/applications`, applicationsRouter);
 router.use(`/${API_VERSION}/contracts`, contractRouter);
 router.use(`/${API_VERSION}/admin`, adminRouter);
 router.use(`/${API_VERSION}/payments`, paymentsRouter);
+router.use(`/${API_VERSION}/notifications`, notificationsController);
 
 router.all(`/${API_VERSION}/`, (req, res) => {
   return res

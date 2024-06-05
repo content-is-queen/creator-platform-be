@@ -266,9 +266,9 @@ class AuthController {
         first_name: userData.first_name,
         last_name: userData.last_name,
         role: userData.role,
-        imageUrl: userData.imageUrl, // Assuming this field exists in the user document
+        imageUrl: userData.imageUrl,
         bio: userData.bio,
-        uid: userData.uid, // Assuming this field exists in the user document
+        uid: userData.uid,
       };
 
       util.statusCode = 200;
@@ -349,12 +349,8 @@ class AuthController {
               .doc(req.user.user_id);
             await docRef.set(
               {
-                first_name,
-                last_name,
-                bio,
                 imageUrl,
-                credits,
-                showcase,
+                ...valuesToUpdate,
               },
               { merge: true },
             );

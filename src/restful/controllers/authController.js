@@ -120,6 +120,7 @@ class AuthController {
           last_name,
           role,
           isActivated: true,
+          subscribed: false,
           ...other,
         });
 
@@ -269,6 +270,11 @@ class AuthController {
         imageUrl: userData.imageUrl,
         bio: userData.bio,
         uid: userData.uid,
+        meta: {
+          ...(userData.role === "creator"
+            ? { showcase: userData?.showcase, credits: userData?.credits }
+            : {}),
+        },
       };
 
       util.statusCode = 200;

@@ -1,6 +1,7 @@
 // controllers/paymentController.js
 
 const stripe = require("stripe")(process.env.SK_TEST); // Make sure to set your Stripe secret key in your environment variables
+const admin = require("firebase-admin");
 
 /**
  * Create a subscription for a customer.
@@ -35,4 +36,24 @@ const createCheckoutSession = async (req, res) => {
   }
 };
 
-module.exports = { createCheckoutSession };
+const subscribeUser = async (req, res) => {
+  const { session_id, user_id } = req.body;
+  const db = admin.firestore();
+
+  try {
+    const session = await stripe.checkout.sessions.retrieve(session_id);
+    if (session.status === "complete") {
+      // Update user to subscribed if session payment shows as complete
+      db.collection("users").doc(user_id).update({ subscribed: true });
+    }
+    res.status(200).json({ session });
+  } catch (error) {
+    res.status(500).json({
+      error: {
+        message: "Something went wrong when retrieving the session",
+      },
+    });
+  }
+};
+
+module.exports = { createCheckoutSession, subscribeUser };

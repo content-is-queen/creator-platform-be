@@ -1,8 +1,8 @@
-import dotenv from "dotenv";
+const dotenv = require("dotenv");
 
 dotenv.config();
 
-export const sendOtpEmail = (emailData) => {
+const sendOtpEmail = (emailData) => {
   const otp = `${emailData.otp}`;
   const template = `<!DOCTYPE html>
   <html lang="en">
@@ -74,3 +74,5 @@ export const sendOtpEmail = (emailData) => {
   </html>`;
   return template;
 };
+
+module.exports = sendOtpEmail;

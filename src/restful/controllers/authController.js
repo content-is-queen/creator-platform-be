@@ -184,7 +184,7 @@ class AuthController {
     try {
       const { email } = req.body;
       const actionCodeSettings = {
-        url: `${process.env.FRONT_END_URL}/login`,
+        url: `${process.env.DOMAIN}/login`,
         handleCodeInApp: true,
       };
       const resetLink = await admin

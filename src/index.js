@@ -29,7 +29,10 @@ app.use(cors());
 app.use(express.json());
 initializeApp({
   credential: cert(serviceAccount),
-  storageBucket: "contentisqueen-97ae5.appspot.com",
+  storageBucket:
+    process.env.NODE_ENV === "development"
+      ? process.env.STORAGE_BUCKET_DEVELOPMENT
+      : process.env.STORAGE_BUCKET_PRODUCTION,
 });
 app.use(apiLogger);
 app.use(

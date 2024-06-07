@@ -36,18 +36,70 @@ const createCheckoutSession = async (req, res) => {
   }
 };
 
+const cancelSubscription = async (req, res) => {
+  const { user_id } = req.body;
+  const db = admin.firestore();
+
+  try {
+    // Get the user's subscription ID from Firestore
+    const userDoc = await db.collection("users").doc(user_id).get();
+    if (!userDoc.exists) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const { subscriptionId } = userDoc.data();
+    if (!subscriptionId) {
+      return res.status(400).json({ error: "No subscription found for user" });
+    }
+
+    // Cancel the subscription using Stripe API
+    const cancellation = await stripe.subscriptions.cancel(subscriptionId);
+
+    // Update the user's subscription status in Firestore
+    await db
+      .collection("users")
+      .doc(user_id)
+      .update({ subscribed: false, subscriptionId: null });
+
+    res
+      .status(200)
+      .json({ message: "Subscription cancelled successfully", cancellation });
+  } catch (error) {
+    console.error("Error canceling subscription:", error);
+    res.status(500).json({
+      error: {
+        message: "An error occurred while canceling the subscription.",
+      },
+    });
+  }
+};
+
 const subscribeUser = async (req, res) => {
   const { session_id, user_id } = req.body;
   const db = admin.firestore();
 
   try {
     const session = await stripe.checkout.sessions.retrieve(session_id);
-    if (session.status === "complete") {
-      // Update user to subscribed if session payment shows as complete
-      db.collection("users").doc(user_id).update({ subscribed: true });
+
+    if (session.payment_status === "paid") {
+      // Retrieve the subscription ID
+      const subscriptionId = session.subscription;
+
+      // Update user to subscribed and store subscription ID
+      await db.collection("users").doc(user_id).update({
+        subscribed: true,
+        subscriptionId,
+      });
+
+      res.status(200).json({ session });
+    } else {
+      res.status(400).json({
+        error: {
+          message: "Payment not completed.",
+        },
+      });
     }
-    res.status(200).json({ session });
   } catch (error) {
+    console.error("Error retrieving the session:", error);
     res.status(500).json({
       error: {
         message: "Something went wrong when retrieving the session",
@@ -56,4 +108,4 @@ const subscribeUser = async (req, res) => {
   }
 };
 
-module.exports = { createCheckoutSession, subscribeUser };
+module.exports = { createCheckoutSession, subscribeUser, cancelSubscription };

@@ -1,8 +1,8 @@
-import dotenv from "dotenv";
+const dotenv = require("dotenv");
 
 dotenv.config();
 
-export const SendPasswordReset = (emailData) => {
+const SendPasswordReset = (emailData) => {
   const template = `<!DOCTYPE html>
   <html lang="en">
   
@@ -82,3 +82,5 @@ export const SendPasswordReset = (emailData) => {
   </html>`;
   return template;
 };
+
+module.exports = SendPasswordReset;

@@ -1,8 +1,8 @@
-import dotenv from "dotenv";
+const dotenv = require("dotenv");
 
 dotenv.config();
 
-export const sendOtpEmail = (emailData) => {
+const sendOtpEmail = (emailData) => {
   const otp = `${emailData.otp}`;
   const template = `<!DOCTYPE html>
   <html lang="en">
@@ -62,7 +62,7 @@ export const sendOtpEmail = (emailData) => {
   Please copy or click to the following OTP (One-Time Password) to verify your email:</p>
           </div>
           <div class="button-container" style="text-align: center;">
-              <a class="button" href="${process.env.FRONT_END_URL}/verify?otp=${otp}"><b>${otp}</b></a>
+              <a class="button" href="${process.env.DOMAIN}/verify?otp=${otp}"><b>${otp}</b></a>
           </div>
           <div class="content">
               <p>Thank you for choosing Creator Platform. We look forward to having you as part of our community.</p>
@@ -74,3 +74,5 @@ export const sendOtpEmail = (emailData) => {
   </html>`;
   return template;
 };
+
+module.exports = sendOtpEmail;

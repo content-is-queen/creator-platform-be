@@ -412,7 +412,7 @@ function getTypeRequiredFields(type) {
     case "pitch":
       return [
         ...requiredFields,
-        "target",
+        "target_audience",
         "content_duration",
         "content_type",
         "key_message",
@@ -420,7 +420,8 @@ function getTypeRequiredFields(type) {
     case "campaign":
       return [
         ...requiredFields,
-        "target",
+        "target_audience",
+        "target_demographic",
         "compensation",
         "ad_type",
         "length",

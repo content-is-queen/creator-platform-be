@@ -1,7 +1,7 @@
 const { Router } = require("express");
 const { AdminController } = require("../controllers/adminController");
 const { protect } = require("../../middleware/index");
-const { default: allowedRole } = require("../../helper/allowedRole");
+const allowedRole = require("../../helper/allowedRole");
 
 const router = Router();
 

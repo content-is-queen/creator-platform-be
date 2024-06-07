@@ -79,12 +79,27 @@ const subscribeUser = async (req, res) => {
 
   try {
     const session = await stripe.checkout.sessions.retrieve(session_id);
-    if (session.status === "complete") {
-      // Update user to subscribed if session payment shows as complete
-      db.collection("users").doc(user_id).update({ subscribed: true });
+
+    if (session.payment_status === "paid") {
+      // Retrieve the subscription ID
+      const subscriptionId = session.subscription;
+
+      // Update user to subscribed and store subscription ID
+      await db.collection("users").doc(user_id).update({
+        subscribed: true,
+        subscriptionId,
+      });
+
+      res.status(200).json({ session });
+    } else {
+      res.status(400).json({
+        error: {
+          message: "Payment not completed.",
+        },
+      });
     }
-    res.status(200).json({ session });
   } catch (error) {
+    console.error("Error retrieving the session:", error);
     res.status(500).json({
       error: {
         message: "Something went wrong when retrieving the session",

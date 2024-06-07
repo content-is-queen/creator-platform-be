@@ -135,6 +135,7 @@ class AuthController {
         return util.send(res);
       }
     } catch (error) {
+      console.log(error);
       const errorMessage = error?.errorInfo?.message;
       util.statusCode = 500;
       util.message = errorMessage || error.message || "Server error";

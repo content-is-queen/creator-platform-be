@@ -270,6 +270,9 @@ class AuthController {
         imageUrl: userData.imageUrl,
         bio: userData.bio,
         uid: userData.uid,
+        ...(userData.organisation_name
+          ? { organisation_name: userData.organisation_name }
+          : {}),
         meta: {
           ...(userData.role === "creator"
             ? { showcase: userData?.showcase, credits: userData?.credits }

@@ -48,9 +48,9 @@ const subscribeUser = async (req, res) => {
       const subscriptionId = session.subscription;
 
       // Update user to subscribed and store subscription ID
-      await db.collection("users").doc(user_id).update({ 
+      await db.collection("users").doc(user_id).update({
         subscribed: true,
-        subscriptionId: subscriptionId 
+        subscriptionId: subscriptionId,
       });
 
       res.status(200).json({ session });
@@ -72,6 +72,5 @@ const subscribeUser = async (req, res) => {
 };
 
 module.exports = { createCheckoutSession, subscribeUser };
-
 
 module.exports = { createCheckoutSession, subscribeUser };

@@ -119,7 +119,7 @@ class AuthController {
           first_name,
           last_name,
           role,
-          isActivated: true,
+          disabled: false,
           subscribed: false,
           ...other,
         });
@@ -162,7 +162,6 @@ class AuthController {
       const updatedClaims = {
         ...currentClaims,
         emailVerified: true,
-        isActivated: true,
       };
       await admin.auth().setCustomUserClaims(uid, updatedClaims);
       await db.collection("otp").doc(email).delete();

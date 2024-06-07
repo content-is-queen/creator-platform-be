@@ -135,6 +135,7 @@ class AuthController {
         return util.send(res);
       }
     } catch (error) {
+      console.log(error);
       const errorMessage = error?.errorInfo?.message;
       util.statusCode = 500;
       util.message = errorMessage || error.message || "Server error";
@@ -270,6 +271,9 @@ class AuthController {
         imageUrl: userData.imageUrl,
         bio: userData.bio,
         uid: userData.uid,
+        ...(userData.organisation_name
+          ? { organisation_name: userData.organisation_name }
+          : {}),
         meta: {
           ...(userData.role === "creator"
             ? { showcase: userData?.showcase, credits: userData?.credits }

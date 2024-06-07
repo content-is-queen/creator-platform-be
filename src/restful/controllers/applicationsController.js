@@ -7,8 +7,10 @@ dotenv.config();
 const util = new Util();
 
 // Define the createRoomAndAddParticipants function
-async function createRoomDirect(db, roomId, userIds) {
+async function createRoomDirect(db, userIds) {
   try {
+    const [user_id, creator_id] = userIds;
+    const roomId = user_id + "_" + creator_id;
     const roomRef = db.collection("rooms").doc(roomId);
     const roomSnapshot = await roomRef.get();
 
@@ -167,14 +169,13 @@ class ApplicationsController {
       await applicationRef.update({ status });
 
       if (status === "accepted") {
-        const roomId = user_id + "_" + creator_id;
         const userIds = [user_id, creator_id];
 
         // Call createRoom function with data
-        await createRoomDirect(db, roomId, userIds);
+        const { roomId } = await createRoomDirect(db, userIds);
 
         util.statusCode = 200;
-        util.message = "Application status updated successfully, room created";
+        util.message = { roomId };
         return util.send(res);
       }
 

@@ -165,7 +165,6 @@ class ChatController {
   }
 
   static async createRoom(req, res) {
-    console.log("is this being called");
     try {
       const { id, fullName, userIds } = req.body;
 

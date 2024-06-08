@@ -80,21 +80,21 @@ class AuthController {
       const uid = user.uid;
       await admin.auth().setCustomUserClaims(uid, { role });
 
-        const usersCollectionRef = db.collection("users");
+      const usersCollectionRef = db.collection("users");
 
-        await usersCollectionRef.doc(user.uid).set({
-          uid: user.uid,
-          first_name,
-          last_name,
-          role,
-          disabled: false,
-          subscribed: false,
-          ...other,
-        });
+      await usersCollectionRef.doc(user.uid).set({
+        uid: user.uid,
+        first_name,
+        last_name,
+        role,
+        disabled: false,
+        subscribed: false,
+        ...other,
+      });
 
-        util.statusCode = 200;
-        util.setSuccess(200, "Success", { email, uid });
-        return util.send(res);
+      util.statusCode = 200;
+      util.setSuccess(200, "Success", { email, uid });
+      return util.send(res);
     } catch (error) {
       console.log(error);
       const errorMessage = error?.errorInfo?.message;

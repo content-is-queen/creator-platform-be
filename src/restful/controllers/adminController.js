@@ -20,9 +20,8 @@ class AdminController {
    */
 
   static async adminCreateUser(req, res) {
-    const { first_name, last_name, email, password } = req.body;
+    const { first_name, last_name, email, role, password } = req.body;
     let uid = null;
-    const role = "admin";
     const db = admin.firestore();
     try {
       const user = await admin.auth().createUser({

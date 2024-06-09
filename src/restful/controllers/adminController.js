@@ -285,6 +285,45 @@ class AdminController {
       return util.send(res);
     }
   }
+
+  static async getCompanyInfo(req, res) {
+    try {
+      const db = admin.firestore();
+      const ciQRef = db.collection("ciq").doc("company_info");
+      const userDoc = await ciQRef.get();
+      util.setSuccess(200, userDoc.data());
+      return util.send(res);
+    } catch (error) {
+      util.statusCode = 500;
+      util.message = error.message || "Error fetching companiy's data";
+      return util.send(res);
+    }
+  }
+
+  static async updateCompanyInfo(req, res) {
+    try {
+      const { name, company_profile_picture } = req.body;
+      if (!name) {
+        util.statusCode = 400;
+        util.message = "Company name is required.";
+        return util.send(res);
+      }
+      const db = admin.firestore();
+      const ciQRef = db.collection("ciq").doc("company_info");
+      const updateData = { name };
+
+      if (company_profile_picture) {
+        updateData.company_profile_picture = company_profile_picture;
+      }
+      await ciQRef.set(updateData, { merge: true });
+      util.setSuccess(200, updateData, "Company info updated successfully!");
+      return util.send(res);
+    } catch (error) {
+      util.statusCode = 500;
+      util.message = error.message || "Error updating company's data";
+      return util.send(res);
+    }
+  }
 }
 
 exports.AdminController = AdminController;

@@ -45,5 +45,7 @@ router.patch(
   AdminController.adminUpdateUserLimits,
 );
 router.get("/opportunities", AdminController.getAllOpportunities);
+router.get("/company", AdminController.getCompanyInfo);
+router.put("/company", AdminController.updateCompanyInfo);
 
 module.exports.adminRouter = router;

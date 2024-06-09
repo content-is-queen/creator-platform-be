@@ -6,13 +6,23 @@ dotenv.config();
 
 const util = new Util();
 
-// Define the createRoomAndAddParticipants function
-async function createRoomDirect(db, userIds) {
+async function createRoomDirect(db, userIds, opportunityId) {
   try {
     const [user_id, creator_id] = userIds;
     const roomId = user_id + "_" + creator_id;
     const roomRef = db.collection("rooms").doc(roomId);
     const roomSnapshot = await roomRef.get();
+
+    // Fetch opportunity data to get the title
+    const opportunityRef = db.collection("opportunities").doc(opportunityId);
+    const opportunitySnapshot = await opportunityRef.get();
+
+    if (!opportunitySnapshot.exists) {
+      throw new Error("Opportunity not found");
+    }
+
+    const opportunityData = opportunitySnapshot.data();
+    const opportunityTitle = opportunityData.title;
 
     if (roomSnapshot.exists) {
       const existingRoomData = roomSnapshot.data();
@@ -27,6 +37,7 @@ async function createRoomDirect(db, userIds) {
       id: roomId,
       userIds,
       lastMessage: "",
+      opportunityTitle, // Include opportunity title
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     };
 
@@ -155,7 +166,7 @@ class ApplicationsController {
   static async updateApplication(req, res) {
     const db = admin.firestore();
     const { application_id } = req.params;
-    const { status, user_id, creator_id } = req.body;
+    const { status, user_id, creator_id, opportunity_id } = req.body;
 
     try {
       const applicationRef = db.collection("applications").doc(application_id);
@@ -172,7 +183,7 @@ class ApplicationsController {
         const userIds = [user_id, creator_id];
 
         // Call createRoom function with data
-        const { roomId } = await createRoomDirect(db, userIds);
+        const { roomId } = await createRoomDirect(db, userIds, opportunity_id);
 
         util.statusCode = 200;
         util.message = { roomId };

@@ -168,10 +168,22 @@ class AuthController {
   }
 
   static async getUser(req, res) {
-    const { user_id } = req.user;
+    const { user_id, role } = req.user;
     const db = admin.firestore();
-
+    let company_info = {};
     try {
+      if (role === "admin" || role === "super_admin") {
+        // Fetch company info if the user is admin or super admin
+        const ciqRef = db.collection("ciq").doc("company_info");
+        const ciqSnapshot = await ciqRef.get();
+        if (ciqSnapshot.exists) {
+          company_info = ciqSnapshot.data();
+        } else {
+          util.statusCode = 404;
+          util.message = "Company info not found!";
+          return util.send(res);
+        }
+      }
       const docRef = db.collection("users").doc(user_id);
       const docSnapshot = await docRef.get({ source: "cache" });
       if (docSnapshot.exists) {
@@ -181,11 +193,11 @@ class AuthController {
           serverSnapshot.updateTime === docSnapshot.updateTime
         ) {
           util.statusCode = 200;
-          util.message = docSnapshot.data();
+          util.message = { ...docSnapshot.data(), ...company_info };
           return util.send(res);
         } else {
           util.statusCode = 200;
-          util.message = serverSnapshot.data();
+          util.message = { ...docSnapshot.data(), ...company_info };
           return util.send(res);
         }
       }

@@ -66,7 +66,6 @@ async function createRoomDirect(db, userIds, opportunityTitle) {
     };
   } catch (error) {
     console.error("Error creating room:", error);
-    throw new Error("Error creating room:", error);
   }
 }
 

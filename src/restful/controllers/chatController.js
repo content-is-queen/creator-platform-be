@@ -40,13 +40,8 @@ class ChatController {
       const messagesRef = roomRef.collection("messages").doc();
       batch.set(messagesRef, messageData);
 
-      // Update the lastMessage, lastMessageSender, lastMessageSenderProfileImage, and lastMessageSenderFullName fields with the latest message details
-      batch.update(roomRef, {
-        lastMessage: message,
-        lastMessageSender: sender,
-        lastMessageSenderProfileImage: profile_image,
-        lastMessageSenderFullName: fullName,
-      });
+      // Update the lastMessage field with the latest message
+      batch.update(roomRef, { lastMessage: message });
 
       await batch.commit();
       res.json({ success: true });
@@ -68,40 +63,7 @@ class ChatController {
       }
 
       const roomData = roomSnapshot.data();
-
-      // Fetch the last message details
-      const messagesRef = roomRef
-        .collection("messages")
-        .orderBy("createdAt", "desc")
-        .limit(1);
-      const messagesSnapshot = await messagesRef.get();
-      if (messagesSnapshot.empty) {
-        return res.status(200).json({ ...roomData, lastMessageSender: null });
-      }
-
-      const lastMessageData = messagesSnapshot.docs[0].data();
-      const lastMessageSenderId = lastMessageData.sender;
-
-      // Fetch the user details of the sender of the last message
-      const userRef = db.collection("users").doc(lastMessageSenderId);
-      const userSnapshot = await userRef.get();
-
-      if (!userSnapshot.exists) {
-        return res.status(200).json({ ...roomData, lastMessageSender: null });
-      }
-
-      const userData = userSnapshot.data();
-
-      // Prepare the response with last message sender details
-      const response = {
-        ...roomData,
-        lastMessageSender: {
-          fullName: `${userData.first_name} ${userData.last_name}`,
-          profileImage: userData.imageUrl,
-        },
-      };
-
-      res.status(200).json(response);
+      res.status(200).json(roomData);
     } catch (error) {
       console.error("Error fetching room info:", error);
       res.status(500).json({ error: "Internal server error" });
@@ -194,25 +156,7 @@ class ChatController {
         .doc(roomId)
         .collection("messages");
       const snapshot = await messagesRef.get();
-
-      const messages = await Promise.all(
-        snapshot.docs.map(async (doc) => {
-          const messageData = doc.data();
-          const senderRef = db.collection("users").doc(messageData.sender);
-          const senderSnapshot = await senderRef.get();
-          const senderData = senderSnapshot.exists ? senderSnapshot.data() : {};
-
-          return {
-            id: doc.id,
-            ...messageData,
-            senderDetails: {
-              fullName: `${senderData.first_name} ${senderData.last_name}`,
-              profileImage: senderData.imageUrl,
-            },
-          };
-        }),
-      );
-
+      const messages = snapshot.docs.map((doc) => doc.data());
       res.status(200).json(messages);
     } catch (error) {
       console.error("Error fetching messages:", error);
@@ -235,9 +179,6 @@ class ChatController {
         id,
         fullName,
         lastMessage: "",
-        lastMessageSender: "",
-        lastMessageSenderProfileImage: "",
-        lastMessageSenderFullName: "",
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         userIds,
       };

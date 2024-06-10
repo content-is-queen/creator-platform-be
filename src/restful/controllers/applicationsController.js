@@ -24,6 +24,21 @@ async function createRoomDirect(db, userIds, opportunityId) {
     const opportunityData = opportunitySnapshot.data();
     const opportunityTitle = opportunityData.title;
 
+    // Fetch user data for both user and creator
+    const userRef = db.collection("users").doc(user_id);
+    const creatorRef = db.collection("users").doc(creator_id);
+    const [userSnapshot, creatorSnapshot] = await Promise.all([
+      userRef.get(),
+      creatorRef.get(),
+    ]);
+
+    if (!userSnapshot.exists || !creatorSnapshot.exists) {
+      throw new Error("User or Creator not found");
+    }
+
+    const userData = userSnapshot.data();
+    const creatorData = creatorSnapshot.data();
+
     if (roomSnapshot.exists) {
       const existingRoomData = roomSnapshot.data();
       return {
@@ -39,6 +54,18 @@ async function createRoomDirect(db, userIds, opportunityId) {
       lastMessage: "",
       opportunityTitle, // Include opportunity title
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      userProfiles: [
+        {
+          userId: user_id,
+          fullName: `${userData.first_name} ${userData.last_name}`,
+          profileImage: userData.imageUrl,
+        },
+        {
+          userId: creator_id,
+          fullName: `${creatorData.first_name} ${creatorData.last_name}`,
+          profileImage: creatorData.imageUrl,
+        },
+      ],
     };
 
     await roomRef.set(roomData);

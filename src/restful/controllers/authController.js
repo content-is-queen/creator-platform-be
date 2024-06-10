@@ -279,7 +279,7 @@ class AuthController {
               const orgInfoSnapshot = await orgInfoDoc.get();
               if (orgInfoSnapshot.exists) {
                 const orgInfoData = orgInfoSnapshot.data();
-                userObj.organizationInfo = orgInfoData;
+                userObj.organization_info = orgInfoData;
               }
             }
 

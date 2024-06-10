@@ -174,7 +174,7 @@ class AuthController {
     try {
       if (role === "admin" || role === "super_admin") {
         // Fetch company info if the user is admin or super admin
-        const ciqRef = db.collection("ciq").doc("company_info");
+        const ciqRef = db.collection("organization_info").doc("ciq");
         const ciqSnapshot = await ciqRef.get();
         if (ciqSnapshot.exists) {
           company_info = ciqSnapshot.data();
@@ -214,7 +214,7 @@ class AuthController {
 
   static async getPublicUser(req, res) {
     try {
-      const { user_id } = req.params; // Extract user ID from URL params
+      const { user_id } = req.params;
 
       if (!user_id) {
         util.statusCode = 400;
@@ -223,8 +223,6 @@ class AuthController {
       }
 
       const db = admin.firestore();
-
-      // Construct the path to the user document based on the role and user ID
       const usersCollection = db.collection("users").doc(user_id);
 
       const querySnapshot = await usersCollection.get();
@@ -235,7 +233,6 @@ class AuthController {
       }
 
       const userData = querySnapshot.data();
-      // Extract bio and imageUrl from the user document
       const nonSensitiveData = {
         first_name: userData.first_name,
         last_name: userData.last_name,
@@ -268,27 +265,35 @@ class AuthController {
     try {
       const db = admin.firestore();
       const usersCollection = db.collection("users");
+      const orgInfoDoc = db.collection("organization_info").doc("ciq");
 
       const querySnapshot = await usersCollection.get();
-
       const users = [];
 
       if (!querySnapshot.empty) {
-        querySnapshot.forEach((doc) => {
+        for (const doc of querySnapshot.docs) {
           const userObj = doc.data();
-
-          // Only push objects with a uid field
           if (Object.hasOwn(userObj, "uid")) {
+            const userRole = userObj.role;
+            if (userRole === "admin" || userRole === "super_admin") {
+              const orgInfoSnapshot = await orgInfoDoc.get();
+              if (orgInfoSnapshot.exists) {
+                const orgInfoData = orgInfoSnapshot.data();
+                userObj.organizationInfo = orgInfoData;
+              }
+            }
+
             users.push(userObj);
           }
-        });
+        }
       }
 
       return res.status(200).json(users);
     } catch (error) {
-      util.statusCode = 500;
-      util.message = error.mesage || "Server error";
-      return util.send(res);
+      return res.status(500).json({
+        statusCode: 500,
+        message: error.message || "Server error",
+      });
     }
   }
 

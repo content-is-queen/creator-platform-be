@@ -75,4 +75,4 @@ const sendOtpEmail = (emailData) => {
   return template;
 };
 
-module.exports = sendOtpEmail;
+module.exports.sendOtpEmail = sendOtpEmail;

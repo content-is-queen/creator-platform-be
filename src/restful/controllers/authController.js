@@ -273,18 +273,17 @@ class AuthController {
       if (!querySnapshot.empty) {
         for (const doc of querySnapshot.docs) {
           const userObj = doc.data();
-          if (Object.hasOwn(userObj, "uid")) {
-            const userRole = userObj.role;
-            if (userRole === "admin" || userRole === "super_admin") {
-              const orgInfoSnapshot = await orgInfoDoc.get();
-              if (orgInfoSnapshot.exists) {
-                const orgInfoData = orgInfoSnapshot.data();
-                userObj.organization_info = orgInfoData;
-              }
+          const userRole = userObj.role;
+          if (userRole === "admin" || userRole === "super_admin") {
+            const orgInfoSnapshot = await orgInfoDoc.get();
+            if (orgInfoSnapshot.exists) {
+              const orgInfoData = orgInfoSnapshot.data();
+              userObj.organisation_name = orgInfoData.organization_name;
+              userObj.imageUrl = orgInfoData.organization_logo;
             }
-
-            users.push(userObj);
           }
+
+          users.push(userObj);
         }
       }
 

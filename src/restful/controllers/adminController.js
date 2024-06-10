@@ -289,7 +289,7 @@ class AdminController {
   static async getCompanyInfo(req, res) {
     try {
       const db = admin.firestore();
-      const ciQRef = db.collection("ciq").doc("company_info");
+      const ciQRef = db.collection("organization_info").doc("ciq");
       const userDoc = await ciQRef.get();
       util.setSuccess(200, userDoc.data());
       return util.send(res);
@@ -302,25 +302,29 @@ class AdminController {
 
   static async updateCompanyInfo(req, res) {
     try {
-      const { name, company_profile_picture } = req.body;
-      if (!name) {
+      const { organization_name, organization_logo } = req.body;
+      if (!organization_name) {
         util.statusCode = 400;
-        util.message = "Company name is required.";
+        util.message = "Organization name is required.";
         return util.send(res);
       }
       const db = admin.firestore();
-      const ciQRef = db.collection("ciq").doc("company_info");
-      const updateData = { name };
+      const ciQRef = db.collection("organization_info").doc("ciq");
+      const updateData = { organization_name };
 
-      if (company_profile_picture) {
-        updateData.company_profile_picture = company_profile_picture;
+      if (organization_logo) {
+        updateData.organization_logo = organization_logo;
       }
       await ciQRef.set(updateData, { merge: true });
-      util.setSuccess(200, updateData, "Company info updated successfully!");
+      util.setSuccess(
+        200,
+        updateData,
+        "Organization info updated successfully!",
+      );
       return util.send(res);
     } catch (error) {
       util.statusCode = 500;
-      util.message = error.message || "Error updating company's data";
+      util.message = error.message || "Error updating Organization's data";
       return util.send(res);
     }
   }

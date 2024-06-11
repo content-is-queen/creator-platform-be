@@ -1,13 +1,10 @@
 /* eslint-disable no-prototype-builtins */
 const dotenv = require("dotenv");
 const { Util } = require("../../helper/utils");
-/* eslint-disable quotes */
-const { sendOtpEmail } = require("../../services/templates/SendOtpEmail");
 const {
   SendPasswordReset,
 } = require("../../services/templates/SendPasswordReset");
 const transporter = require("../../helper/mailHelper");
-const otpGenerator = require("otp-generator");
 const admin = require("firebase-admin");
 const { v4: uuidv4 } = require("uuid");
 const Joi = require("joi");
@@ -81,38 +78,6 @@ class AuthController {
       const uid = user.uid;
       await admin.auth().setCustomUserClaims(uid, { role });
 
-      // Generate OTP
-      const code = otpGenerator.generate(5, {
-        digits: true,
-        upperCase: false,
-        specialChars: false,
-        alphabets: false,
-      });
-
-      // Send verification email
-      const emailTemplate = sendOtpEmail({
-        name: first_name,
-        email: user.email,
-        otp: code,
-      });
-
-      const mailOptions = {
-        from: process.env.EMAIL,
-        to: user.email,
-        subject: "Creator Platform Account Verification",
-        html: emailTemplate,
-      };
-
-      const emailSent = await transporter.sendMail(mailOptions);
-
-      if (emailSent) {
-        // Save OTP in Firestore if email is sent successfuly
-        await db.collection("otp").doc(email).set({
-          otp: code,
-        });
-      }
-
-      // Save user details in Firestore
       const usersCollectionRef = db.collection("users");
 
       await usersCollectionRef.doc(user.uid).set({
@@ -201,41 +166,41 @@ class AuthController {
   }
 
   static async getUser(req, res) {
-    const { user_id } = req.user;
+    const { user_id, role } = req.user;
     const db = admin.firestore();
-
     try {
       const docRef = db.collection("users").doc(user_id);
-      const docSnapshot = await docRef.get({ source: "cache" });
+      const docSnapshot = await docRef.get();
+
       if (docSnapshot.exists) {
-        const serverSnapshot = await docRef.get();
-        if (
-          !serverSnapshot.exists ||
-          serverSnapshot.updateTime === docSnapshot.updateTime
-        ) {
-          util.statusCode = 200;
-          util.message = docSnapshot.data();
-          return util.send(res);
-        } else {
-          util.statusCode = 200;
-          util.message = serverSnapshot.data();
-          return util.send(res);
+        const userData = docSnapshot.data();
+        if (role === "super_admin" || role === "admin") {
+          const organizationInfoRef = userData?.organization;
+          if (organizationInfoRef) {
+            const organizationInfoSnapshot = await organizationInfoRef?.get();
+            if (organizationInfoSnapshot.exists) {
+              userData.organisation_name =
+                organizationInfoSnapshot.data().organization_name;
+              userData.organisation_logo =
+                organizationInfoSnapshot.data().organization_logo;
+            }
+          }
         }
+        const { organization, ...filteredData } = userData;
+        const dataToReturn = { ...filteredData };
+        return res.status(200).json(dataToReturn);
+      } else {
+        return res.status(404).json({ message: "No such document!" });
       }
-      util.statusCode = 404;
-      util.message = "No such document!";
-      return util.send(res);
     } catch (error) {
       console.error("Error fetching user:", error);
-      util.statusCode = 500;
-      util.message = error.message || "Server error";
-      return util.send(res);
+      return res.status(500).json({ message: error.message || "Server error" });
     }
   }
 
   static async getPublicUser(req, res) {
     try {
-      const { user_id } = req.params; // Extract user ID from URL params
+      const { user_id } = req.params;
 
       if (!user_id) {
         util.statusCode = 400;
@@ -244,8 +209,6 @@ class AuthController {
       }
 
       const db = admin.firestore();
-
-      // Construct the path to the user document based on the role and user ID
       const usersCollection = db.collection("users").doc(user_id);
 
       const querySnapshot = await usersCollection.get();
@@ -256,7 +219,18 @@ class AuthController {
       }
 
       const userData = querySnapshot.data();
-      // Extract bio and imageUrl from the user document
+      if (userData.role === "super_admin" || userData.role === "admin") {
+        const organizationInfoRef = userData?.organization;
+        if (organizationInfoRef) {
+          const organizationInfoSnapshot = await organizationInfoRef?.get();
+          if (organizationInfoSnapshot.exists) {
+            userData.organisation_name =
+              organizationInfoSnapshot.data().organization_name;
+            userData.organisation_logo =
+              organizationInfoSnapshot.data().organization_logo;
+          }
+        }
+      }
       const nonSensitiveData = {
         first_name: userData.first_name,
         last_name: userData.last_name,
@@ -266,6 +240,9 @@ class AuthController {
         uid: userData.uid,
         ...(userData.organisation_name
           ? { organisation_name: userData.organisation_name }
+          : {}),
+        ...(userData.organisation_logo
+          ? { organisation_logo: userData.organisation_logo }
           : {}),
         meta: {
           ...(userData.role === "creator"
@@ -289,27 +266,35 @@ class AuthController {
     try {
       const db = admin.firestore();
       const usersCollection = db.collection("users");
-
       const querySnapshot = await usersCollection.get();
-
       const users = [];
 
       if (!querySnapshot.empty) {
-        querySnapshot.forEach((doc) => {
+        for (const doc of querySnapshot.docs) {
           const userObj = doc.data();
-
-          // Only push objects with a uid field
-          if (Object.hasOwn(userObj, "uid")) {
-            users.push(userObj);
+          if (userObj.role === "super_admin" || userObj.role === "admin") {
+            const organizationInfoRef = userObj?.organization;
+            if (organizationInfoRef) {
+              const organizationInfoSnapshot = await organizationInfoRef?.get();
+              if (organizationInfoSnapshot.exists) {
+                userObj.organisation_name =
+                  organizationInfoSnapshot.data().organization_name;
+                userObj.organisation_logo =
+                  organizationInfoSnapshot.data().organization_logo;
+              }
+            }
           }
-        });
+          const { organization, ...filteredData } = userObj;
+          users.push(filteredData);
+        }
       }
 
       return res.status(200).json(users);
     } catch (error) {
-      util.statusCode = 500;
-      util.message = error.mesage || "Server error";
-      return util.send(res);
+      return res.status(500).json({
+        statusCode: 500,
+        message: error.message || "Server error",
+      });
     }
   }
 
@@ -371,8 +356,6 @@ class AuthController {
           });
       }
     } catch (error) {
-      // Handle other errors
-      console.error("Error updating user data:", error);
       util.statusCode = 500;
       util.message = "Server error";
       return util.send(res);
@@ -389,7 +372,6 @@ class AuthController {
       util.message = "Password updated succesfully";
       return util.send(res);
     } catch (error) {
-      console.error("Error updating password:", error);
       util.statusCode = 500;
       util.message = error.message || "Server error";
       return util.send(res);
@@ -412,7 +394,6 @@ class AuthController {
       if (error.code === "auth/user-not-found") {
         return res.status(200).json({ exists: false });
       }
-      console.error("Error checking email existence:", error);
       return res.status(500).json({ message: error.message || "Server error" });
     }
   }
@@ -445,7 +426,6 @@ class AuthController {
     try {
       const { subscribed } = req.body;
       const { user_id } = req.params; // Assuming you have access to the user's ID
-      console.log(user_id);
       const docRef = admin.firestore().collection("users").doc(user_id); // Use the user's ID to locate the document in the users collection
 
       await docRef.set({ subscribed }, { merge: true }); // Update the 'subscribed' field
@@ -454,7 +434,6 @@ class AuthController {
       util.message = "User subscribed status updated successfully";
       return util.send(res);
     } catch (error) {
-      console.error("Error updating user subscribed status:", error);
       util.statusCode = 500;
       util.message = error.message || "Server error";
       return util.send(res);

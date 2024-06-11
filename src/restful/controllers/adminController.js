@@ -20,9 +20,8 @@ class AdminController {
    */
 
   static async adminCreateUser(req, res) {
-    const { first_name, last_name, email, password } = req.body;
+    const { first_name, last_name, email, role, password } = req.body;
     let uid = null;
-    const role = "admin";
     const db = admin.firestore();
     try {
       const user = await admin.auth().createUser({
@@ -283,6 +282,49 @@ class AdminController {
       console.error("Error fetching opportunities:", error);
       util.statusCode = 500;
       util.message = error.message || "Server error";
+      return util.send(res);
+    }
+  }
+
+  static async getCompanyInfo(req, res) {
+    try {
+      const db = admin.firestore();
+      const ciQRef = db.collection("organization_info").doc("ciq");
+      const userDoc = await ciQRef.get();
+      util.setSuccess(200, userDoc.data());
+      return util.send(res);
+    } catch (error) {
+      util.statusCode = 500;
+      util.message = error.message || "Error fetching companiy's data";
+      return util.send(res);
+    }
+  }
+
+  static async updateCompanyInfo(req, res) {
+    try {
+      const { organization_name, organization_logo } = req.body;
+      if (!organization_name) {
+        util.statusCode = 400;
+        util.message = "Organization name is required.";
+        return util.send(res);
+      }
+      const db = admin.firestore();
+      const ciQRef = db.collection("organization_info").doc("ciq");
+      const updateData = { organization_name };
+
+      if (organization_logo) {
+        updateData.organization_logo = organization_logo;
+      }
+      await ciQRef.set(updateData, { merge: true });
+      util.setSuccess(
+        200,
+        updateData,
+        "Organization info updated successfully!",
+      );
+      return util.send(res);
+    } catch (error) {
+      util.statusCode = 500;
+      util.message = error.message || "Error updating Organization's data";
       return util.send(res);
     }
   }

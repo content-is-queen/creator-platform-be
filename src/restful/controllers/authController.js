@@ -6,7 +6,7 @@ const { Util } = require("../../helper/utils");
 const {
   SendPasswordReset,
 } = require("../../services/templates/SendPasswordReset");
-const { transporter } = require("../../helper/mailHelper");
+const transporter = require("../../helper/mailHelper");
 const admin = require("firebase-admin");
 const { v4: uuidv4 } = require("uuid");
 const Joi = require("joi");

@@ -89,11 +89,6 @@ class AuthController {
         alphabets: false,
       });
 
-      // Save OTP in Firestore
-      await db.collection("otp").doc(email).set({
-        otp: code,
-      });
-
       // Send verification email
       const emailTemplate = sendOtpEmail({
         name: first_name,
@@ -111,29 +106,28 @@ class AuthController {
       const emailSent = await transporter.sendMail(mailOptions);
 
       if (emailSent) {
-        // Save user details in Firestore
-        const usersCollectionRef = db.collection("users");
-
-        await usersCollectionRef.doc(user.uid).set({
-          uid: user.uid,
-          first_name,
-          last_name,
-          role,
-          disabled: false,
-          subscribed: false,
-          ...other,
+        // Save OTP in Firestore if email is sent successfuly
+        await db.collection("otp").doc(email).set({
+          otp: code,
         });
-
-        util.statusCode = 200;
-        util.setSuccess(200, "Success", { email, uid });
-        return util.send(res);
-      } else {
-        // Delete the user if email sending failed
-        await admin.auth().deleteUser(user.uid);
-        util.statusCode = 500;
-        util.message = "Failed to send verification email";
-        return util.send(res);
       }
+
+      // Save user details in Firestore
+      const usersCollectionRef = db.collection("users");
+
+      await usersCollectionRef.doc(user.uid).set({
+        uid: user.uid,
+        first_name,
+        last_name,
+        role,
+        disabled: false,
+        subscribed: false,
+        ...other,
+      });
+
+      util.statusCode = 200;
+      util.setSuccess(200, "Success", { email, uid });
+      return util.send(res);
     } catch (error) {
       console.log(error);
       const errorMessage = error?.errorInfo?.message;

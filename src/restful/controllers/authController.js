@@ -170,45 +170,33 @@ class AuthController {
   static async getUser(req, res) {
     const { user_id, role } = req.user;
     const db = admin.firestore();
-    let company_info = {};
     try {
-      if (role === "admin" || role === "super_admin") {
-        // Fetch company info if the user is admin or super admin
-        const ciqRef = db.collection("organization_info").doc("ciq");
-        const ciqSnapshot = await ciqRef.get();
-        if (ciqSnapshot.exists) {
-          company_info = ciqSnapshot.data();
-        } else {
-          util.statusCode = 404;
-          util.message = "Company info not found!";
-          return util.send(res);
-        }
-      }
       const docRef = db.collection("users").doc(user_id);
-      const docSnapshot = await docRef.get({ source: "cache" });
+      const docSnapshot = await docRef.get();
+
       if (docSnapshot.exists) {
-        const serverSnapshot = await docRef.get();
-        if (
-          !serverSnapshot.exists ||
-          serverSnapshot.updateTime === docSnapshot.updateTime
-        ) {
-          util.statusCode = 200;
-          util.message = { ...docSnapshot.data(), ...company_info };
-          return util.send(res);
-        } else {
-          util.statusCode = 200;
-          util.message = { ...docSnapshot.data(), ...company_info };
-          return util.send(res);
+        const userData = docSnapshot.data();
+        if (role === "super_admin" || role === "admin") {
+          const organizationInfoRef = userData?.organization;
+          if (organizationInfoRef) {
+            const organizationInfoSnapshot = await organizationInfoRef?.get();
+            if (organizationInfoSnapshot.exists) {
+              userData.organisation_name =
+                organizationInfoSnapshot.data().organization_name;
+              userData.organisation_logo =
+                organizationInfoSnapshot.data().organization_logo;
+            }
+          }
         }
+        const { organization, ...filteredData } = userData;
+        const dataToReturn = { ...filteredData };
+        return res.status(200).json(dataToReturn);
+      } else {
+        return res.status(404).json({ message: "No such document!" });
       }
-      util.statusCode = 404;
-      util.message = "No such document!";
-      return util.send(res);
     } catch (error) {
       console.error("Error fetching user:", error);
-      util.statusCode = 500;
-      util.message = error.message || "Server error";
-      return util.send(res);
+      return res.status(500).json({ message: error.message || "Server error" });
     }
   }
 
@@ -233,6 +221,18 @@ class AuthController {
       }
 
       const userData = querySnapshot.data();
+      if (userData.role === "super_admin" || userData.role === "admin") {
+        const organizationInfoRef = userData?.organization;
+        if (organizationInfoRef) {
+          const organizationInfoSnapshot = await organizationInfoRef?.get();
+          if (organizationInfoSnapshot.exists) {
+            userData.organisation_name =
+              organizationInfoSnapshot.data().organization_name;
+            userData.organisation_logo =
+              organizationInfoSnapshot.data().organization_logo;
+          }
+        }
+      }
       const nonSensitiveData = {
         first_name: userData.first_name,
         last_name: userData.last_name,
@@ -242,6 +242,9 @@ class AuthController {
         uid: userData.uid,
         ...(userData.organisation_name
           ? { organisation_name: userData.organisation_name }
+          : {}),
+        ...(userData.organisation_logo
+          ? { organisation_logo: userData.organisation_logo }
           : {}),
         meta: {
           ...(userData.role === "creator"
@@ -265,25 +268,26 @@ class AuthController {
     try {
       const db = admin.firestore();
       const usersCollection = db.collection("users");
-      const orgInfoDoc = db.collection("organization_info").doc("ciq");
-
       const querySnapshot = await usersCollection.get();
       const users = [];
 
       if (!querySnapshot.empty) {
         for (const doc of querySnapshot.docs) {
           const userObj = doc.data();
-          const userRole = userObj.role;
-          if (userRole === "admin" || userRole === "super_admin") {
-            const orgInfoSnapshot = await orgInfoDoc.get();
-            if (orgInfoSnapshot.exists) {
-              const orgInfoData = orgInfoSnapshot.data();
-              userObj.organisation_name = orgInfoData.organization_name;
-              userObj.imageUrl = orgInfoData.organization_logo;
+          if (userObj.role === "super_admin" || userObj.role === "admin") {
+            const organizationInfoRef = userObj?.organization;
+            if (organizationInfoRef) {
+              const organizationInfoSnapshot = await organizationInfoRef?.get();
+              if (organizationInfoSnapshot.exists) {
+                userObj.organisation_name =
+                  organizationInfoSnapshot.data().organization_name;
+                userObj.organisation_logo =
+                  organizationInfoSnapshot.data().organization_logo;
+              }
             }
           }
-
-          users.push(userObj);
+          const { organization, ...filteredData } = userObj;
+          users.push(filteredData);
         }
       }
 
@@ -354,8 +358,6 @@ class AuthController {
           });
       }
     } catch (error) {
-      // Handle other errors
-      console.error("Error updating user data:", error);
       util.statusCode = 500;
       util.message = "Server error";
       return util.send(res);
@@ -372,7 +374,6 @@ class AuthController {
       util.message = "Password updated succesfully";
       return util.send(res);
     } catch (error) {
-      console.error("Error updating password:", error);
       util.statusCode = 500;
       util.message = error.message || "Server error";
       return util.send(res);
@@ -395,7 +396,6 @@ class AuthController {
       if (error.code === "auth/user-not-found") {
         return res.status(200).json({ exists: false });
       }
-      console.error("Error checking email existence:", error);
       return res.status(500).json({ message: error.message || "Server error" });
     }
   }
@@ -428,7 +428,6 @@ class AuthController {
     try {
       const { subscribed } = req.body;
       const { user_id } = req.params; // Assuming you have access to the user's ID
-      console.log(user_id);
       const docRef = admin.firestore().collection("users").doc(user_id); // Use the user's ID to locate the document in the users collection
 
       await docRef.set({ subscribed }, { merge: true }); // Update the 'subscribed' field
@@ -437,7 +436,6 @@ class AuthController {
       util.message = "User subscribed status updated successfully";
       return util.send(res);
     } catch (error) {
-      console.error("Error updating user subscribed status:", error);
       util.statusCode = 500;
       util.message = error.message || "Server error";
       return util.send(res);

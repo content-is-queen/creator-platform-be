@@ -6,7 +6,7 @@ const { sendOtpEmail } = require("../../services/templates/SendOtpEmail");
 const {
   SendPasswordReset,
 } = require("../../services/templates/SendPasswordReset");
-const { transporter } = require("../../helper/mailHelper");
+const transporter = require("../../helper/mailHelper");
 const otpGenerator = require("otp-generator");
 const admin = require("firebase-admin");
 const { v4: uuidv4 } = require("uuid");

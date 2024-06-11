@@ -1,8 +1,6 @@
 /* eslint-disable no-prototype-builtins */
 const dotenv = require("dotenv");
 const { Util } = require("../../helper/utils");
-/* eslint-disable quotes */
-// const { sendOtpEmail } = require("../../services/templates/SendOtpEmail");
 const {
   SendPasswordReset,
 } = require("../../services/templates/SendPasswordReset");

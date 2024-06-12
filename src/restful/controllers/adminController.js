@@ -34,14 +34,21 @@ class AdminController {
         .auth()
         .setCustomUserClaims(uid, { role, emailVerified: true });
       const usersCollectionRef = db.collection("users");
-      await usersCollectionRef.doc(user.uid).set({
+
+      const userData = {
         uid: user.uid,
         email,
         first_name,
         last_name,
         role,
         disabled: false,
-      });
+      };
+      if (role === "admin" || role === "super_admin") {
+        userData.organization = db.doc("organization_info/ciq");
+      }
+
+      await usersCollectionRef.doc(user.uid).set(userData);
+
       util.statusCode = 200;
       util.setSuccess(200, "User created successfully!");
       return util.send(res);

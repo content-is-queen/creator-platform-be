@@ -13,6 +13,15 @@ router.post("/verify", AuthController.verifyOtp);
 router.post("/forgot", AuthController.forgetPassword);
 router.post("/reset", AuthController.resetUserPassword);
 router.post("/password", protect, AuthController.changePassword);
+router.post("/emailupdate", protect, AuthController.changeEmail);
 router.get("/user/:user_id", AuthController.getPublicUser);
+router.get("/check-email", AuthController.checkEmailExists);
+
+router.put(
+  "/subscription/:user_id",
+  protect,
+  AuthController.updateUserSubscription,
+);
+router.get("/subscription/:user_id", protect, AuthController.checkSubscription);
 
 module.exports.authRouter = router;

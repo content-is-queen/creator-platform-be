@@ -10,11 +10,21 @@ dotenv.config();
 class ChatController {
   static async sendMessage(req, res) {
     try {
-      const { fullName, id, profile_image, receiver, sender, message } = req.body;
+      const { fullName, id, profile_image, receiver, sender, message } =
+        req.body;
 
-      if (!message || !sender || !receiver || !profile_image || !id || !fullName) {
+      if (
+        !message ||
+        !sender ||
+        !receiver ||
+        !profile_image ||
+        !id ||
+        !fullName
+      ) {
         return res.status(400).json({ error: "Invalid request" });
       }
+
+      console.log("Message:", message); // Log the message to check its content
 
       const db = admin.firestore();
       const roomRef = db.collection("rooms").doc(id);
@@ -27,9 +37,11 @@ class ChatController {
       };
 
       const batch = db.batch();
-      batch.set(roomRef, { id, fullName, lastMessage: message }, { merge: true });
       const messagesRef = roomRef.collection("messages").doc();
       batch.set(messagesRef, messageData);
+
+      // Update the lastMessage field with the latest message
+      batch.update(roomRef, { lastMessage: message });
 
       await batch.commit();
       res.json({ success: true });
@@ -39,17 +51,64 @@ class ChatController {
     }
   }
 
+  static async getRoomInfo(req, res) {
+    try {
+      const roomId = req.params.roomId;
+      const db = admin.firestore();
+      const roomRef = db.collection("rooms").doc(roomId);
+      const roomSnapshot = await roomRef.get();
+
+      if (!roomSnapshot.exists) {
+        return res.status(404).json({ error: "Room not found" });
+      }
+
+      const roomData = roomSnapshot.data();
+      res.status(200).json(roomData);
+    } catch (error) {
+      console.error("Error fetching room info:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+
+  static async getUserRooms(req, res) {
+    try {
+      const { userId } = req.params; // Assuming you have user information in the request
+      const db = admin.firestore();
+      const roomsRef = db
+        .collection("rooms")
+        .where("userIds", "array-contains", userId);
+      const roomsSnapshot = await roomsRef.get();
+
+      const userRooms = [];
+      roomsSnapshot.forEach((roomDoc) => {
+        const roomData = roomDoc.data();
+        userRooms.push({
+          id: roomDoc.id,
+          ...roomData,
+        });
+      });
+
+      res.status(200).json(userRooms);
+    } catch (error) {
+      console.error("Error fetching user rooms:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+
   static async receiveMessages(req, res) {
     try {
       const { receiverId } = req.params;
       const db = admin.firestore();
       const roomRef = db.collection("rooms").doc(receiverId);
-      const messagesRef = roomRef.collection("messages").orderBy('createdAt', 'desc').limit(10);
+      const messagesRef = roomRef
+        .collection("messages")
+        .orderBy("createdAt", "desc")
+        .limit(10);
 
       const messagesSnapshot = await messagesRef.get();
-      const messages = messagesSnapshot.docs.map(doc => ({
+      const messages = messagesSnapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       }));
 
       res.status(200).json(messages);
@@ -64,9 +123,9 @@ class ChatController {
       const db = admin.firestore();
       const userCollections = await db.collection("users").get();
 
-      const userList = userCollections.docs.map(doc => ({
+      const userList = userCollections.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       }));
 
       res.status(200).json(userList);
@@ -79,7 +138,7 @@ class ChatController {
   static async getUserProfiles(req, res) {
     try {
       const users = await admin.auth().listUsers();
-      const userProfiles = users.users.map(userRecord => userRecord.toJSON());
+      const userProfiles = users.users.map((userRecord) => userRecord.toJSON());
 
       res.status(200).json(userProfiles);
     } catch (error) {
@@ -88,8 +147,24 @@ class ChatController {
     }
   }
 
+  static async getMessages(req, res) {
+    try {
+      const roomId = req.params.roomId;
+      const db = admin.firestore();
+      const messagesRef = db
+        .collection("rooms")
+        .doc(roomId)
+        .collection("messages");
+      const snapshot = await messagesRef.get();
+      const messages = snapshot.docs.map((doc) => doc.data());
+      res.status(200).json(messages);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+
   static async createRoom(req, res) {
-    console.log("is this being called")
     try {
       const { id, fullName, userIds } = req.body;
 
@@ -105,7 +180,7 @@ class ChatController {
         fullName,
         lastMessage: "",
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        userIds
+        userIds,
       };
 
       await roomRef.set(roomData);
@@ -129,7 +204,7 @@ class ChatController {
       const roomRef = db.collection("rooms").doc(roomId);
 
       await roomRef.update({
-        userIds: admin.firestore.FieldValue.arrayUnion(userId)
+        userIds: admin.firestore.FieldValue.arrayUnion(userId),
       });
 
       res.json({ success: true });

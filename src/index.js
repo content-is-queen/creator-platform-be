@@ -4,18 +4,32 @@ const cors = require("cors");
 const functions = require("firebase-functions");
 const { initializeApp, cert } = require("firebase-admin/app");
 const fileUploader = require("express-fileupload");
-const serviceAccount = require("../contentisqueen-97ae5-firebase-adminsdk-qhkbo-6886ee17eb.json");
 const router = require("./restful/routes");
 const apiLogger = require("./helper/apiCallLog");
 
+const serviceAccount = {
+  type: "service_account",
+  project_id: process.env.PROJECT_ID,
+  private_key_id: process.env.PRIVATE_KEY_ID,
+  private_key: process.env.PRIVATE_KEY,
+  client_email: process.env.CLIENT_EMAIL,
+  client_id: process.env.CLIENT_ID,
+  auth_uri: "https://accounts.google.com/o/oauth2/auth",
+  token_uri: "https://oauth2.googleapis.com/token",
+  auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
+  client_x509_cert_url: process.env.CLIENT_X509_CERT_URL,
+  universe_domain: "googleapis.com",
+};
+
 dotenv.config();
+
 const PORT = 5000;
 const app = express();
 app.use(cors());
 app.use(express.json());
 initializeApp({
   credential: cert(serviceAccount),
-  storageBucket: "contentisqueen-97ae5.appspot.com",
+  storageBucket: `${process.env.PROJECT_ID}.appspot.com`,
 });
 app.use(apiLogger);
 app.use(
@@ -25,7 +39,6 @@ app.use(
     tempFileDir: "/tmp/",
   }),
 );
-
 app.use(router);
 const start = () => {
   try {
@@ -35,7 +48,5 @@ const start = () => {
     process.exit(1);
   }
 };
-
 start();
-
 exports.api = functions.https.onRequest(app);

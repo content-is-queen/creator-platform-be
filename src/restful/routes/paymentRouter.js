@@ -2,7 +2,9 @@ const express = require("express");
 const {
   createCheckoutSession,
   subscribeUser,
-  cancelSubscription, getUserPaymentInfo, getSubscriptionInfo
+  cancelSubscription,
+  getUserPaymentInfo,
+  getSubscriptionInfo,
 } = require("../controllers/paymentController");
 
 const router = express.Router();

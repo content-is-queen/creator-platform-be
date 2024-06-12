@@ -1,12 +1,11 @@
 /* eslint-disable no-prototype-builtins */
 const dotenv = require("dotenv");
 const { Util } = require("../../helper/utils");
-const {
-  SendPasswordReset,
-} = require("../../services/templates/SendPasswordReset");
+const SendPasswordReset = require("../../services/templates/SendPasswordReset");
 const transporter = require("../../helper/mailHelper");
 const admin = require("firebase-admin");
 const { v4: uuidv4 } = require("uuid");
+const jwt = require("jsonwebtoken");
 const Joi = require("joi");
 
 dotenv.config();
@@ -138,30 +137,47 @@ class AuthController {
     }
   }
 
-  static async resetUserPassword(req, res) {
+  static async forgetPassword(req, res) {
     try {
       const { email } = req.body;
-      const actionCodeSettings = {
-        url: `${process.env.DOMAIN}/login`,
-        handleCodeInApp: true,
+      const userRecord = await admin.auth().getUserByEmail(email);
+      if (userRecord.email !== email) {
+        return res.status(404).json({ res: "This email is not registered" });
+      }
+      const secret = process.env.JWT_SECRET + userRecord.uid;
+      const payload = {
+        uid: userRecord.uid,
       };
-      const resetLink = await admin
-        .auth()
-        .generatePasswordResetLink(email, actionCodeSettings);
+      const token = jwt.sign(payload, secret, { expiresIn: "15m" });
+      const link = `${process.env.DOMAIN}/reset-password?token=${token}`;
       const mailOptions = {
         from: process.env.EMAIL,
         to: email,
         subject: "Password Reset Request for Your Creator Platform Account",
-        html: SendPasswordReset(resetLink),
+        html: SendPasswordReset(link),
       };
       await transporter.sendMail(mailOptions);
-
       return res
         .status(200)
         .json({ message: "Password reset email sent successfully" });
     } catch (error) {
-      console.error("Error resetting user password:", error);
       return res.status(500).json({ message: error.message || "Server error" });
+    }
+  }
+
+  static async resetUserPassword(req, res) {
+    const { password, uid } = req.body;
+    try {
+      await admin.auth().updateUser(uid, {
+        password,
+      });
+      util.statusCode = 200;
+      util.message = "Password updated succesfully";
+      return util.send(res);
+    } catch (error) {
+      util.statusCode = 500;
+      util.message = error.message || "Server error";
+      return util.send(res);
     }
   }
 

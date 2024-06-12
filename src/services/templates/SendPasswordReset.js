@@ -64,15 +64,14 @@ const SendPasswordReset = (emailData) => {
       </div>
       <div class="content">
         <p>Hello,</p>
-        <p>We've received a request to reset your password for your creator platform
-          account. If you initiated this request, please use the link below to set a new password:</p>
+        <p>Follow this link to reset your Creator Platform account:</p>
       </div>
       <div class="button-container" style="text-align: center;">
         <a href=${emailData} class="button"><b>Reset Password</b></a>
       </div>
       <div class="content">
-        <p>If this wasn't you, no problem at all. Any questions or concerns? Don't hesitate to contact our support team at <strong>support@contentisqueen.com</strong> We're here to support you.</p>
-  
+        <p>If you didn’t ask to reset your password, you can ignore this email.</p>
+        <br />
         <p>Best regards,</p>
         <p>Creator Platform Team</p>
       </div>

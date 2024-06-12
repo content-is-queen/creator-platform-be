@@ -108,4 +108,45 @@ const subscribeUser = async (req, res) => {
   }
 };
 
-module.exports = { createCheckoutSession, subscribeUser, cancelSubscription };
+
+const getUserPaymentInfo = async (req, res) => {
+  const { user_id } = req.query;
+  const db = admin.firestore();
+
+  try {
+    const userDoc = await db.collection("users").doc(user_id).get();
+    if (!userDoc.exists) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const { subscriptionId, subscribed } = userDoc.data();
+
+    res.status(200).json({ subscriptionId, subscribed });
+  } catch (error) {
+    console.error("Error getting user payment info:", error);
+    res.status(500).json({
+      error: {
+        message: "An error occurred while getting user payment info.",
+      },
+    });
+  }
+};
+
+const getSubscriptionInfo = async (req, res) => {
+  const { subscription_id } = req.query;
+
+  try {
+    const subscription = await stripe.subscriptions.retrieve(subscription_id);
+
+    res.status(200).json({ subscription });
+  } catch (error) {
+    console.error("Error retrieving subscription info:", error);
+    res.status(500).json({
+      error: {
+        message: "An error occurred while retrieving subscription info.",
+      },
+    });
+  }
+};
+
+
+module.exports = { createCheckoutSession, subscribeUser, cancelSubscription, getSubscriptionInfo, getUserPaymentInfo };

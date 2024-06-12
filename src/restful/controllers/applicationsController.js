@@ -6,13 +6,27 @@ dotenv.config();
 
 const util = new Util();
 
-// Define the createRoomAndAddParticipants function
-async function createRoomDirect(db, userIds) {
+async function createRoomDirect(db, userIds, opportunityTitle) {
   try {
     const [user_id, creator_id] = userIds;
     const roomId = user_id + "_" + creator_id;
     const roomRef = db.collection("rooms").doc(roomId);
     const roomSnapshot = await roomRef.get();
+
+    // Fetch user data for both user and creator
+    const userRef = db.collection("users").doc(user_id);
+    const creatorRef = db.collection("users").doc(creator_id);
+    const [userSnapshot, creatorSnapshot] = await Promise.all([
+      userRef.get(),
+      creatorRef.get(),
+    ]);
+
+    if (!userSnapshot.exists || !creatorSnapshot.exists) {
+      throw new Error("User or Creator not found");
+    }
+
+    const userData = userSnapshot.data();
+    const creatorData = creatorSnapshot.data();
 
     if (roomSnapshot.exists) {
       const existingRoomData = roomSnapshot.data();
@@ -27,7 +41,20 @@ async function createRoomDirect(db, userIds) {
       id: roomId,
       userIds,
       lastMessage: "",
+      opportunityTitle,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      userProfiles: [
+        {
+          userId: user_id,
+          fullName: `${userData.first_name} ${userData.last_name}`,
+          profileImage: userData.imageUrl,
+        },
+        {
+          userId: creator_id,
+          fullName: `${creatorData.first_name} ${creatorData.last_name}`,
+          profileImage: creatorData.imageUrl,
+        },
+      ],
     };
 
     await roomRef.set(roomData);
@@ -39,7 +66,6 @@ async function createRoomDirect(db, userIds) {
     };
   } catch (error) {
     console.error("Error creating room:", error);
-    throw new Error("Internal server error");
   }
 }
 
@@ -155,7 +181,7 @@ class ApplicationsController {
   static async updateApplication(req, res) {
     const db = admin.firestore();
     const { application_id } = req.params;
-    const { status, user_id, creator_id } = req.body;
+    const { status, user_id, creator_id, opportunityTitle } = req.body;
 
     try {
       const applicationRef = db.collection("applications").doc(application_id);
@@ -172,7 +198,11 @@ class ApplicationsController {
         const userIds = [user_id, creator_id];
 
         // Call createRoom function with data
-        const { roomId } = await createRoomDirect(db, userIds);
+        const { roomId } = await createRoomDirect(
+          db,
+          userIds,
+          opportunityTitle,
+        );
 
         util.statusCode = 200;
         util.message = { roomId };

@@ -6,7 +6,7 @@ dotenv.config();
 
 const util = new Util();
 
-async function createRoomDirect(db, userIds, opportunityTitle) {
+async function createRoom(db, userIds, opportunityTitle) {
   try {
     const [user_id, creator_id] = userIds;
     const roomId = user_id + "_" + creator_id;
@@ -198,11 +198,7 @@ class ApplicationsController {
         const userIds = [user_id, creator_id];
 
         // Call createRoom function with data
-        const { roomId } = await createRoomDirect(
-          db,
-          userIds,
-          opportunityTitle,
-        );
+        const { roomId } = await createRoom(db, userIds, opportunityTitle);
 
         util.statusCode = 200;
         util.message = { roomId };

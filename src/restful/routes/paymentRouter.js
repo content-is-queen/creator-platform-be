@@ -12,7 +12,7 @@ const router = express.Router();
 router.post("/create-checkout-session", createCheckoutSession);
 router.post("/subscribe", subscribeUser);
 router.post("/cancel-subscription", cancelSubscription);
-router.get("/get-user-payment-info", getUserPaymentInfo);
-router.get("/get-subscription-info", getSubscriptionInfo);
+router.get("/info", getUserPaymentInfo);
+router.get("/subscription", getSubscriptionInfo);
 
 module.exports.paymentsRouter = router;

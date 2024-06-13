@@ -133,15 +133,21 @@ const getUserPaymentInfo = async (req, res) => {
 const getSubscriptionInfo = async (req, res) => {
   const { subscription_id } = req.query;
 
+  if (!subscription_id) {
+    console.error("Subscription ID is required");
+    return res.status(400).json({ error: "Subscription ID is required" });
+  }
+
   try {
     const subscription = await stripe.subscriptions.retrieve(subscription_id);
-
+    console.log("Retrieved subscription info:", subscription);
     res.status(200).json({ subscription });
   } catch (error) {
     console.error("Error retrieving subscription info:", error);
     res.status(500).json({
       error: {
         message: "An error occurred while retrieving subscription info.",
+        details: error.message,
       },
     });
   }

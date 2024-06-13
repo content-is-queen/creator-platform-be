@@ -108,7 +108,6 @@ const subscribeUser = async (req, res) => {
   }
 };
 
-
 const getUserPaymentInfo = async (req, res) => {
   const { user_id } = req.query;
   const db = admin.firestore();
@@ -148,5 +147,10 @@ const getSubscriptionInfo = async (req, res) => {
   }
 };
 
-
-module.exports = { createCheckoutSession, subscribeUser, cancelSubscription, getSubscriptionInfo, getUserPaymentInfo };
+module.exports = {
+  createCheckoutSession,
+  subscribeUser,
+  cancelSubscription,
+  getSubscriptionInfo,
+  getUserPaymentInfo,
+};

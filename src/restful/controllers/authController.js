@@ -83,6 +83,7 @@ class AuthController {
         firstName,
         lastName,
         role,
+        email,
         disabled: false,
         subscribed: false,
         ...other,

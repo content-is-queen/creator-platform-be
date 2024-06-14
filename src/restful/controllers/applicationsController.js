@@ -1,6 +1,9 @@
 const dotenv = require("dotenv");
 const { Util } = require("../../helper/utils");
 const admin = require("firebase-admin");
+const { SendAcceptEmail } = require("../../services/templates/SendAcceptEmail");
+const transporter = require("../../helper/mailHelper");
+const sendNotification = require("../../helper/sendNotification");
 
 dotenv.config();
 
@@ -47,12 +50,12 @@ async function createRoomDirect(db, userIds, opportunityTitle) {
         {
           userId: user_id,
           fullName: `${userData.first_name} ${userData.last_name}`,
-          profileImage: userData.imageUrl,
+          profileImage: userData.imageUrl || "",
         },
         {
           userId: creator_id,
           fullName: `${creatorData.first_name} ${creatorData.last_name}`,
-          profileImage: creatorData.imageUrl,
+          profileImage: creatorData.imageUrl || "",
         },
       ],
     };
@@ -203,6 +206,34 @@ class ApplicationsController {
           userIds,
           opportunityTitle,
         );
+
+        const userRef = db.collection("users").doc(user_id);
+        const doc = await userRef.get();
+        if (doc.exists) {
+          const { first_name, email, fcm_token, uid } = doc.data();
+          if (email) {
+            const emailTemplate = SendAcceptEmail(first_name);
+
+            const mailOptions = {
+              from: process.env.EMAIL,
+              to: email,
+              subject: "Creator Platform Application Update",
+              html: emailTemplate,
+            };
+
+            await transporter.sendMail(mailOptions);
+          }
+          if(fcm_token){
+
+            const notificationData = {
+              token:fcm_token,
+              title: "Your Application Update",
+              body: "Your Application has been approved!",
+              user_id: uid,
+            }
+          await sendNotification(notificationData);
+          }
+        }
 
         util.statusCode = 200;
         util.message = { roomId };

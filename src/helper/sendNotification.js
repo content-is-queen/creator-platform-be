@@ -1,6 +1,6 @@
 const admin = require("firebase-admin");
 
-async function sendNotification({ token, title, body, user_id }) {
+async function sendNotification({ token, title, body, userId }) {
   try {
     await admin.messaging().send({
       token,
@@ -17,7 +17,7 @@ async function sendNotification({ token, title, body, user_id }) {
     await admin
       .firestore()
       .collection("users")
-      .doc(user_id)
+      .doc(userId)
       .collection("notifications")
       .add(notificationData);
 

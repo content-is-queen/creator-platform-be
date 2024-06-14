@@ -74,7 +74,7 @@ class AuthController {
       });
 
       const uid = user.uid;
-      await admin.auth().setCustomUserClaims(uid, { role });
+      await admin.auth().setCustomUserClaims(uid, { role, subscribed: false });
 
       const usersCollectionRef = db.collection("users");
 

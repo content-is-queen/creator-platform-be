@@ -20,7 +20,7 @@ class NotificationsController {
    */
 
   static async sendNotification(req, res) {
-    const { token, title, body, user_id } = req.body;
+    const { token, title, body, userId } = req.body;
     try {
       await admin.messaging().send({
         token,
@@ -39,7 +39,7 @@ class NotificationsController {
       await admin
         .firestore()
         .collection("users")
-        .doc(user_id)
+        .doc(userId)
         .collection("notifications")
         .add(notificationData);
 
@@ -54,10 +54,10 @@ class NotificationsController {
   }
 
   static async saveFcmToken(req, res) {
-    const { fcm_token, user_id } = req.body;
+    const { fcmToken, userId } = req.body;
     try {
-      const userRef = admin.firestore().collection("users").doc(user_id);
-      await userRef.set({ fcm_token }, { merge: true });
+      const userRef = admin.firestore().collection("users").doc(userId);
+      await userRef.set({ fcmToken }, { merge: true });
 
       util.statusCode = 200;
       util.message = "FCM token saved successfully";
@@ -70,11 +70,11 @@ class NotificationsController {
   }
 
   static async getAllNotifications(req, res) {
-    const { user_id } = req.user;
+    const { userId } = req.user;
     const notificationsRef = admin
       .firestore()
       .collection("users")
-      .doc(user_id)
+      .doc(userId)
       .collection("notifications");
 
     try {
@@ -136,13 +136,13 @@ class NotificationsController {
   }
 
   static async clearAllNotifications(req, res) {
-    const { user_id } = req.user;
+    const { userId } = req.user;
 
     try {
       const snapshot = await admin
         .firestore()
         .collection("users")
-        .doc(user_id)
+        .doc(userId)
         .collection("notifications")
         .get();
 

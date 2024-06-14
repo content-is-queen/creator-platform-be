@@ -133,24 +133,24 @@ class ApplicationsController {
     const { authorId, opportunityId, proposal, creatorId } = req.body;
     try {
       // Fetch the user document
-      const userRef = db.collection("users").doc(authorId);
-      const userDoc = await userRef.get();
+      const creatorRef = db.collection("users").doc(creatorId);
+      const authorDoc = await creatorRef.get();
 
-      if (!userDoc.exists) {
+      if (!authorDoc.exists) {
         util.statusCode = 404;
         util.message = "User not found";
         return util.send(res);
       }
 
-      const userData = userDoc.data();
+      const authorData = authorDoc.data();
 
       // Check the number of applications made by the creator
       if (
-        userData.opportunities_applied_count >=
-        userData.max_opportunities_applied
+        authorData.opportunities_applied_count >=
+        authorData.max_opportunities_applied
       ) {
         util.statusCode = 400;
-        util.message = `You can only apply to up to ${userData.max_opportunities_applied} opportunities.`;
+        util.message = `You can only apply to up to ${authorData.max_opportunities_applied} opportunities.`;
         return util.send(res);
       }
 
@@ -166,8 +166,8 @@ class ApplicationsController {
       await applicationRef.set(newApplicationData);
 
       // Increment the opportunities_applied_count for the user
-      await userRef.update({
-        opportunities_applied_count: admin.firestore.FieldValue.increment(1),
+      await creatorRef.update({
+        opportunitiesAppliedCount: admin.firestore.FieldValue.increment(1),
       });
 
       util.statusCode = 201;
@@ -207,12 +207,12 @@ class ApplicationsController {
           opportunityTitle,
         );
 
-        const userRef = db.collection("users").doc(user_id);
+        const userRef = db.collection("users").doc(authorId);
         const doc = await userRef.get();
         if (doc.exists) {
-          const { first_name, email, fcm_token, uid } = doc.data();
+          const { firstName, email, fcmToken, uid } = doc.data();
           if (email) {
-            const emailTemplate = SendAcceptEmail(first_name);
+            const emailTemplate = SendAcceptEmail(firstName);
 
             const mailOptions = {
               from: process.env.EMAIL,
@@ -223,12 +223,12 @@ class ApplicationsController {
 
             await transporter.sendMail(mailOptions);
           }
-          if (fcm_token) {
+          if (fcmToken) {
             const notificationData = {
-              token: fcm_token,
+              token: fcmToken,
               title: "Your Application Update",
               body: "Your Application has been approved!",
-              user_id: uid,
+              userId: uid,
             };
             await sendNotification(notificationData);
           }

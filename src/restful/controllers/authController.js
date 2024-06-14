@@ -181,10 +181,10 @@ class AuthController {
   }
 
   static async getUser(req, res) {
-    const { userId, role } = req.user;
+    const { user_id, role } = req.user;
     const db = admin.firestore();
     try {
-      const docRef = db.collection("users").doc(userId);
+      const docRef = db.collection("users").doc(user_id);
       const docSnapshot = await docRef.get();
 
       if (docSnapshot.exists) {

@@ -10,7 +10,6 @@ const { paymentsRouter } = require("./paymentRouter");
 const rateLimit = require("express-rate-limit");
 const { notificationsRouter } = require("./notificationRouter");
 
-
 // Define rate limiting options
 const limiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute

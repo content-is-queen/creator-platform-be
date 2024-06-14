@@ -223,15 +223,14 @@ class ApplicationsController {
 
             await transporter.sendMail(mailOptions);
           }
-          if(fcm_token){
-
+          if (fcm_token) {
             const notificationData = {
-              token:fcm_token,
+              token: fcm_token,
               title: "Your Application Update",
               body: "Your Application has been approved!",
               user_id: uid,
-            }
-          await sendNotification(notificationData);
+            };
+            await sendNotification(notificationData);
           }
         }
 

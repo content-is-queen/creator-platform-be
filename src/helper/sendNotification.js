@@ -1,4 +1,4 @@
-const admin = require('firebase-admin');
+const admin = require("firebase-admin");
 
 async function sendNotification({ token, title, body, user_id }) {
   try {
@@ -14,7 +14,8 @@ async function sendNotification({ token, title, body, user_id }) {
       body,
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
     };
-    await admin.firestore()
+    await admin
+      .firestore()
       .collection("users")
       .doc(user_id)
       .collection("notifications")

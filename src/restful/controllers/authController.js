@@ -84,7 +84,7 @@ class AuthController {
         first_name,
         last_name,
         role,
-        email:user.email,
+        email: user.email,
         disabled: false,
         subscribed: false,
         ...other,

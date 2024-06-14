@@ -1,7 +1,9 @@
 // contractRoutes.js
 const { Router } = require("express");
 const { protect } = require("../../middleware");
-const { NotificationsController } = require("../controllers/notificationController");
+const {
+  NotificationsController,
+} = require("../controllers/notificationController");
 
 const router = Router();
 

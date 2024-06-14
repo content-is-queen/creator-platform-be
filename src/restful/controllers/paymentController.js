@@ -21,7 +21,7 @@ const createCheckoutSession = async (req, res) => {
         },
       ],
       mode: "subscription", // Or 'payment' for one-time payments
-      success_url: `${origin}/thankyou?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${origin}/thankyou?sessionId={CHECKOUT_sessionId}`,
       cancel_url: `${origin}/plus`,
     });
 
@@ -37,12 +37,12 @@ const createCheckoutSession = async (req, res) => {
 };
 
 const cancelSubscription = async (req, res) => {
-  const { user_id } = req.body;
+  const { userId } = req.body;
   const db = admin.firestore();
 
   try {
     // Get the user's subscription ID from Firestore
-    const userDoc = await db.collection("users").doc(user_id).get();
+    const userDoc = await db.collection("users").doc(userId).get();
     if (!userDoc.exists) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -57,7 +57,7 @@ const cancelSubscription = async (req, res) => {
     // Update the user's subscription status in Firestore
     await db
       .collection("users")
-      .doc(user_id)
+      .doc(userId)
       .update({ subscribed: false, subscriptionId: null });
 
     res
@@ -74,18 +74,18 @@ const cancelSubscription = async (req, res) => {
 };
 
 const subscribeUser = async (req, res) => {
-  const { session_id, user_id } = req.body;
+  const { sessionId, userId } = req.body;
   const db = admin.firestore();
 
   try {
-    const session = await stripe.checkout.sessions.retrieve(session_id);
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (session.payment_status === "paid") {
       // Retrieve the subscription ID
       const subscriptionId = session.subscription;
 
       // Update user to subscribed and store subscription ID
-      await db.collection("users").doc(user_id).update({
+      await db.collection("users").doc(userId).update({
         subscribed: true,
         subscriptionId,
       });
@@ -108,4 +108,55 @@ const subscribeUser = async (req, res) => {
   }
 };
 
-module.exports = { createCheckoutSession, subscribeUser, cancelSubscription };
+const getUserPaymentInfo = async (req, res) => {
+  const { userId } = req.query;
+  const db = admin.firestore();
+
+  try {
+    const userDoc = await db.collection("users").doc(userId).get();
+    if (!userDoc.exists) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const { subscriptionId, subscribed } = userDoc.data();
+
+    res.status(200).json({ subscriptionId, subscribed });
+  } catch (error) {
+    console.error("Error getting user payment info:", error);
+    res.status(500).json({
+      error: {
+        message: "An error occurred while getting user payment info.",
+      },
+    });
+  }
+};
+
+const getSubscriptionInfo = async (req, res) => {
+  const { subscription_id } = req.query;
+
+  if (!subscription_id) {
+    console.error("Subscription ID is required");
+    return res.status(400).json({ error: "Subscription ID is required" });
+  }
+
+  try {
+    const subscription = await stripe.subscriptions.retrieve(subscription_id);
+    console.log("Retrieved subscription info:", subscription);
+    res.status(200).json({ subscription });
+  } catch (error) {
+    console.error("Error retrieving subscription info:", error);
+    res.status(500).json({
+      error: {
+        message: "An error occurred while retrieving subscription info.",
+        details: error.message,
+      },
+    });
+  }
+};
+
+module.exports = {
+  createCheckoutSession,
+  subscribeUser,
+  cancelSubscription,
+  getSubscriptionInfo,
+  getUserPaymentInfo,
+};

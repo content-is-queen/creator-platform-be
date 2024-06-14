@@ -17,8 +17,8 @@ dotenv.config();
 const util = new Util();
 
 const defaultSchema = {
-  first_name: Joi.string(),
-  last_name: Joi.string(),
+  firstName: Joi.string(),
+  lastName: Joi.string(),
   email: Joi.string(),
   password: Joi.string(),
   bio: Joi.string(),
@@ -30,19 +30,19 @@ const defaultSchema = {
 const schema = {
   brand: Joi.object({
     ...defaultSchema,
-    organisation_name: Joi.string(),
-    profile_photo: Joi.string().allow(""),
+    organizationName: Joi.string(),
+    profilePhoto: Joi.string().allow(""),
   }),
   creator: Joi.object({
     ...defaultSchema,
-    podcast_name: Joi.string().allow(""),
-    podcast_url: Joi.string().uri().allow(""),
-    profile_photo: Joi.string().allow(""),
+    podcastName: Joi.string().allow(""),
+    podcastUrl: Joi.string().uri().allow(""),
+    profilePhoto: Joi.string().allow(""),
     showreel: Joi.string().uri().allow(""),
     showcase: Joi.array().items(Joi.string().uri().max(6)).allow(""),
     credits: Joi.array().items(
       Joi.object({
-        episode_link: Joi.string(),
+        episodeLink: Joi.string(),
         role: Joi.string(),
       }).allow(""),
     ),
@@ -59,8 +59,7 @@ class AuthController {
   static async signup(req, res) {
     try {
       // Proceed with signup logic if validation succeeds
-      const { first_name, last_name, email, password, role, ...other } =
-        req.body;
+      const { firstName, lastName, email, password, role, ...other } = req.body;
 
       // Validate request body against schema
       await schema[role].validateAsync(req.body);
@@ -81,8 +80,8 @@ class AuthController {
 
       await usersCollectionRef.doc(user.uid).set({
         uid: user.uid,
-        first_name,
-        last_name,
+        firstName,
+        lastName,
         role,
         email: user.email,
         disabled: false,
@@ -183,10 +182,10 @@ class AuthController {
   }
 
   static async getUser(req, res) {
-    const { user_id, role } = req.user;
+    const { userId, role } = req.user;
     const db = admin.firestore();
     try {
-      const docRef = db.collection("users").doc(user_id);
+      const docRef = db.collection("users").doc(userId);
       const docSnapshot = await docRef.get();
 
       if (docSnapshot.exists) {
@@ -196,10 +195,10 @@ class AuthController {
           if (organizationInfoRef) {
             const organizationInfoSnapshot = await organizationInfoRef?.get();
             if (organizationInfoSnapshot.exists) {
-              userData.organisation_name =
-                organizationInfoSnapshot.data().organization_name;
-              userData.organisation_logo =
-                organizationInfoSnapshot.data().organization_logo;
+              userData.organizationName =
+                organizationInfoSnapshot.data().organizationName;
+              userData.organizationLogo =
+                organizationInfoSnapshot.data().organizationLogo;
             }
           }
         }
@@ -217,16 +216,16 @@ class AuthController {
 
   static async getPublicUser(req, res) {
     try {
-      const { user_id } = req.params;
+      const { userId } = req.params;
 
-      if (!user_id) {
+      if (!userId) {
         util.statusCode = 400;
         util.message = "User ID is required";
         return util.send(res);
       }
 
       const db = admin.firestore();
-      const usersCollection = db.collection("users").doc(user_id);
+      const usersCollection = db.collection("users").doc(userId);
 
       const querySnapshot = await usersCollection.get();
       if (!querySnapshot.exists) {
@@ -241,25 +240,25 @@ class AuthController {
         if (organizationInfoRef) {
           const organizationInfoSnapshot = await organizationInfoRef?.get();
           if (organizationInfoSnapshot.exists) {
-            userData.organisation_name =
-              organizationInfoSnapshot.data().organization_name;
-            userData.organisation_logo =
-              organizationInfoSnapshot.data().organization_logo;
+            userData.organizationName =
+              organizationInfoSnapshot.data().organizationName;
+            userData.organizationLogo =
+              organizationInfoSnapshot.data().organizationLogo;
           }
         }
       }
       const nonSensitiveData = {
-        first_name: userData.first_name,
-        last_name: userData.last_name,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
         role: userData.role,
-        imageUrl: userData.imageUrl,
+        profilePhoto: userData.profilePhoto,
         bio: userData.bio,
         uid: userData.uid,
-        ...(userData.organisation_name
-          ? { organisation_name: userData.organisation_name }
+        ...(userData.organizationName
+          ? { organizationName: userData.organizationName }
           : {}),
-        ...(userData.organisation_logo
-          ? { organisation_logo: userData.organisation_logo }
+        ...(userData.organizationLogo
+          ? { organizationLogo: userData.organizationLogo }
           : {}),
         meta: {
           ...(userData.role === "creator"
@@ -294,10 +293,10 @@ class AuthController {
             if (organizationInfoRef) {
               const organizationInfoSnapshot = await organizationInfoRef?.get();
               if (organizationInfoSnapshot.exists) {
-                userObj.organisation_name =
-                  organizationInfoSnapshot.data().organization_name;
-                userObj.organisation_logo =
-                  organizationInfoSnapshot.data().organization_logo;
+                userObj.organizationName =
+                  organizationInfoSnapshot.data().organizationName;
+                userObj.organizationLogo =
+                  organizationInfoSnapshot.data().organizationLogo;
               }
             }
           }
@@ -318,14 +317,14 @@ class AuthController {
   static async updateUser(req, res) {
     try {
       const { ...valuesToUpdate } = req.body;
-      const file = req.files?.imageUrl;
+      const file = req.files?.profilePhoto;
 
       if (!file) {
         // If there's no file, update user data directly in Firestore
         const docRef = admin
           .firestore()
           .collection("users")
-          .doc(req.user.user_id);
+          .doc(req.user.userId);
         await docRef.set({ ...valuesToUpdate }, { merge: true });
 
         util.statusCode = 200;
@@ -346,15 +345,15 @@ class AuthController {
         uploadTask
           .then(async (snapshot) => {
             // Once uploaded, get the image URL and update user data in Firestore
-            const imageUrl = snapshot[0].metadata.mediaLink;
+            const profilePhoto = snapshot[0].metadata.mediaLink;
             const docRef = admin
               .firestore()
               .collection("users")
-              .doc(req.user.user_id);
+              .doc(req.user.userId);
 
             await docRef.set(
               {
-                imageUrl,
+                profilePhoto,
                 ...valuesToUpdate,
               },
               { merge: true },
@@ -382,7 +381,7 @@ class AuthController {
   static async changePassword(req, res) {
     const { password } = req.body;
     try {
-      await admin.auth().updateUser(req.user?.user_id, {
+      await admin.auth().updateUser(req.user?.userId, {
         password,
       });
       util.statusCode = 200;
@@ -417,15 +416,15 @@ class AuthController {
 
   static async changeEmail(req, res) {
     const { email } = req.body;
-    const { user_id } = req.user;
+    const { userId } = req.user;
     try {
       if (email !== req.user.email) {
         const docRef = admin
           .firestore()
           .collection("users")
-          .doc(req.user.user_id);
+          .doc(req.user.userId);
         await docRef.set({ email }, { merge: true });
-        await admin.auth().updateUser(user_id, {
+        await admin.auth().updateUser(userId, {
           email,
         });
       }
@@ -442,8 +441,8 @@ class AuthController {
   static async updateUserSubscription(req, res) {
     try {
       const { subscribed } = req.body;
-      const { user_id } = req.params; // Assuming you have access to the user's ID
-      const docRef = admin.firestore().collection("users").doc(user_id); // Use the user's ID to locate the document in the users collection
+      const { userId } = req.params; // Assuming you have access to the user's ID
+      const docRef = admin.firestore().collection("users").doc(userId); // Use the user's ID to locate the document in the users collection
 
       await docRef.set({ subscribed }, { merge: true }); // Update the 'subscribed' field
 
@@ -459,16 +458,16 @@ class AuthController {
 
   static async checkSubscription(req, res) {
     try {
-      const { user_id } = req.params;
+      const { userId } = req.params;
 
-      if (!user_id) {
+      if (!userId) {
         util.statusCode = 400;
         util.message = "User ID is required";
         return util.send(res);
       }
 
       const db = admin.firestore();
-      const docRef = db.collection("users").doc(user_id);
+      const docRef = db.collection("users").doc(userId);
       const docSnapshot = await docRef.get();
 
       if (!docSnapshot.exists) {

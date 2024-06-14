@@ -20,7 +20,7 @@ class AdminController {
    */
 
   static async adminCreateUser(req, res) {
-    const { first_name, last_name, email, role, password } = req.body;
+    const { firstName, lastName, email, role, password } = req.body;
     let uid = null;
     const db = admin.firestore();
     try {
@@ -38,8 +38,8 @@ class AdminController {
       const userData = {
         uid: user.uid,
         email,
-        first_name,
-        last_name,
+        firstName,
+        lastName,
         role,
         disabled: false,
       };
@@ -65,13 +65,13 @@ class AdminController {
   }
 
   static async adminActivateUser(req, res) {
-    const { user_id } = req.params;
+    const { userId } = req.params;
     try {
       const db = admin.firestore();
-      await admin.auth().updateUser(user_id, { disabled: false });
+      await admin.auth().updateUser(userId, { disabled: false });
       const usersCollectionRef = db.collection("users");
       await usersCollectionRef
-        .doc(user_id)
+        .doc(userId)
         .set({ disabled: false }, { merge: true });
       util.statusCode = 200;
       util.setSuccess(200, "User activated successfully!");
@@ -85,13 +85,13 @@ class AdminController {
   }
 
   static async adminDeActivateUser(req, res) {
-    const { user_id } = req.params;
+    const { userId } = req.params;
     try {
       const db = admin.firestore();
-      await admin.auth().updateUser(user_id, { disabled: true });
+      await admin.auth().updateUser(userId, { disabled: true });
       const usersCollectionRef = db.collection("users");
       await usersCollectionRef
-        .doc(user_id)
+        .doc(userId)
         .set({ disabled: true }, { merge: true });
       util.statusCode = 200;
       util.setSuccess(200, "User deactivated successfully!");
@@ -133,16 +133,16 @@ class AdminController {
   }
 
   static async adminDeleteUser(req, res) {
-    const { user_id } = req.params;
+    const { userId } = req.params;
     try {
       const db = admin.firestore();
-      const userDoc = await db.collection("users").doc(user_id).get();
+      const userDoc = await db.collection("users").doc(userId).get();
       const userData = userDoc.data();
-      const imageUrl = userData?.imageUrl;
-      await admin.auth().deleteUser(user_id);
-      await db.collection("users").doc(user_id).delete();
-      if (imageUrl) {
-        const fileName = imageUrl.split("/").pop();
+      const profilePhoto = userData?.profilePhoto;
+      await admin.auth().deleteUser(userId);
+      await db.collection("users").doc(userId).delete();
+      if (profilePhoto) {
+        const fileName = profilePhoto.split("/").pop();
         const bucket = admin.storage().bucket();
         await bucket.file(`profile/picture/${fileName}`).delete();
       }
@@ -159,13 +159,13 @@ class AdminController {
   }
 
   static async adminUpdateUserLimits(req, res) {
-    const { user_id } = req.params;
-    const { max_opportunities_posted, max_opportunities_applied } = req.body;
+    const { userId } = req.params;
+    const { maxOpportunities, max_opportunities_applied } = req.body;
 
     const db = admin.firestore();
 
     try {
-      const userRef = db.collection("users").doc(user_id);
+      const userRef = db.collection("users").doc(userId);
       const userDoc = await userRef.get();
 
       if (!userDoc.exists) {
@@ -176,8 +176,8 @@ class AdminController {
 
       const updateData = {};
 
-      if (max_opportunities_posted !== undefined) {
-        updateData.max_opportunities_posted = max_opportunities_posted;
+      if (maxOpportunities !== undefined) {
+        updateData.maxOpportunities = maxOpportunities;
       }
       if (max_opportunities_applied !== undefined) {
         updateData.max_opportunities_applied = max_opportunities_applied;
@@ -240,7 +240,7 @@ class AdminController {
       // Count the number of applications for each opportunity
       applicationsSnapshot.forEach((doc) => {
         const applicationData = doc.data();
-        const opportunityId = applicationData.opportunity_id;
+        const opportunityId = applicationData.opportunityId;
         if (opportunityApplicationsCount[opportunityId]) {
           opportunityApplicationsCount[opportunityId]++;
         } else {
@@ -258,7 +258,7 @@ class AdminController {
       const opportunitiesDataPromises = opportunitiesSnapshot.docs.map(
         async (doc) => {
           const opportunityData = doc.data();
-          const userId = opportunityData.user_id;
+          const userId = opportunityData.userId;
           const userRef = db.collection("users").doc(userId);
           const userDoc = await userRef.get();
           const userData = userDoc.data();
@@ -268,7 +268,7 @@ class AdminController {
             ...opportunityData,
             numberOfApplications:
               opportunityApplicationsCount[opportunityId] || 0,
-            full_name: userData?.first_name + " " + userData?.last_name,
+            fullName: userData?.firstName + " " + userData?.lastName,
           };
         },
       );
@@ -309,18 +309,18 @@ class AdminController {
 
   static async updateCompanyInfo(req, res) {
     try {
-      const { organization_name, organization_logo } = req.body;
-      if (!organization_name) {
+      const { organizationName, organizationLogo } = req.body;
+      if (!organizationName) {
         util.statusCode = 400;
         util.message = "Organization name is required.";
         return util.send(res);
       }
       const db = admin.firestore();
       const ciQRef = db.collection("organization_info").doc("ciq");
-      const updateData = { organization_name };
+      const updateData = { organizationName };
 
-      if (organization_logo) {
-        updateData.organization_logo = organization_logo;
+      if (organizationLogo) {
+        updateData.organizationLogo = organizationLogo;
       }
       await ciQRef.set(updateData, { merge: true });
       util.setSuccess(

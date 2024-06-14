@@ -14,14 +14,14 @@ router.post("/forgot", AuthController.forgetPassword);
 router.post("/reset", AuthController.resetUserPassword);
 router.post("/password", protect, AuthController.changePassword);
 router.post("/emailupdate", protect, AuthController.changeEmail);
-router.get("/user/:user_id", AuthController.getPublicUser);
+router.get("/user/:userId", AuthController.getPublicUser);
 router.get("/check-email", AuthController.checkEmailExists);
 
 router.put(
-  "/subscription/:user_id",
+  "/subscription/:userId",
   protect,
   AuthController.updateUserSubscription,
 );
-router.get("/subscription/:user_id", protect, AuthController.checkSubscription);
+router.get("/subscription/:userId", protect, AuthController.checkSubscription);
 
 module.exports.authRouter = router;

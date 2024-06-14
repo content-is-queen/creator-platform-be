@@ -16,8 +16,8 @@ class ContractController {
         deadline,
         duration,
         brand,
-        creator_id,
-        opportunity_id,
+        creatorId,
+        opportunityId,
         compensation,
       } = req.body;
 
@@ -28,32 +28,32 @@ class ContractController {
         !deadline ||
         !duration ||
         !brand ||
-        !creator_id ||
-        !opportunity_id ||
+        !creatorId ||
+        !opportunityId ||
         !compensation
       ) {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
       // Generate UID for the contract
-      const contract_id = uuidv4();
+      const contractId = uuidv4();
 
       // Create the contract document
-      await db.collection("contracts").doc(contract_id).set({
-        contract_id,
+      await db.collection("contracts").doc(contractId).set({
+        contractId,
         status,
         description,
         deadline,
         duration,
         brand,
-        creator_id,
-        opportunity_id,
+        creatorId,
+        opportunityId,
         compensation,
       });
 
       return res
         .status(201)
-        .json({ message: "Contract created successfully", contract_id });
+        .json({ message: "Contract created successfully", contractId });
     } catch (error) {
       console.error("Error creating contract:", error);
       return res.status(500).json({ message: "Server error" });
@@ -63,10 +63,10 @@ class ContractController {
   static async deleteContractById(req, res) {
     const db = admin.firestore();
     try {
-      const { contract_id } = req.params;
+      const { contractId } = req.params;
 
       // Check if the contract exists
-      const contractRef = db.collection("contracts").doc(contract_id);
+      const contractRef = db.collection("contracts").doc(contractId);
       const contractSnapshot = await contractRef.get();
       if (!contractSnapshot.exists) {
         return res.status(404).json({ message: "Contract not found" });
@@ -103,10 +103,10 @@ class ContractController {
   static async getContractById(req, res) {
     const db = admin.firestore();
     try {
-      const { contract_id } = req.params;
+      const { contractId } = req.params;
 
       // Fetch the contract document from Firestore
-      const contractRef = db.collection("contracts").doc(contract_id);
+      const contractRef = db.collection("contracts").doc(contractId);
       const docSnapshot = await contractRef.get();
 
       if (!docSnapshot.exists) {
@@ -126,12 +126,12 @@ class ContractController {
   static async updateContractById(req, res) {
     const db = admin.firestore();
     try {
-      const { contract_id } = req.params;
+      const { contractId } = req.params;
       const { status, description, deadline, duration, compensation } =
         req.body;
 
       // Fetch the contract document
-      const contractRef = db.collection("contracts").doc(contract_id);
+      const contractRef = db.collection("contracts").doc(contractId);
       const contractSnapshot = await contractRef.get();
 
       // Check if the contract exists

@@ -6,26 +6,26 @@ dotenv.config();
 
 const util = new Util();
 
-async function createRoomDirect(db, userIds, opportunityTitle) {
+async function createRoom(db, participantIds, opportunityTitle) {
   try {
-    const [user_id, creator_id] = userIds;
-    const roomId = user_id + "_" + creator_id;
+    const [authorId, creatorId] = participantIds;
+    const roomId = authorId + "_" + creatorId;
     const roomRef = db.collection("rooms").doc(roomId);
     const roomSnapshot = await roomRef.get();
 
     // Fetch user data for both user and creator
-    const userRef = db.collection("users").doc(user_id);
-    const creatorRef = db.collection("users").doc(creator_id);
+    const userRef = db.collection("users").doc(authorId);
+    const creatorRef = db.collection("users").doc(creatorId);
     const [userSnapshot, creatorSnapshot] = await Promise.all([
       userRef.get(),
       creatorRef.get(),
     ]);
 
     if (!userSnapshot.exists || !creatorSnapshot.exists) {
-      throw new Error("User or Creator not found");
+      throw new Error("The author or creator could not be found");
     }
 
-    const userData = userSnapshot.data();
+    const authorData = userSnapshot.data();
     const creatorData = creatorSnapshot.data();
 
     if (roomSnapshot.exists) {
@@ -39,19 +39,19 @@ async function createRoomDirect(db, userIds, opportunityTitle) {
 
     const roomData = {
       id: roomId,
-      userIds,
+      participantIds,
       lastMessage: "",
       opportunityTitle,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       userProfiles: [
         {
-          userId: user_id,
-          fullName: `${userData.first_name} ${userData.last_name}`,
-          profileImage: userData.imageUrl,
+          userId: authorId,
+          fullName: `${authorData.firstName} ${authorData.lastName}`,
+          profileImage: authorData.imageUrl,
         },
         {
-          userId: creator_id,
-          fullName: `${creatorData.first_name} ${creatorData.last_name}`,
+          userId: creatorId,
+          fullName: `${creatorData.firstName} ${creatorData.lastName}`,
           profileImage: creatorData.imageUrl,
         },
       ],
@@ -97,13 +97,13 @@ class ApplicationsController {
 
   static async getApplicationById(req, res) {
     const db = admin.firestore();
-    const { application_id } = req.params;
+    const { applicationId } = req.params;
     try {
-      console.log("Fetching application with ID:", application_id); // Add this line for logging
+      console.log("Fetching application with ID:", applicationId); // Add this line for logging
 
       const applicationSnapshot = await db
         .collection("applications")
-        .doc(application_id)
+        .doc(applicationId)
         .get();
 
       if (applicationSnapshot.exists) {
@@ -112,7 +112,7 @@ class ApplicationsController {
         util.message = applicationData;
         return util.send(res);
       } else {
-        console.log("Application not found:", application_id); // Add this line for logging
+        console.log("Application not found:", applicationId); // Add this line for logging
         util.statusCode = 404;
         util.message = "Application not found";
         return util.send(res);
@@ -127,10 +127,10 @@ class ApplicationsController {
 
   static async createApplication(req, res) {
     const db = admin.firestore();
-    const { user_id, opportunity_id, proposal, creator_id } = req.body;
+    const { authorId, opportunityId, proposal, creatorId } = req.body;
     try {
       // Fetch the user document
-      const userRef = db.collection("users").doc(user_id);
+      const userRef = db.collection("users").doc(authorId);
       const userDoc = await userRef.get();
 
       if (!userDoc.exists) {
@@ -153,11 +153,11 @@ class ApplicationsController {
 
       const applicationRef = db.collection("applications").doc();
       const newApplicationData = {
-        application_id: applicationRef.id,
-        user_id,
-        opportunity_id,
+        applicationId: applicationRef.id,
+        authorId,
+        opportunityId,
         proposal,
-        creator_id, // the opportunities user_id
+        creatorId,
         status: "pending",
       };
       await applicationRef.set(newApplicationData);
@@ -180,11 +180,11 @@ class ApplicationsController {
 
   static async updateApplication(req, res) {
     const db = admin.firestore();
-    const { application_id } = req.params;
-    const { status, user_id, creator_id, opportunityTitle } = req.body;
+    const { applicationId } = req.params;
+    const { status, authorId, creatorId, opportunityTitle } = req.body;
 
     try {
-      const applicationRef = db.collection("applications").doc(application_id);
+      const applicationRef = db.collection("applications").doc(applicationId);
 
       if (!status) {
         util.statusCode = 400;
@@ -195,12 +195,12 @@ class ApplicationsController {
       await applicationRef.update({ status });
 
       if (status === "accepted") {
-        const userIds = [user_id, creator_id];
+        const participantIds = [authorId, creatorId];
 
         // Call createRoom function with data
-        const { roomId } = await createRoomDirect(
+        const { roomId } = await createRoom(
           db,
-          userIds,
+          participantIds,
           opportunityTitle,
         );
 
@@ -222,9 +222,9 @@ class ApplicationsController {
 
   static async deleteApplication(req, res) {
     const db = admin.firestore();
-    const { application_id } = req.params;
+    const { applicationId } = req.params;
     try {
-      await db.collection("applications").doc(application_id).delete();
+      await db.collection("applications").doc(applicationId).delete();
       util.statusCode = 200;
       util.message = "Application deleted successfully";
       return util.send(res);
@@ -237,15 +237,15 @@ class ApplicationsController {
   }
 
   static async getAllApplicationsById(req, res) {
-    const { opportunity_id } = req.params;
+    const { opportunityId } = req.params;
 
     try {
       const db = admin.firestore();
       const applicationsRef = db.collection("applications");
 
-      // Query applications where opportunity_id matches
+      // Query applications where opportunityId matches
       const querySnapshot = await applicationsRef
-        .where("opportunity_id", "==", opportunity_id)
+        .where("opportunityId", "==", opportunityId)
         .get();
 
       const applications = [];
@@ -260,14 +260,14 @@ class ApplicationsController {
         });
       } else {
         console.log(
-          `No applications found for opportunity_id: ${opportunity_id}`,
+          `No applications found for opportunityId: ${opportunityId}`,
         );
       }
 
       return res.status(200).json(applications);
     } catch (error) {
       console.error(
-        `Error fetching applications for opportunity_id: ${opportunity_id}`,
+        `Error fetching applications for opportunityId: ${opportunityId}`,
         error,
       );
       return res

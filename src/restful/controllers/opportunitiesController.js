@@ -71,10 +71,10 @@ class OpportunitiesController {
 
   static async getAllOpportunitiesByUserId(req, res) {
     const db = admin.firestore();
-    const { user_id } = req.params;
+    const { userId } = req.params;
     const { limit = 10, startAfter: startAfterId = null } = req.query;
 
-    if (!user_id) {
+    if (!userId) {
       return res.status(400).json({ message: "User ID is required" });
     }
 
@@ -82,7 +82,7 @@ class OpportunitiesController {
       const opportunitiesData = [];
       let query = db
         .collection("opportunities")
-        .where("user_id", "==", user_id)
+        .where("userId", "==", userId)
         .limit(parseInt(limit));
 
       if (startAfterId) {
@@ -121,14 +121,14 @@ class OpportunitiesController {
 
   static async getOpportunityById(req, res) {
     const db = admin.firestore();
-    const { opportunity_id } = req.params;
+    const { opportunityId } = req.params;
 
-    if (!opportunity_id) {
+    if (!opportunityId) {
       return res.status(400).json({ message: "Opportunity ID is required" });
     }
 
     try {
-      const opportunityRef = db.collection("opportunities").doc(opportunity_id);
+      const opportunityRef = db.collection("opportunities").doc(opportunityId);
       const docSnapshot = await opportunityRef.get();
 
       if (!docSnapshot.exists) {
@@ -204,14 +204,14 @@ class OpportunitiesController {
   static async deleteOpportunityById(req, res) {
     const db = admin.firestore();
     try {
-      const { opportunity_id } = req.params;
+      const { opportunityId } = req.params;
 
-      if (!opportunity_id) {
+      if (!opportunityId) {
         return res.status(400).json({ message: "Opportunity ID is required" });
       }
 
       // Fetch the opportunity document from Firestore
-      const opportunityRef = db.collection("opportunities").doc(opportunity_id);
+      const opportunityRef = db.collection("opportunities").doc(opportunityId);
       const docSnapshot = await opportunityRef.get();
 
       if (!docSnapshot.exists) {
@@ -233,11 +233,11 @@ class OpportunitiesController {
   static async updateOpportunityById(req, res) {
     const db = admin.firestore();
     try {
-      const { opportunity_id } = req.params;
+      const { opportunityId } = req.params;
       const { type } = req.body;
 
       // Fetch the opportunity document
-      const opportunityRef = db.collection("opportunities").doc(opportunity_id);
+      const opportunityRef = db.collection("opportunities").doc(opportunityId);
       const opportunitySnapshot = await opportunityRef.get();
 
       // Check if the opportunity exists
@@ -281,10 +281,10 @@ class OpportunitiesController {
   static async createOpportunity(req, res, type) {
     const db = admin.firestore();
     try {
-      const { user_id } = req.body;
+      const { userId } = req.body;
 
       // Fetch the user document
-      const userRef = db.collection("users").doc(user_id);
+      const userRef = db.collection("users").doc(userId);
       const userDoc = await userRef.get();
 
       if (!userDoc.exists) {
@@ -296,16 +296,14 @@ class OpportunitiesController {
       const userData = userDoc.data();
 
       // Check the number of opportunities posted by the brand
-      if (
-        userData.opportunities_posted_count >= userData.max_opportunities_posted
-      ) {
+      if (userData.opportunitiesPostedCount >= userData.maxOpportunities) {
         util.statusCode = 400;
-        util.message = `You can only post up to ${userData.max_opportunities_posted} opportunities.`;
+        util.message = `You can only post up to ${userData.maxOpportunities} opportunities.`;
         return util.send(res);
       }
 
-      // Generate UUID for opportunity_id
-      const opportunity_id = uuidv4();
+      // Generate UUID for opportunityId
+      const opportunityId = uuidv4();
 
       // Extract opportunity data from request body
       const { ...opportunityData } = req.body;
@@ -315,14 +313,14 @@ class OpportunitiesController {
         opportunityData.status = "open";
       }
 
-      // If company details are not provided, use organisation_name from user data
+      // If company details are not provided, use organizationName from user data
       if (!opportunityData.company) {
-        opportunityData.company = userData.organisation_name || null;
+        opportunityData.company = userData.organizationName || null;
       }
 
       // Add imageUrl of the user who created the opportunity
       if (userData.imageUrl) {
-        opportunityData.user_imageUrl = userData.imageUrl;
+        opportunityData.imageUrl = userData.imageUrl;
       }
 
       // Validate required fields
@@ -339,7 +337,7 @@ class OpportunitiesController {
       // Check if opportunity with same ID already exists
       const existingOpportunity = await db
         .collection("opportunities")
-        .doc(opportunity_id)
+        .doc(opportunityId)
         .get();
       if (existingOpportunity.exists) {
         util.statusCode = 400;
@@ -350,16 +348,16 @@ class OpportunitiesController {
       // Store the opportunity data in the opportunities collection
       await db
         .collection("opportunities")
-        .doc(opportunity_id)
+        .doc(opportunityId)
         .set({
-          opportunity_id,
+          opportunityId,
           type,
           ...opportunityData,
         });
 
-      // Increment the opportunities_posted_count for the user
+      // Increment the opportunitiesPostedCount for the user
       await userRef.update({
-        opportunities_posted_count: admin.firestore.FieldValue.increment(1),
+        opportunitiesPostedCount: admin.firestore.FieldValue.increment(1),
       });
 
       util.statusCode = 201;
@@ -386,7 +384,7 @@ class OpportunitiesController {
   }
 }
 
-const requiredFields = ["title", "description", "user_id"];
+const requiredFields = ["title", "description", "userId"];
 
 function getTypeRequiredFields(type) {
   switch (type) {
@@ -394,14 +392,14 @@ function getTypeRequiredFields(type) {
       return [
         ...requiredFields,
         "category",
-        "contract_type",
+        "contractType",
         "location",
         "company",
-        "company_website",
-        "company_description",
-        "company_contact_name",
-        "company_contact_email",
-        "company_contact_tel",
+        "companyWebsite",
+        "companyDescription",
+        "companyContactName",
+        "companyContactEmail",
+        "companyContactTel",
         "experience",
         "skills",
         "education",
@@ -412,22 +410,22 @@ function getTypeRequiredFields(type) {
     case "pitch":
       return [
         ...requiredFields,
-        "target_audience",
-        "content_duration",
-        "content_type",
-        "key_message",
+        "targetAudience",
+        "contentDuration",
+        "contentType",
+        "keyMessage",
       ];
     case "campaign":
       return [
         ...requiredFields,
-        "target_audience",
-        "target_demographic",
+        "targetAudience",
+        "targetDemographic",
         "compensation",
-        "ad_type",
+        "adType",
         "length",
         "budget",
-        "start_date",
-        "end_date",
+        "startDate",
+        "endDate",
       ];
     default:
       return [];

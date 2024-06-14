@@ -19,19 +19,19 @@ router.get(
   AdminController.adminGetInfo,
 );
 router.put(
-  "/activate/:user_id",
+  "/activate/:userId",
   protect,
   allowedRole(["admin", "super_admin"]),
   AdminController.adminActivateUser,
 );
 router.put(
-  "/deactivate/:user_id",
+  "/deactivate/:userId",
   protect,
   allowedRole(["admin", "super_admin"]),
   AdminController.adminDeActivateUser,
 );
 router.delete(
-  "/delete/:user_id",
+  "/delete/:userId",
   protect,
   allowedRole(["admin", "super_admin"]),
   AdminController.adminDeleteUser,
@@ -39,13 +39,13 @@ router.delete(
 
 // New route to update user limits
 router.patch(
-  "/updateUserLimits/:user_id",
+  "/updateUserLimits/:userId",
   protect,
   allowedRole(["super_admin"]),
   AdminController.adminUpdateUserLimits,
 );
 router.get("/opportunities", AdminController.getAllOpportunities);
 router.get("/company", AdminController.getCompanyInfo);
-router.put("/company", AdminController.updateCompanyInfo);
+router.patch("/company", AdminController.updateCompanyInfo);
 
 module.exports.adminRouter = router;

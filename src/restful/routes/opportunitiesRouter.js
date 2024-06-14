@@ -6,14 +6,14 @@ const {
 const router = Router();
 
 router.get("/", OpportunitiesController.getAllOpportunities);
-router.get("/id/:user_id", OpportunitiesController.getAllOpportunitiesByUserId);
+router.get("/id/:userId", OpportunitiesController.getAllOpportunitiesByUserId);
 router.get("/status/:status", OpportunitiesController.getOpportunitiesByStatus);
 router.delete(
-  "/opportunityid/:opportunity_id",
+  "/opportunityid/:opportunityId",
   OpportunitiesController.deleteOpportunityById,
 );
 router.get(
-  "/opportunityid/:opportunity_id",
+  "/opportunityid/:opportunityId",
   OpportunitiesController.getOpportunityById,
 );
 
@@ -45,7 +45,7 @@ router.post("/", async (req, res) => {
 
 // UPDATE endpoint
 router.put(
-  "/opportunityid/:opportunity_id",
+  "/opportunityid/:opportunityId",
   OpportunitiesController.updateOpportunityById,
 ); // New route for update
 

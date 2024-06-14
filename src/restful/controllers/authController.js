@@ -324,7 +324,7 @@ class AuthController {
         const docRef = admin
           .firestore()
           .collection("users")
-          .doc(req.user.userId);
+          .doc(req.user.user_id);
         await docRef.set({ ...valuesToUpdate }, { merge: true });
 
         util.statusCode = 200;
@@ -349,7 +349,7 @@ class AuthController {
             const docRef = admin
               .firestore()
               .collection("users")
-              .doc(req.user.userId);
+              .doc(req.user.user_id);
 
             await docRef.set(
               {
@@ -359,8 +359,10 @@ class AuthController {
               { merge: true },
             );
 
-            util.statusCode = 200;
-            util.message = "User data updated successfully";
+            util.setSuccess(200, "User profile updated successfully", {
+              profilePhoto,
+            });
+
             return util.send(res);
           })
           .catch((error) => {
@@ -381,7 +383,7 @@ class AuthController {
   static async changePassword(req, res) {
     const { password } = req.body;
     try {
-      await admin.auth().updateUser(req.user?.userId, {
+      await admin.auth().updateUser(req.user?.user_id, {
         password,
       });
       util.statusCode = 200;
@@ -422,7 +424,7 @@ class AuthController {
         const docRef = admin
           .firestore()
           .collection("users")
-          .doc(req.user.userId);
+          .doc(req.user.user_id);
         await docRef.set({ email }, { merge: true });
         await admin.auth().updateUser(userId, {
           email,

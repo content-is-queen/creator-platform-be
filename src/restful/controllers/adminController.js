@@ -44,7 +44,7 @@ class AdminController {
         disabled: false,
       };
       if (role === "admin" || role === "super_admin") {
-        userData.organization = db.doc("organization_info/ciq");
+        userData.organization = db.doc("organizationInfo/ciq");
       }
 
       await usersCollectionRef.doc(user.uid).set(userData);
@@ -296,7 +296,7 @@ class AdminController {
   static async getCompanyInfo(req, res) {
     try {
       const db = admin.firestore();
-      const ciQRef = db.collection("organization_info").doc("ciq");
+      const ciQRef = db.collection("organizationInfo").doc("ciq");
       const userDoc = await ciQRef.get();
       util.setSuccess(200, userDoc.data());
       return util.send(res);
@@ -316,7 +316,7 @@ class AdminController {
         return util.send(res);
       }
       const db = admin.firestore();
-      const ciQRef = db.collection("organization_info").doc("ciq");
+      const ciQRef = db.collection("organizationInfo").doc("ciq");
       const updateData = { organizationName };
 
       if (organizationLogo) {

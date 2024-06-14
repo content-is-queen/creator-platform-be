@@ -24,8 +24,6 @@ class ChatController {
         return res.status(400).json({ error: "Invalid request" });
       }
 
-      console.log("Message:", message); // Log the message to check its content
-
       const db = admin.firestore();
       const roomRef = db.collection("rooms").doc(id);
 

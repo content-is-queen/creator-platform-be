@@ -250,7 +250,7 @@ class AuthController {
         firstName: userData.firstName,
         lastName: userData.lastName,
         role: userData.role,
-        imageUrl: userData.imageUrl,
+        profilePhoto: userData.profilePhoto,
         bio: userData.bio,
         uid: userData.uid,
         ...(userData.organizationName
@@ -316,7 +316,7 @@ class AuthController {
   static async updateUser(req, res) {
     try {
       const { ...valuesToUpdate } = req.body;
-      const file = req.files?.imageUrl;
+      const file = req.files?.profilePhoto;
 
       if (!file) {
         // If there's no file, update user data directly in Firestore
@@ -344,7 +344,7 @@ class AuthController {
         uploadTask
           .then(async (snapshot) => {
             // Once uploaded, get the image URL and update user data in Firestore
-            const imageUrl = snapshot[0].metadata.mediaLink;
+            const profilePhoto = snapshot[0].metadata.mediaLink;
             const docRef = admin
               .firestore()
               .collection("users")
@@ -352,7 +352,7 @@ class AuthController {
 
             await docRef.set(
               {
-                imageUrl,
+                profilePhoto,
                 ...valuesToUpdate,
               },
               { merge: true },

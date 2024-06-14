@@ -47,12 +47,12 @@ async function createRoom(db, participantIds, opportunityTitle) {
         {
           userId: authorId,
           fullName: `${authorData.firstName} ${authorData.lastName}`,
-          profileImage: authorData.imageUrl,
+          profilePhoto: authorData.profilePhoto,
         },
         {
           userId: creatorId,
           fullName: `${creatorData.firstName} ${creatorData.lastName}`,
-          profileImage: creatorData.imageUrl,
+          profilePhoto: creatorData.profilePhoto,
         },
       ],
     };

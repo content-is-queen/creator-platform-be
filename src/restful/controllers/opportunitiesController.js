@@ -318,9 +318,9 @@ class OpportunitiesController {
         opportunityData.company = userData.organizationName || null;
       }
 
-      // Add imageUrl of the user who created the opportunity
-      if (userData.imageUrl) {
-        opportunityData.imageUrl = userData.imageUrl;
+      // Add profilePhoto of the user who created the opportunity
+      if (userData.profilePhoto) {
+        opportunityData.profilePhoto = userData.profilePhoto;
       }
 
       // Validate required fields

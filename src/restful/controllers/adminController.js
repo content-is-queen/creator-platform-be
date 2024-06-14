@@ -138,11 +138,11 @@ class AdminController {
       const db = admin.firestore();
       const userDoc = await db.collection("users").doc(userId).get();
       const userData = userDoc.data();
-      const imageUrl = userData?.imageUrl;
+      const profilePhoto = userData?.profilePhoto;
       await admin.auth().deleteUser(userId);
       await db.collection("users").doc(userId).delete();
-      if (imageUrl) {
-        const fileName = imageUrl.split("/").pop();
+      if (profilePhoto) {
+        const fileName = profilePhoto.split("/").pop();
         const bucket = admin.storage().bucket();
         await bucket.file(`profile/picture/${fileName}`).delete();
       }

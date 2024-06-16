@@ -341,11 +341,11 @@ class OpportunitiesController {
       const isValid = requiredFields.every((field) =>
         Object.hasOwn(opportunityData, field),
       );
-      // if (!isValid) {
-      //   util.statusCode = 400;
-      //   util.message = "Please fill in all required fields";
-      //   return util.send(res);
-      // }
+      if (!isValid) {
+        util.statusCode = 400;
+        util.message = "Please fill in all required fields";
+        return util.send(res);
+      }
 
       // Check if opportunity with same ID already exists
       const existingOpportunity = await db

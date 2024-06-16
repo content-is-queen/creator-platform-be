@@ -50,16 +50,17 @@ async function createRoom(db, participantIds, opportunityTitle) {
         {
           userId: authorId,
           fullName: `${authorData.firstName} ${authorData.lastName}`,
+          profilePhotoRef: db.doc(`users/${authorId}`),
           profilePhoto: authorData.profilePhoto || "",
         },
         {
           userId: creatorId,
           fullName: `${creatorData.firstName} ${creatorData.lastName}`,
           profilePhoto: creatorData.profilePhoto || "",
+          profilePhotoRef: db.doc(`users/${creatorId}`),
         },
       ],
     };
-
     await roomRef.set(roomData);
 
     return {
@@ -102,8 +103,6 @@ class ApplicationsController {
     const db = admin.firestore();
     const { applicationId } = req.params;
     try {
-      console.log("Fetching application with ID:", applicationId); // Add this line for logging
-
       const applicationSnapshot = await db
         .collection("applications")
         .doc(applicationId)
@@ -115,13 +114,11 @@ class ApplicationsController {
         util.message = applicationData;
         return util.send(res);
       } else {
-        console.log("Application not found:", applicationId); // Add this line for logging
         util.statusCode = 404;
         util.message = "Application not found";
         return util.send(res);
       }
     } catch (error) {
-      console.error("Error fetching application:", error); // Add this line for logging
       util.statusCode = 500;
       util.message = error.message || "Server error";
       return util.send(res);
@@ -174,7 +171,6 @@ class ApplicationsController {
       util.message = newApplicationData;
       return util.send(res);
     } catch (error) {
-      console.log(error);
       util.statusCode = 500;
       util.message = error.message || "Server error";
       return util.send(res);
@@ -185,7 +181,6 @@ class ApplicationsController {
     const db = admin.firestore();
     const { applicationId } = req.params;
     const { status, authorId, creatorId, opportunityTitle } = req.body;
-
     try {
       const applicationRef = db.collection("applications").doc(applicationId);
 
@@ -199,7 +194,6 @@ class ApplicationsController {
 
       if (status === "accepted") {
         const participantIds = [authorId, creatorId];
-
         // Call createRoom function with data
         const { roomId } = await createRoom(
           db,

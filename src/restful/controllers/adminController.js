@@ -41,6 +41,7 @@ class AdminController {
         firstName,
         lastName,
         role,
+        ...((role === "creator" || role === "brand") && { subscribed: false }), // Add subscription field for admin or creators
         disabled: false,
       };
       if (role === "admin" || role === "super_admin") {

@@ -47,8 +47,19 @@ class OpportunitiesController {
           if (doc.data().profilePhotoRef) {
             const profileData = await doc.data().profilePhotoRef.get();
             opportunitiesDetails.profilePhoto = profileData.data().profilePhoto;
+          } else {
+            const profileData = await doc.data().profileCompanyPhotoRef.get();
+            opportunitiesDetails.profilePhoto =
+              profileData.data().organizationLogo;
+            opportunitiesDetails.organizationName =
+              profileData.data().organizationName;
           }
-          const { profilePhotoRef, ...restFromFiltered } = opportunitiesDetails;
+          // const { profilePhotoRef, ...restFromFiltered } = opportunitiesDetails;
+          const {
+            profilePhotoRef,
+            profileCompanyPhotoRef,
+            ...restFromFiltered
+          } = opportunitiesDetails;
           opportunitiesData.push(restFromFiltered);
         }),
       );
@@ -146,12 +157,20 @@ class OpportunitiesController {
       }
 
       const opportunityData = docSnapshot.data();
+
       if (opportunityData.profilePhotoRef) {
         const profileData = await opportunityData.profilePhotoRef.get();
         opportunityData.profilePhoto = profileData.data().profilePhoto;
+      } else if (opportunityData.profileCompanyPhotoRef) {
+        const profileData = await opportunityData.profileCompanyPhotoRef.get();
+        opportunityData.profilePhoto = profileData.data().organizationLogo;
+        opportunityData.organizationName = profileData.data().organizationName;
       }
-      const { profilePhotoRef, ...restFromFiterd } = opportunityData;
-      return res.status(200).json(restFromFiterd);
+
+      const { profilePhotoRef, profileCompanyPhotoRef, ...restFromFiltered } =
+        opportunityData;
+
+      return res.status(200).json(restFromFiltered);
     } catch (error) {
       console.error("Error fetching opportunity by ID:", error);
       return res.status(500).json({ message: "Server error" });
@@ -330,22 +349,23 @@ class OpportunitiesController {
       if (!opportunityData.company) {
         opportunityData.company = userData.organizationName || null;
       }
-
-      // Add profilePhoto of the user who created the opportunity
-      if (userData.profilePhoto) {
+      if (userData.role === "admin" || userData.role === "super_admin") {
+        const adminRef = db.collection("organizationInfo").doc("ciq");
+        opportunityData.profileCompanyPhotoRef = adminRef;
+      } else {
         opportunityData.profilePhotoRef = userRef;
       }
 
       // Validate required fields
-      const requiredFields = getTypeRequiredFields(type);
-      const isValid = requiredFields.every((field) =>
-        Object.hasOwn(opportunityData, field),
-      );
-      if (!isValid) {
-        util.statusCode = 400;
-        util.message = "Please fill in all required fields";
-        return util.send(res);
-      }
+      // const requiredFields = getTypeRequiredFields(type);
+      // const isValid = requiredFields.every((field) =>
+      //   Object.hasOwn(opportunityData, field),
+      // );
+      // if (!isValid) {
+      //   util.statusCode = 400;
+      //   util.message = "Please fill in all required fields";
+      //   return util.send(res);
+      // }
 
       // Check if opportunity with same ID already exists
       const existingOpportunity = await db

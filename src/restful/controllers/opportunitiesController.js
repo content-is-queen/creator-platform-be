@@ -43,7 +43,6 @@ class OpportunitiesController {
       const querySnapshot = await query.get();
       await Promise.all(
         querySnapshot.docs.map(async (doc) => {
-          console.log(doc.data());
           const opportunitiesDetails = { id: doc.id, ...doc.data() };
           if (doc.data().profilePhotoRef) {
             const profileData = await doc.data().profilePhotoRef.get();
@@ -52,6 +51,8 @@ class OpportunitiesController {
             const profileData = await doc.data().profileCompanyPhotoRef.get();
             opportunitiesDetails.profilePhoto =
               profileData.data().organizationLogo;
+            opportunitiesDetails.organizationName =
+              profileData.data().organizationName;
           }
           // const { profilePhotoRef, ...restFromFiltered } = opportunitiesDetails;
           const {
@@ -163,6 +164,7 @@ class OpportunitiesController {
       } else if (opportunityData.profileCompanyPhotoRef) {
         const profileData = await opportunityData.profileCompanyPhotoRef.get();
         opportunityData.profilePhoto = profileData.data().organizationLogo;
+        opportunityData.organizationName = profileData.data().organizationName;
       }
 
       const { profilePhotoRef, profileCompanyPhotoRef, ...restFromFiltered } =

@@ -38,6 +38,7 @@ const schema = {
     podcastName: Joi.string().allow(""),
     podcastUrl: Joi.string().uri().allow(""),
     profilePhoto: Joi.string().allow(""),
+    interests: Joi.array().allow(""),
     showreel: Joi.string().uri().allow(""),
     showcase: Joi.array().items(Joi.string().uri().max(6)).allow(""),
     credits: Joi.array().items(
@@ -239,6 +240,7 @@ class AuthController {
           }
         }
       }
+
       const nonSensitiveData = {
         firstName: userData.firstName,
         lastName: userData.lastName,
@@ -246,6 +248,7 @@ class AuthController {
         profilePhoto: userData.profilePhoto,
         bio: userData.bio,
         uid: userData.uid,
+        ...(userData.role === "creator" && { interests: userData.interests }),
         ...(userData.organizationName
           ? { organizationName: userData.organizationName }
           : {}),

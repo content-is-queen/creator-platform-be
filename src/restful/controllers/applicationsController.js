@@ -1,7 +1,7 @@
 const dotenv = require("dotenv");
 const { Util } = require("../../helper/utils");
 const admin = require("firebase-admin");
-const { SendAcceptEmail } = require("../../services/templates/SendAcceptEmail");
+const { sendAcceptEmail } = require("../../services/templates/SendAcceptEmail");
 const transporter = require("../../helper/mailHelper");
 const sendNotification = require("../../helper/sendNotification");
 
@@ -45,6 +45,7 @@ async function createRoom(db, participantIds, opportunityTitle) {
       participantIds,
       lastMessage: "",
       opportunityTitle,
+      timeSent: admin.firestore.FieldValue.serverTimestamp(),
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       userProfiles: [
         {
@@ -206,7 +207,7 @@ class ApplicationsController {
         if (doc.exists) {
           const { firstName, email, fcmToken, uid } = doc.data();
           if (email) {
-            const emailTemplate = SendAcceptEmail(firstName);
+            const emailTemplate = sendAcceptEmail(firstName);
 
             const mailOptions = {
               from: process.env.EMAIL,

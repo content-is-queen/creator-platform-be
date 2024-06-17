@@ -38,6 +38,7 @@ const schema = {
     podcastName: Joi.string().allow(""),
     podcastUrl: Joi.string().uri().allow(""),
     profilePhoto: Joi.string().allow(""),
+    interests: Joi.array().allow(""),
     showreel: Joi.string().uri().allow(""),
     showcase: Joi.array().items(Joi.string().uri().max(6)).allow(""),
     credits: Joi.array().items(
@@ -58,20 +59,12 @@ class AuthController {
 
   static async signup(req, res) {
     try {
-      // Proceed with signup logic if validation succeeds
       const { firstName, lastName, email, password, role, ...other } = req.body;
 
-      // Validate request body against schema
       await schema[role].validateAsync(req.body);
 
       const db = admin.firestore();
-      let user = null;
-
-      // Create user in Firebase Authentication
-      user = await admin.auth().createUser({
-        email,
-        password,
-      });
+      const user = await admin.auth().createUser({ email, password });
 
       const uid = user.uid;
       await admin.auth().setCustomUserClaims(uid, { role, subscribed: false });
@@ -202,7 +195,7 @@ class AuthController {
             }
           }
         }
-        const { organization, ...filteredData } = userData;
+        const { organization, subscribed, ...filteredData } = userData;
         const dataToReturn = { ...filteredData };
         return res.status(200).json(dataToReturn);
       } else {
@@ -247,6 +240,7 @@ class AuthController {
           }
         }
       }
+
       const nonSensitiveData = {
         firstName: userData.firstName,
         lastName: userData.lastName,
@@ -254,6 +248,7 @@ class AuthController {
         profilePhoto: userData.profilePhoto,
         bio: userData.bio,
         uid: userData.uid,
+        ...(userData.role === "creator" && { interests: userData.interests }),
         ...(userData.organizationName
           ? { organizationName: userData.organizationName }
           : {}),
@@ -300,7 +295,7 @@ class AuthController {
               }
             }
           }
-          const { organization, ...filteredData } = userObj;
+          const { organization, subscribed, ...filteredData } = userObj;
           users.push(filteredData);
         }
       }

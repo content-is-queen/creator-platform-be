@@ -45,6 +45,7 @@ async function createRoom(db, participantIds, opportunityTitle) {
       participantIds,
       lastMessage: "",
       opportunityTitle,
+      timeSent: admin.firestore.FieldValue.serverTimestamp(),
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       userProfiles: [
         {

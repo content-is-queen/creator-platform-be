@@ -310,15 +310,23 @@ class AdminController {
 
   static async updateCompanyInfo(req, res) {
     try {
-      const { organizationName, organizationLogo } = req.body;
-      if (!organizationName) {
+      const { organizationName, organizationBio, organizationLogo } = req.body;
+      if (!organizationName && !organizationBio) {
         util.statusCode = 400;
-        util.message = "Organization name is required.";
+        util.message = "Organization name and bio is required.";
         return util.send(res);
       }
       const db = admin.firestore();
       const ciQRef = db.collection("organizationInfo").doc("ciq");
-      const updateData = { organizationName };
+      const updateData = {};
+
+      if (organizationName) {
+        updateData.organizationName = organizationName;
+      }
+
+      if (organizationBio !== undefined) {
+        updateData.organizationBio = organizationBio;
+      }
 
       if (organizationLogo) {
         updateData.organizationLogo = organizationLogo;

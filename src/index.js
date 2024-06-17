@@ -50,3 +50,4 @@ const start = () => {
 };
 start();
 exports.api = functions.https.onRequest(app);
+module.exports = app;

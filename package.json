@@ -8,8 +8,24 @@
     "deploy": "firebase deploy --only functions",
     "check": "npx prettier ./src --check",
     "format": "npx prettier ./src --write",
-    "lint": "npx eslint . --ext .js"
+    "lint": "npx eslint . --ext .js",
+    "test": "cross-env NODE_ENV=test PORT=5000 mocha --require @babel/register --exit 'src/tests/**/*.test.js'",
+    "test:coverage": "nyc --reporter=lcov --reporter=text mocha --require @babel/polyfill --require @babel/register 'src/tests/**/*.test.js' --timeout 500000000 --exit",
+    "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
+  "nyc": {
+  "include": ["src/**/*.js"],
+  "exclude": ["node_modules", "src/tests"],
+  "reporter": ["lcov", "text"],
+  "all": true,
+  "cache": false,
+  "check-coverage": true,
+  "lines": 90,
+  "statements": 90,
+  "functions": 90,
+  "branches": 90,
+  "require": ["@babel/register"]
+},
   "author": "Bizimungu Pascal",
   "license": "ISC",
   "devDependencies": {
@@ -18,12 +34,17 @@
     "@babel/polyfill": "^7.12.1",
     "@babel/preset-env": "^7.24.0",
     "@babel/register": "^7.23.7",
+    "chai": "^5.1.1",
+    "chai-http": "^5.0.0",
+    "coveralls": "^3.1.1",
     "eslint": "^8.57.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-n": "^16.6.2",
     "eslint-plugin-promise": "^6.1.1",
-    "nodemon": "^3.1.0"
+    "mocha": "^10.4.0",
+    "nodemon": "^3.1.0",
+    "nyc": "^17.0.0"
   },
   "dependencies": {
     "@firebase/storage": "^0.12.2",
@@ -38,8 +59,8 @@
     "firebase": "^10.9.0",
     "firebase-admin": "^12.0.0",
     "firebase-functions": "^4.9.0",
-    "jsonwebtoken": "^9.0.2",
     "joi": "^17.13.1",
+    "jsonwebtoken": "^9.0.2",
     "nodemailer": "^6.9.13",
     "prettier": "^3.2.5",
     "stripe": "^15.8.0",

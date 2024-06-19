@@ -42,7 +42,6 @@ class NotificationsController {
         .doc(userId)
         .collection("notifications")
         .add(notificationData);
-
       util.statusCode = 200;
       util.message = "Notification sent successfully";
       return util.send(res);

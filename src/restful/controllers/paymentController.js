@@ -10,20 +10,22 @@ const admin = require("firebase-admin");
  */
 
 const createCheckoutSession = async (req, res) => {
-  const origin = req.headers.origin || "http://localhost:3000"; // Default to localhost if origin is not set
+  const origin = req.headers.origin || "http://localhost:3000";
   try {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
         {
-          price: "price_1PLO1XA0tTttcwfynID8uLdO", // Use the specific price ID
+          price: "price_1PLO1XA0tTttcwfynID8uLdO",
           quantity: 1,
         },
       ],
-      mode: "subscription", // Or 'payment' for one-time payments
-      success_url: `${origin}/thankyou?sessionId={CHECKOUT_sessionId}`,
+      mode: "subscription",
+      success_url: `${origin}/thankyou?sessionId={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/plus`,
     });
+
+    console.log("Created checkout session:", session.id); // Logging session ID
 
     res.status(200).json({ id: session.id });
   } catch (error) {

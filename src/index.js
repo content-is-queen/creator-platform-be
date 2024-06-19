@@ -5,7 +5,6 @@ const functions = require("firebase-functions");
 const { initializeApp, cert } = require("firebase-admin/app");
 const fileUploader = require("express-fileupload");
 const router = require("./restful/routes");
-const apiLogger = require("./helper/apiCallLog");
 
 const serviceAccount = {
   type: "service_account",
@@ -23,7 +22,7 @@ const serviceAccount = {
 
 dotenv.config();
 
-const PORT = process.env.PORT || 5000;
+const PORT = 5000;
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -31,7 +30,7 @@ initializeApp({
   credential: cert(serviceAccount),
   storageBucket: `${process.env.PROJECT_ID}.appspot.com`,
 });
-app.use(apiLogger);
+
 app.use(
   fileUploader({
     fileSize: 50 * 1024 * 1024,

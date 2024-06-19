@@ -89,7 +89,7 @@ class AuthController {
       console.log(error);
       const errorMessage = error?.errorInfo?.message;
       util.statusCode = 500;
-      util.message = errorMessage || error.message || "Server error";
+      util.message = errorMessage || error.message || " ";
       return util.send(res);
     }
   }
@@ -370,7 +370,7 @@ class AuthController {
       }
     } catch (error) {
       util.statusCode = 500;
-      util.message = "Server error";
+      util.message = error.message || "Server error";
       return util.send(res);
     }
   }

@@ -3,6 +3,7 @@ node_modules/
 api_logs.txt
 
 .env
+.env.contentisqueen-97ae5
 .env.creator-platform--production
 
 contentisqueen-97ae5-firebase-adminsdk-qhkbo-6886ee17eb.json

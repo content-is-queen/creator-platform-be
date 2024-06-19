@@ -19,7 +19,7 @@ class OpportunitiesController {
 
   static async getAllOpportunities(req, res) {
     const db = admin.firestore();
-    const { limit = 10, startAfter: startAfterId = null } = req.query; // Default limit to 10, startAfter to null
+    const { limit = 10, startAfter: startAfterId = null } = req.query;
 
     try {
       const opportunitiesData = [];
@@ -28,8 +28,6 @@ class OpportunitiesController {
         .where("status", "!=", "archived")
         .orderBy("status")
         .limit(parseInt(limit));
-
-      // If startAfterId is provided, use it to fetch the next set of documents
       if (startAfterId) {
         const startAfterDoc = await db
           .collection("opportunities")
@@ -42,12 +40,29 @@ class OpportunitiesController {
         }
       }
 
-      // Fetch the documents
       const querySnapshot = await query.get();
-
-      querySnapshot.forEach((doc) => {
-        opportunitiesData.push({ id: doc.id, ...doc.data() });
-      });
+      await Promise.all(
+        querySnapshot.docs.map(async (doc) => {
+          const opportunitiesDetails = { id: doc.id, ...doc.data() };
+          if (doc.data().profilePhotoRef) {
+            const profileData = await doc.data().profilePhotoRef.get();
+            opportunitiesDetails.profilePhoto = profileData.data().profilePhoto;
+          } else {
+            const profileData = await doc.data().profileCompanyPhotoRef.get();
+            opportunitiesDetails.profilePhoto =
+              profileData.data().organizationLogo;
+            opportunitiesDetails.organizationName =
+              profileData.data().organizationName;
+          }
+          // const { profilePhotoRef, ...restFromFiltered } = opportunitiesDetails;
+          const {
+            profilePhotoRef,
+            profileCompanyPhotoRef,
+            ...restFromFiltered
+          } = opportunitiesDetails;
+          opportunitiesData.push(restFromFiltered);
+        }),
+      );
 
       if (opportunitiesData.length > 0) {
         util.statusCode = 200;
@@ -73,7 +88,6 @@ class OpportunitiesController {
     const db = admin.firestore();
     const { userId } = req.params;
     const { limit = 10, startAfter: startAfterId = null } = req.query;
-
     if (!userId) {
       return res.status(400).json({ message: "User ID is required" });
     }
@@ -98,12 +112,19 @@ class OpportunitiesController {
       }
 
       const querySnapshot = await query.get();
-
-      querySnapshot.forEach((doc) => {
+      const promises = querySnapshot.docs.map(async (doc) => {
         if (doc.data().status !== "archived") {
-          opportunitiesData.push({ id: doc.id, ...doc.data() });
+          const opportunitiesDetails = { id: doc.id, ...doc.data() };
+          if (doc.data().profilePhotoRef) {
+            const profileData = await doc.data().profilePhotoRef.get();
+            opportunitiesDetails.profilePhoto = profileData.data().profilePhoto;
+          }
+          const { profilePhotoRef, ...restFromFiterd } = opportunitiesDetails;
+          opportunitiesData.push(restFromFiterd);
         }
       });
+
+      await Promise.all(promises);
 
       if (opportunitiesData.length > 0) {
         return res.status(200).json({
@@ -136,7 +157,20 @@ class OpportunitiesController {
       }
 
       const opportunityData = docSnapshot.data();
-      return res.status(200).json(opportunityData);
+
+      if (opportunityData.profilePhotoRef) {
+        const profileData = await opportunityData.profilePhotoRef.get();
+        opportunityData.profilePhoto = profileData.data().profilePhoto;
+      } else if (opportunityData.profileCompanyPhotoRef) {
+        const profileData = await opportunityData.profileCompanyPhotoRef.get();
+        opportunityData.profilePhoto = profileData.data().organizationLogo;
+        opportunityData.organizationName = profileData.data().organizationName;
+      }
+
+      const { profilePhotoRef, profileCompanyPhotoRef, ...restFromFiltered } =
+        opportunityData;
+
+      return res.status(200).json(restFromFiltered);
     } catch (error) {
       console.error("Error fetching opportunity by ID:", error);
       return res.status(500).json({ message: "Server error" });
@@ -292,9 +326,7 @@ class OpportunitiesController {
         util.message = "User not found";
         return util.send(res);
       }
-
       const userData = userDoc.data();
-
       // Check the number of opportunities posted by the brand
       if (userData.opportunitiesPostedCount >= userData.maxOpportunities) {
         util.statusCode = 400;
@@ -317,22 +349,23 @@ class OpportunitiesController {
       if (!opportunityData.company) {
         opportunityData.company = userData.organizationName || null;
       }
-
-      // Add profilePhoto of the user who created the opportunity
-      if (userData.profilePhoto) {
-        opportunityData.profilePhoto = userData.profilePhoto;
+      if (userData.role === "admin" || userData.role === "super_admin") {
+        const adminRef = db.collection("organizationInfo").doc("ciq");
+        opportunityData.profileCompanyPhotoRef = adminRef;
+      } else {
+        opportunityData.profilePhotoRef = userRef;
       }
 
       // Validate required fields
-      const requiredFields = getTypeRequiredFields(type);
-      const isValid = requiredFields.every((field) =>
-        Object.hasOwn(opportunityData, field),
-      );
-      if (!isValid) {
-        util.statusCode = 400;
-        util.message = "Please fill in all required fields";
-        return util.send(res);
-      }
+      // const requiredFields = getTypeRequiredFields(type);
+      // const isValid = requiredFields.every((field) =>
+      //   Object.hasOwn(opportunityData, field),
+      // );
+      // if (!isValid) {
+      //   util.statusCode = 400;
+      //   util.message = "Please fill in all required fields";
+      //   return util.send(res);
+      // }
 
       // Check if opportunity with same ID already exists
       const existingOpportunity = await db
@@ -394,12 +427,6 @@ function getTypeRequiredFields(type) {
         "category",
         "contractType",
         "location",
-        "company",
-        "companyWebsite",
-        "companyDescription",
-        "companyContactName",
-        "companyContactEmail",
-        "companyContactTel",
         "experience",
         "skills",
         "education",

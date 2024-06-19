@@ -46,6 +46,6 @@ router.patch(
 );
 router.get("/opportunities", AdminController.getAllOpportunities);
 router.get("/company", AdminController.getCompanyInfo);
-router.patch("/company", AdminController.updateCompanyInfo);
+router.put("/company", AdminController.updateCompanyInfo);
 
 module.exports.adminRouter = router;

@@ -1,8 +1,8 @@
-import dotenv from "dotenv";
+const dotenv = require("dotenv");
 
 dotenv.config();
 
-export const SendAcceptEmail = (name) => {
+const sendAcceptEmail = (name) => {
   const template = `<!DOCTYPE html>
   <html lang="en">
   
@@ -79,3 +79,5 @@ export const SendAcceptEmail = (name) => {
   </html>`;
   return template;
 };
+
+module.exports.sendAcceptEmail = sendAcceptEmail;

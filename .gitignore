@@ -3,6 +3,7 @@ node_modules/
 api_logs.txt
 
 .env
+.env.contentisqueen-97ae5
 .env.creator-platform--production
 
 contentisqueen-97ae5-firebase-adminsdk-qhkbo-6886ee17eb.json
@@ -10,3 +11,6 @@ creator-99ddf-firebase-adminsdk-nf38h-cc33e2ec46.json
 
 .firebase-debug.log
  api_logs.txt
+
+.nyc_output/
+coverage/

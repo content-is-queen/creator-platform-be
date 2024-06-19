@@ -413,7 +413,7 @@ class AuthController {
 
   static async changeEmail(req, res) {
     const { email } = req.body;
-    const { userId } = req.user;
+    const { user_id } = req.user;
     try {
       if (email !== req.user.email) {
         const docRef = admin
@@ -421,7 +421,7 @@ class AuthController {
           .collection("users")
           .doc(req.user.user_id);
         await docRef.set({ email }, { merge: true });
-        await admin.auth().updateUser(userId, {
+        await admin.auth().updateUser(user_id, {
           email,
         });
       }

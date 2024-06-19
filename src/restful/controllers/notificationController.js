@@ -70,11 +70,11 @@ class NotificationsController {
   }
 
   static async getAllNotifications(req, res) {
-    const { userId } = req.user;
+    const { user_id } = req.user;
     const notificationsRef = admin
       .firestore()
       .collection("users")
-      .doc(userId)
+      .doc(user_id)
       .collection("notifications");
 
     try {
@@ -136,13 +136,13 @@ class NotificationsController {
   }
 
   static async clearAllNotifications(req, res) {
-    const { userId } = req.user;
+    const { user_id } = req.user;
 
     try {
       const snapshot = await admin
         .firestore()
         .collection("users")
-        .doc(userId)
+        .doc(user_id)
         .collection("notifications")
         .get();
 

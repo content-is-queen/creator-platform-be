@@ -354,9 +354,11 @@ class AuthController {
               { merge: true },
             );
 
-            util.setSuccess(200, "User profile updated successfully", {
+            util.setSuccess(
+              200,
+              "User profile updated successfully",
               profilePhoto,
-            });
+            );
 
             return util.send(res);
           })

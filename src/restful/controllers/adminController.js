@@ -161,7 +161,7 @@ class AdminController {
 
   static async adminUpdateUserLimits(req, res) {
     const { userId } = req.params;
-    const { maxOpportunities, max_opportunities_applied } = req.body;
+    const { maxOpportunities, maxOpportunitiesApplied } = req.body;
 
     const db = admin.firestore();
 
@@ -180,8 +180,8 @@ class AdminController {
       if (maxOpportunities !== undefined) {
         updateData.maxOpportunities = maxOpportunities;
       }
-      if (max_opportunities_applied !== undefined) {
-        updateData.max_opportunities_applied = max_opportunities_applied;
+      if (maxOpportunitiesApplied !== undefined) {
+        updateData.maxOpportunitiesApplied = maxOpportunitiesApplied;
       }
 
       await userRef.update(updateData);

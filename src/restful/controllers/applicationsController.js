@@ -144,11 +144,11 @@ class ApplicationsController {
 
       // Check the number of applications made by the creator
       if (
-        authorData.opportunities_applied_count >=
-        authorData.max_opportunities_applied
+        authorData.opportunitiesAppliedCount >=
+        authorData.maxOpportunitiesApplied
       ) {
         util.statusCode = 400;
-        util.message = `You can only apply to up to ${authorData.max_opportunities_applied} opportunities.`;
+        util.message = `You can only apply to up to ${authorData.maxOpportunitiesApplied} opportunities.`;
         return util.send(res);
       }
 
@@ -163,7 +163,7 @@ class ApplicationsController {
       };
       await applicationRef.set(newApplicationData);
 
-      // Increment the opportunities_applied_count for the user
+      // Increment the opportunitiesAppliedCount for the user
       await creatorRef.update({
         opportunitiesAppliedCount: admin.firestore.FieldValue.increment(1),
       });

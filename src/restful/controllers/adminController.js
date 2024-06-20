@@ -344,6 +344,38 @@ class AdminController {
       return util.send(res);
     }
   }
+
+  static async addNumberOfAccountLimits(req, res) {
+    const db = admin.firestore();
+    try {
+      const { numberOfApplicationsAllowed, numberOfOpportunitiesAllowed } =
+        req.body;
+      if (
+        numberOfApplicationsAllowed === undefined &&
+        numberOfOpportunitiesAllowed === undefined
+      ) {
+        return res
+          .status(400)
+          .json({ message: "No valid fields provided for update" });
+      }
+      const updateData = {};
+      if (numberOfApplicationsAllowed !== undefined) {
+        updateData.numberOfApplicationsAllowed = numberOfApplicationsAllowed;
+      }
+      if (numberOfOpportunitiesAllowed !== undefined) {
+        updateData.numberOfOpportunitiesAllowed = numberOfOpportunitiesAllowed;
+      }
+      const settingsRef = db.collection("settings").doc("limits");
+      await settingsRef.set(updateData, { merge: true });
+      util.statusCode = 200;
+      util.message = "Settings updated successfully";
+      return util.send(res);
+    } catch (error) {
+      util.statusCode = 500;
+      util.message = error.message || "Error updating settings";
+      return util.send(res);
+    }
+  }
 }
 
 exports.AdminController = AdminController;

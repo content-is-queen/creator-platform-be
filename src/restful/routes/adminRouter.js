@@ -47,5 +47,11 @@ router.patch(
 router.get("/opportunities", AdminController.getAllOpportunities);
 router.get("/company", AdminController.getCompanyInfo);
 router.put("/company", AdminController.updateCompanyInfo);
+router.put(
+  "/limits",
+  protect,
+  allowedRole(["super_admin"]),
+  AdminController.addNumberOfAccountLimits,
+);
 
 module.exports.adminRouter = router;

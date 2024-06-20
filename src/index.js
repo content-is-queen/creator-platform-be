@@ -26,6 +26,10 @@ const PORT = 5000;
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Set trust proxy
+app.set("trust proxy", 1); // Adjust the number based on your proxy setup
+
 initializeApp({
   credential: cert(serviceAccount),
   storageBucket: `${process.env.PROJECT_ID}.appspot.com`,

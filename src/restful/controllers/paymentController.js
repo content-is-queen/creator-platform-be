@@ -111,11 +111,11 @@ const subscribeUser = async (req, res) => {
 };
 
 const getUserPaymentInfo = async (req, res) => {
-  const { userId } = req.query;
+  const { user_id } = req.user;
   const db = admin.firestore();
 
   try {
-    const userDoc = await db.collection("users").doc(userId).get();
+    const userDoc = await db.collection("users").doc(user_id).get();
     if (!userDoc.exists) {
       return res.status(404).json({ error: "User not found" });
     }

@@ -20,16 +20,8 @@ class NotificationsController {
    */
 
   static async sendNotification(req, res) {
-    const { token, title, body, userId } = req.body;
+    const { title, body, userId } = req.body;
     try {
-      await admin.messaging().send({
-        token,
-        notification: {
-          title,
-          body,
-        },
-      });
-
       const notificationData = {
         title,
         body,
@@ -46,24 +38,9 @@ class NotificationsController {
       util.message = "Notification sent successfully";
       return util.send(res);
     } catch (error) {
+      console.log(error);
       util.statusCode = 500;
       util.message = error.message || "Failed to send verification email";
-      return util.send(res);
-    }
-  }
-
-  static async saveFcmToken(req, res) {
-    const { fcmToken, userId } = req.body;
-    try {
-      const userRef = admin.firestore().collection("users").doc(userId);
-      await userRef.set({ fcmToken }, { merge: true });
-
-      util.statusCode = 200;
-      util.message = "FCM token saved successfully";
-      return util.send(res);
-    } catch (error) {
-      util.statusCode = 500;
-      util.message = error.message || "Failed to save FCM token";
       return util.send(res);
     }
   }

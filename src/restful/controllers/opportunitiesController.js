@@ -350,7 +350,7 @@ class OpportunitiesController {
         opportunityData.company = userData.organizationName || null;
       }
       if (userData.role === "admin" || userData.role === "super_admin") {
-        const adminRef = db.collection("organizationInfo").doc("ciq");
+        const adminRef = db.collection("settings").doc("organization");
         opportunityData.profileCompanyPhotoRef = adminRef;
       } else {
         opportunityData.profilePhotoRef = userRef;

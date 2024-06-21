@@ -184,14 +184,14 @@ class AuthController {
       if (docSnapshot.exists) {
         const userData = docSnapshot.data();
         if (role === "super_admin" || role === "admin") {
-          const organizationInfoRef = userData?.organization;
-          if (organizationInfoRef) {
-            const organizationInfoSnapshot = await organizationInfoRef?.get();
-            if (organizationInfoSnapshot.exists) {
+          const settingsRef = userData?.organization;
+          if (settingsRef) {
+            const settingsSnapshot = await settingsRef?.get();
+            if (settingsSnapshot.exists) {
               userData.organizationName =
-                organizationInfoSnapshot.data().organizationName;
+                settingsSnapshot.data().organizationName;
               userData.organizationLogo =
-                organizationInfoSnapshot.data().organizationLogo;
+                settingsSnapshot.data().organizationLogo;
             }
           }
         }
@@ -229,14 +229,14 @@ class AuthController {
 
       const userData = querySnapshot.data();
       if (userData.role === "super_admin" || userData.role === "admin") {
-        const organizationInfoRef = userData?.organization;
-        if (organizationInfoRef) {
-          const organizationInfoSnapshot = await organizationInfoRef?.get();
-          if (organizationInfoSnapshot.exists) {
+        const settingsRef = userData?.organization;
+        if (settingsRef) {
+          const settingsSnapshot = await settingsRef?.get();
+          if (settingsSnapshot.exists) {
             userData.organizationName =
-              organizationInfoSnapshot.data().organizationName;
+              settingsSnapshot.data().organizationName;
             userData.organizationLogo =
-              organizationInfoSnapshot.data().organizationLogo;
+              settingsSnapshot.data().organizationLogo;
           }
         }
       }
@@ -284,14 +284,14 @@ class AuthController {
         for (const doc of querySnapshot.docs) {
           const userObj = doc.data();
           if (userObj.role === "super_admin" || userObj.role === "admin") {
-            const organizationInfoRef = userObj?.organization;
-            if (organizationInfoRef) {
-              const organizationInfoSnapshot = await organizationInfoRef?.get();
-              if (organizationInfoSnapshot.exists) {
+            const settingsRef = userObj?.organization;
+            if (settingsRef) {
+              const settingsSnapshot = await settingsRef?.get();
+              if (settingsSnapshot.exists) {
                 userObj.organizationName =
-                  organizationInfoSnapshot.data().organizationName;
+                  settingsSnapshot.data().organizationName;
                 userObj.organizationLogo =
-                  organizationInfoSnapshot.data().organizationLogo;
+                  settingsSnapshot.data().organizationLogo;
               }
             }
           }

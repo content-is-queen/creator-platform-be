@@ -62,6 +62,8 @@ const cancelSubscription = async (req, res) => {
       .doc(userId)
       .update({ subscribed: false, subscriptionId: null });
 
+    await admin.auth().setCustomUserClaims(userId, { subscribed: false });
+
     res
       .status(200)
       .json({ message: "Subscription cancelled successfully", cancellation });
@@ -91,6 +93,8 @@ const subscribeUser = async (req, res) => {
         subscribed: true,
         subscriptionId,
       });
+
+      await admin.auth().setCustomUserClaims(userId, { subscribed: true });
 
       res.status(200).json({ session });
     } else {

@@ -324,6 +324,8 @@ class AuthController {
 
         util.statusCode = 200;
         util.message = "User updated successfully";
+        util.setSuccess(200, "User updated successfully", valuesToUpdate);
+
         return util.send(res);
       } else {
         // If there's a file, upload it to Firebase Storage
@@ -348,8 +350,8 @@ class AuthController {
 
             await docRef.set(
               {
-                profilePhoto,
                 ...valuesToUpdate,
+                profilePhoto,
               },
               { merge: true },
             );
@@ -440,8 +442,8 @@ class AuthController {
   static async updateUserSubscription(req, res) {
     try {
       const { subscribed } = req.body;
-      const { userId } = req.params; // Assuming you have access to the user's ID
-      const docRef = admin.firestore().collection("users").doc(userId); // Use the user's ID to locate the document in the users collection
+      const { user_id } = req.user; // Assuming you have access to the user's ID
+      const docRef = admin.firestore().collection("users").doc(user_id); // Use the user's ID to locate the document in the users collection
 
       await docRef.set({ subscribed }, { merge: true }); // Update the 'subscribed' field
 
@@ -457,16 +459,16 @@ class AuthController {
 
   static async checkSubscription(req, res) {
     try {
-      const { userId } = req.params;
+      const { user_id } = req.user;
 
-      if (!userId) {
+      if (!user_id) {
         util.statusCode = 400;
         util.message = "User ID is required";
         return util.send(res);
       }
 
       const db = admin.firestore();
-      const docRef = db.collection("users").doc(userId);
+      const docRef = db.collection("users").doc(user_id);
       const docSnapshot = await docRef.get();
 
       if (!docSnapshot.exists) {

@@ -490,6 +490,79 @@ class AuthController {
       return util.send(res);
     }
   }
+
+  static async deleteAccount(req, res) {
+    const { fullName } = req.body;
+    const { user_id, role } = req.user;
+    console.log(
+      "Deleting account for user:",
+      user_id,
+      "with full name:",
+      fullName,
+    );
+
+    if (!fullName) {
+      return res.status(400).json({ message: "Full name is required" });
+    }
+
+    const db = admin.firestore();
+
+    try {
+      // Retrieve user data to validate full name
+      const userDocRef = db.collection("users").doc(user_id);
+      const userDocSnapshot = await userDocRef.get();
+
+      if (!userDocSnapshot.exists) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const userData = userDocSnapshot.data();
+
+      const storedFullName = `${userData.firstName.trim()} ${userData.lastName.trim()}`;
+      if (storedFullName !== fullName.trim()) {
+        return res.status(400).json({
+          message:
+            "Full name does not match. Please provide correct name to confirm account deletion.",
+        });
+      }
+
+      // Archive open or in-progress opportunities/applications based on user role
+      if (role === "brand" || role === "admin") {
+        const opportunitiesRef = db
+          .collection("opportunities")
+          .where("status", "in", ["open", "in_progress"])
+          .where("ownerId", "==", user_id);
+
+        const opportunitiesSnapshot = await opportunitiesRef.get();
+        const archivePromises = opportunitiesSnapshot.docs.map((doc) =>
+          doc.ref.update({ status: "archived" }),
+        );
+        await Promise.all(archivePromises);
+      } else if (role === "creator") {
+        const applicationsRef = db
+          .collection("applications")
+          .where("status", "in", ["open", "in_progress"])
+          .where("creatorId", "==", user_id);
+
+        const applicationsSnapshot = await applicationsRef.get();
+        const archivePromises = applicationsSnapshot.docs.map((doc) =>
+          doc.ref.update({ status: "archived" }),
+        );
+        await Promise.all(archivePromises);
+      }
+
+      // Delete user from Firestore
+      await userDocRef.delete();
+
+      // Delete user from Firebase Authentication
+      await admin.auth().deleteUser(user_id);
+
+      return res.status(200).json({ message: "Account deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      return res.status(500).json({ message: error.message || "Server error" });
+    }
+  }
 }
 
 exports.AuthController = AuthController;

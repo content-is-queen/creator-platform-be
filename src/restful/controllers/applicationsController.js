@@ -151,7 +151,17 @@ class ApplicationsController {
         util.message = `You can only apply to up to ${authorData.maxOpportunitiesApplied} opportunities.`;
         return util.send(res);
       }
+      const existingApplicationsSnapshot = await db
+        .collection("applications")
+        .where("authorId", "==", authorId)
+        .where("opportunityId", "==", opportunityId)
+        .get();
 
+      if (!existingApplicationsSnapshot.empty) {
+        util.statusCode = 400;
+        util.message = "You have already applied for this opportunity.";
+        return util.send(res);
+      }
       const applicationRef = db.collection("applications").doc();
       const newApplicationData = {
         applicationId: applicationRef.id,

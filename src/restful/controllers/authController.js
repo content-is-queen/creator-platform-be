@@ -420,14 +420,14 @@ class AuthController {
     const { user_id } = req.user;
     try {
       if (email !== req.user.email) {
+        await admin.auth().updateUser(user_id, {
+          email,
+        });
         const docRef = admin
           .firestore()
           .collection("users")
           .doc(req.user.user_id);
         await docRef.set({ email }, { merge: true });
-        await admin.auth().updateUser(user_id, {
-          email,
-        });
       }
       util.statusCode = 200;
       util.message = "Email changed successfully";

@@ -317,7 +317,7 @@ class AuthController {
       const { ...valuesToUpdate } = req.body;
       const file = req.files?.profilePhoto;
 
-      if (!file || file === undefined || file === null) {
+      if (!file) {
         // Update user document in Firestore
         const docRef = admin
           .firestore()

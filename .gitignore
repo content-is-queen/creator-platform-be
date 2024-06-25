@@ -12,5 +12,17 @@ creator-99ddf-firebase-adminsdk-nf38h-cc33e2ec46.json
 .firebase-debug.log
  api_logs.txt
 
-.nyc_output/
+# Coverage and Build Artifacts
 coverage/
+*.lcov
+.nyc_output/
+dist/
+.next
+.cache/
+out/
+.svelte-kit
+.nuxt
+public/
+_site
+.jekyll-cache
+.jest/

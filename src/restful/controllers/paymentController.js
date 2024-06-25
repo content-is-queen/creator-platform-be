@@ -62,6 +62,8 @@ const cancelSubscription = async (req, res) => {
       .doc(userId)
       .update({ subscribed: false, subscriptionId: null });
 
+    await admin.auth().setCustomUserClaims(userId, { subscribed: false });
+
     res
       .status(200)
       .json({ message: "Subscription cancelled successfully", cancellation });
@@ -92,6 +94,8 @@ const subscribeUser = async (req, res) => {
         subscriptionId,
       });
 
+      await admin.auth().setCustomUserClaims(userId, { subscribed: true });
+
       res.status(200).json({ session });
     } else {
       res.status(400).json({
@@ -111,11 +115,11 @@ const subscribeUser = async (req, res) => {
 };
 
 const getUserPaymentInfo = async (req, res) => {
-  const { userId } = req.query;
+  const { user_id } = req.user;
   const db = admin.firestore();
 
   try {
-    const userDoc = await db.collection("users").doc(userId).get();
+    const userDoc = await db.collection("users").doc(user_id).get();
     if (!userDoc.exists) {
       return res.status(404).json({ error: "User not found" });
     }

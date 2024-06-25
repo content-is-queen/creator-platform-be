@@ -2,6 +2,8 @@ const { Router } = require("express");
 const {
   OpportunitiesController,
 } = require("../controllers/opportunitiesController");
+const { protect } = require("../../middleware");
+const checkSubscribedUser = require("../../helper/checkSubscribedUser");
 
 const router = Router();
 
@@ -18,7 +20,7 @@ router.get(
 );
 
 // POST endpoint for creating opportunities
-router.post("/", async (req, res) => {
+router.post("/", protect, checkSubscribedUser(), async (req, res) => {
   const { type } = req.body;
   if (!type || !["job", "pitch", "campaign"].includes(type)) {
     return res

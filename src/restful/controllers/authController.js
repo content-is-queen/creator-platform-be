@@ -38,6 +38,7 @@ const schema = {
     podcastName: Joi.string().allow(""),
     podcastUrl: Joi.string().uri().allow(""),
     profilePhoto: Joi.string().allow(""),
+    interests: Joi.array().allow(""),
     showreel: Joi.string().uri().allow(""),
     showcase: Joi.array().items(Joi.string().uri().max(6)).allow(""),
     credits: Joi.array().items(
@@ -58,20 +59,12 @@ class AuthController {
 
   static async signup(req, res) {
     try {
-      // Proceed with signup logic if validation succeeds
       const { firstName, lastName, email, password, role, ...other } = req.body;
 
-      // Validate request body against schema
       await schema[role].validateAsync(req.body);
 
       const db = admin.firestore();
-      let user = null;
-
-      // Create user in Firebase Authentication
-      user = await admin.auth().createUser({
-        email,
-        password,
-      });
+      const user = await admin.auth().createUser({ email, password });
 
       const uid = user.uid;
       await admin.auth().setCustomUserClaims(uid, { role, subscribed: false });
@@ -96,7 +89,7 @@ class AuthController {
       console.log(error);
       const errorMessage = error?.errorInfo?.message;
       util.statusCode = 500;
-      util.message = errorMessage || error.message || "Server error";
+      util.message = errorMessage || error.message || " ";
       return util.send(res);
     }
   }
@@ -191,18 +184,18 @@ class AuthController {
       if (docSnapshot.exists) {
         const userData = docSnapshot.data();
         if (role === "super_admin" || role === "admin") {
-          const organizationInfoRef = userData?.organization;
-          if (organizationInfoRef) {
-            const organizationInfoSnapshot = await organizationInfoRef?.get();
-            if (organizationInfoSnapshot.exists) {
+          const settingsRef = userData?.organization;
+          if (settingsRef) {
+            const settingsSnapshot = await settingsRef?.get();
+            if (settingsSnapshot.exists) {
               userData.organizationName =
-                organizationInfoSnapshot.data().organizationName;
+                settingsSnapshot.data().organizationName;
               userData.organizationLogo =
-                organizationInfoSnapshot.data().organizationLogo;
+                settingsSnapshot.data().organizationLogo;
             }
           }
         }
-        const { organization, ...filteredData } = userData;
+        const { organization, subscribed, ...filteredData } = userData;
         const dataToReturn = { ...filteredData };
         return res.status(200).json(dataToReturn);
       } else {
@@ -236,17 +229,18 @@ class AuthController {
 
       const userData = querySnapshot.data();
       if (userData.role === "super_admin" || userData.role === "admin") {
-        const organizationInfoRef = userData?.organization;
-        if (organizationInfoRef) {
-          const organizationInfoSnapshot = await organizationInfoRef?.get();
-          if (organizationInfoSnapshot.exists) {
+        const settingsRef = userData?.organization;
+        if (settingsRef) {
+          const settingsSnapshot = await settingsRef?.get();
+          if (settingsSnapshot.exists) {
             userData.organizationName =
-              organizationInfoSnapshot.data().organizationName;
+              settingsSnapshot.data().organizationName;
             userData.organizationLogo =
-              organizationInfoSnapshot.data().organizationLogo;
+              settingsSnapshot.data().organizationLogo;
           }
         }
       }
+
       const nonSensitiveData = {
         firstName: userData.firstName,
         lastName: userData.lastName,
@@ -254,6 +248,7 @@ class AuthController {
         profilePhoto: userData.profilePhoto,
         bio: userData.bio,
         uid: userData.uid,
+        ...(userData.role === "creator" && { interests: userData.interests }),
         ...(userData.organizationName
           ? { organizationName: userData.organizationName }
           : {}),
@@ -289,18 +284,18 @@ class AuthController {
         for (const doc of querySnapshot.docs) {
           const userObj = doc.data();
           if (userObj.role === "super_admin" || userObj.role === "admin") {
-            const organizationInfoRef = userObj?.organization;
-            if (organizationInfoRef) {
-              const organizationInfoSnapshot = await organizationInfoRef?.get();
-              if (organizationInfoSnapshot.exists) {
+            const settingsRef = userObj?.organization;
+            if (settingsRef) {
+              const settingsSnapshot = await settingsRef?.get();
+              if (settingsSnapshot.exists) {
                 userObj.organizationName =
-                  organizationInfoSnapshot.data().organizationName;
+                  settingsSnapshot.data().organizationName;
                 userObj.organizationLogo =
-                  organizationInfoSnapshot.data().organizationLogo;
+                  settingsSnapshot.data().organizationLogo;
               }
             }
           }
-          const { organization, ...filteredData } = userObj;
+          const { organization, subscribed, ...filteredData } = userObj;
           users.push(filteredData);
         }
       }
@@ -329,6 +324,8 @@ class AuthController {
 
         util.statusCode = 200;
         util.message = "User updated successfully";
+        util.setSuccess(200, "User updated successfully", valuesToUpdate);
+
         return util.send(res);
       } else {
         // If there's a file, upload it to Firebase Storage
@@ -353,15 +350,17 @@ class AuthController {
 
             await docRef.set(
               {
-                profilePhoto,
                 ...valuesToUpdate,
+                profilePhoto,
               },
               { merge: true },
             );
 
-            util.setSuccess(200, "User profile updated successfully", {
+            util.setSuccess(
+              200,
+              "User profile updated successfully",
               profilePhoto,
-            });
+            );
 
             return util.send(res);
           })
@@ -375,7 +374,7 @@ class AuthController {
       }
     } catch (error) {
       util.statusCode = 500;
-      util.message = "Server error";
+      util.message = error.message || "Server error";
       return util.send(res);
     }
   }
@@ -418,7 +417,7 @@ class AuthController {
 
   static async changeEmail(req, res) {
     const { email } = req.body;
-    const { userId } = req.user;
+    const { user_id } = req.user;
     try {
       if (email !== req.user.email) {
         const docRef = admin
@@ -426,7 +425,7 @@ class AuthController {
           .collection("users")
           .doc(req.user.user_id);
         await docRef.set({ email }, { merge: true });
-        await admin.auth().updateUser(userId, {
+        await admin.auth().updateUser(user_id, {
           email,
         });
       }
@@ -443,8 +442,8 @@ class AuthController {
   static async updateUserSubscription(req, res) {
     try {
       const { subscribed } = req.body;
-      const { userId } = req.params; // Assuming you have access to the user's ID
-      const docRef = admin.firestore().collection("users").doc(userId); // Use the user's ID to locate the document in the users collection
+      const { user_id } = req.user; // Assuming you have access to the user's ID
+      const docRef = admin.firestore().collection("users").doc(user_id); // Use the user's ID to locate the document in the users collection
 
       await docRef.set({ subscribed }, { merge: true }); // Update the 'subscribed' field
 
@@ -460,16 +459,16 @@ class AuthController {
 
   static async checkSubscription(req, res) {
     try {
-      const { userId } = req.params;
+      const { user_id } = req.user;
 
-      if (!userId) {
+      if (!user_id) {
         util.statusCode = 400;
         util.message = "User ID is required";
         return util.send(res);
       }
 
       const db = admin.firestore();
-      const docRef = db.collection("users").doc(userId);
+      const docRef = db.collection("users").doc(user_id);
       const docSnapshot = await docRef.get();
 
       if (!docSnapshot.exists) {

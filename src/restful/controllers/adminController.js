@@ -45,7 +45,7 @@ class AdminController {
         disabled: false,
       };
       if (role === "admin" || role === "super_admin") {
-        userData.organization = db.doc("organizationInfo/ciq");
+        userData.organization = db.doc("settings/organization");
       }
 
       await usersCollectionRef.doc(user.uid).set(userData);
@@ -161,7 +161,7 @@ class AdminController {
 
   static async adminUpdateUserLimits(req, res) {
     const { userId } = req.params;
-    const { maxOpportunities, max_opportunities_applied } = req.body;
+    const { maxOpportunities, maxOpportunitiesApplied } = req.body;
 
     const db = admin.firestore();
 
@@ -180,8 +180,8 @@ class AdminController {
       if (maxOpportunities !== undefined) {
         updateData.maxOpportunities = maxOpportunities;
       }
-      if (max_opportunities_applied !== undefined) {
-        updateData.max_opportunities_applied = max_opportunities_applied;
+      if (maxOpportunitiesApplied !== undefined) {
+        updateData.maxOpportunitiesApplied = maxOpportunitiesApplied;
       }
 
       await userRef.update(updateData);
@@ -297,7 +297,7 @@ class AdminController {
   static async getCompanyInfo(req, res) {
     try {
       const db = admin.firestore();
-      const ciQRef = db.collection("organizationInfo").doc("ciq");
+      const ciQRef = db.collection("settings").doc("organization");
       const userDoc = await ciQRef.get();
       util.setSuccess(200, userDoc.data());
       return util.send(res);
@@ -310,15 +310,23 @@ class AdminController {
 
   static async updateCompanyInfo(req, res) {
     try {
-      const { organizationName, organizationLogo } = req.body;
-      if (!organizationName) {
+      const { organizationName, organizationBio, organizationLogo } = req.body;
+      if (!organizationName && !organizationBio) {
         util.statusCode = 400;
-        util.message = "Organization name is required.";
+        util.message = "Organization name and bio is required.";
         return util.send(res);
       }
       const db = admin.firestore();
-      const ciQRef = db.collection("organizationInfo").doc("ciq");
-      const updateData = { organizationName };
+      const ciQRef = db.collection("settings").doc("organization");
+      const updateData = {};
+
+      if (organizationName) {
+        updateData.organizationName = organizationName;
+      }
+
+      if (organizationBio !== undefined) {
+        updateData.organizationBio = organizationBio;
+      }
 
       if (organizationLogo) {
         updateData.organizationLogo = organizationLogo;
@@ -333,6 +341,38 @@ class AdminController {
     } catch (error) {
       util.statusCode = 500;
       util.message = error.message || "Error updating Organization's data";
+      return util.send(res);
+    }
+  }
+
+  static async addNumberOfAccountLimits(req, res) {
+    const db = admin.firestore();
+    try {
+      const { numberOfApplicationsAllowed, numberOfOpportunitiesAllowed } =
+        req.body;
+      if (
+        numberOfApplicationsAllowed === undefined &&
+        numberOfOpportunitiesAllowed === undefined
+      ) {
+        return res
+          .status(400)
+          .json({ message: "No valid fields provided for update" });
+      }
+      const updateData = {};
+      if (numberOfApplicationsAllowed !== undefined) {
+        updateData.numberOfApplicationsAllowed = numberOfApplicationsAllowed;
+      }
+      if (numberOfOpportunitiesAllowed !== undefined) {
+        updateData.numberOfOpportunitiesAllowed = numberOfOpportunitiesAllowed;
+      }
+      const settingsRef = db.collection("settings").doc("limits");
+      await settingsRef.set(updateData, { merge: true });
+      util.statusCode = 200;
+      util.message = "Settings updated successfully";
+      return util.send(res);
+    } catch (error) {
+      util.statusCode = 500;
+      util.message = error.message || "Error updating settings";
       return util.send(res);
     }
   }

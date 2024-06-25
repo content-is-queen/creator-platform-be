@@ -5,20 +5,19 @@ const functions = require("firebase-functions");
 const { initializeApp, cert } = require("firebase-admin/app");
 const fileUploader = require("express-fileupload");
 const router = require("./restful/routes");
-const apiLogger = require("./helper/apiCallLog");
 
 const serviceAccount = {
-  type: process.env.SERVICE_ACCOUNT_TYPE,
+  type: "service_account",
   project_id: process.env.PROJECT_ID,
   private_key_id: process.env.PRIVATE_KEY_ID,
   private_key: process.env.PRIVATE_KEY,
   client_email: process.env.CLIENT_EMAIL,
   client_id: process.env.CLIENT_ID,
-  auth_uri: process.env.AUTH_URI,
-  token_uri: process.env.TOKEN_URI,
-  auth_provider_x509_cert_url: process.env.AUTH_PROVIDER_X509_CERT_URL,
+  auth_uri: "https://accounts.google.com/o/oauth2/auth",
+  token_uri: "https://oauth2.googleapis.com/token",
+  auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
   client_x509_cert_url: process.env.CLIENT_X509_CERT_URL,
-  universe_domain: process.env.UNIVERSE_DOMAIN,
+  universe_domain: "googleapis.com",
 };
 
 dotenv.config();
@@ -29,9 +28,9 @@ app.use(cors());
 app.use(express.json());
 initializeApp({
   credential: cert(serviceAccount),
-  storageBucket: "contentisqueen-97ae5.appspot.com",
+  storageBucket: `${process.env.PROJECT_ID}.appspot.com`,
 });
-app.use(apiLogger);
+
 app.use(
   fileUploader({
     fileSize: 50 * 1024 * 1024,
@@ -50,3 +49,4 @@ const start = () => {
 };
 start();
 exports.api = functions.https.onRequest(app);
+module.exports = app;

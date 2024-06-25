@@ -1,4 +1,4 @@
-import { Util } from "./utils";
+const { Util } = require("./utils");
 
 const util = new Util();
 
@@ -14,4 +14,4 @@ const allowedRole = (roles) => {
     }
   };
 };
-export default allowedRole;
+module.exports = allowedRole;

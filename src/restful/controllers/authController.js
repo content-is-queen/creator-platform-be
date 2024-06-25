@@ -1,15 +1,11 @@
 /* eslint-disable no-prototype-builtins */
 const dotenv = require("dotenv");
 const { Util } = require("../../helper/utils");
-/* eslint-disable quotes */
-const { sendOtpEmail } = require("../../services/templates/SendOtpEmail");
-const {
-  SendPasswordReset,
-} = require("../../services/templates/SendPasswordReset");
-const { transporter } = require("../../helper/mailHelper");
-const otpGenerator = require("otp-generator");
+const SendPasswordReset = require("../../services/templates/SendPasswordReset");
+const transporter = require("../../helper/mailHelper");
 const admin = require("firebase-admin");
 const { v4: uuidv4 } = require("uuid");
+const jwt = require("jsonwebtoken");
 const Joi = require("joi");
 const sharp = require("sharp");
 const fs = require("fs");
@@ -23,35 +19,37 @@ dotenv.config();
 
 const util = new Util();
 
+const defaultSchema = {
+  firstName: Joi.string(),
+  lastName: Joi.string(),
+  email: Joi.string(),
+  password: Joi.string(),
+  bio: Joi.string(),
+  goals: Joi.string(),
+  role: Joi.string(),
+};
+
 // Validation schema for creator
 const schema = {
   brand: Joi.object({
-    first_name: Joi.string().required(),
-    last_name: Joi.string().required(),
-    organisation_name: Joi.string().required(),
-    bio: Joi.string().required(),
-    goals: Joi.string().required(),
-    profile_photo: Joi.string().required(),
-    profile_meta: Joi.string().required(),
+    ...defaultSchema,
+    organizationName: Joi.string(),
+    profilePhoto: Joi.string().allow(""),
   }),
   creator: Joi.object({
-    first_name: Joi.string().required(),
-    last_name: Joi.string().required(),
-    bio: Joi.string().required(),
-    goals: Joi.string().required(),
-    podcast_name: Joi.string().required(),
-    podcast_url: Joi.string().uri().required(),
-    profile_photo: Joi.string().required(),
-    profile_meta: Joi.object({
-      showreel: Joi.string().uri().required(),
-      showcase: Joi.array().items(Joi.string().uri().max(6)).required(),
-      credits: Joi.array().items(
-        Joi.object({
-          show: Joi.string().required(),
-          role: Joi.string().required(),
-        }),
-      ),
-    }).required(),
+    ...defaultSchema,
+    podcastName: Joi.string().allow(""),
+    podcastUrl: Joi.string().uri().allow(""),
+    profilePhoto: Joi.string().allow(""),
+    interests: Joi.array().allow(""),
+    showreel: Joi.string().uri().allow(""),
+    showcase: Joi.array().items(Joi.string().uri().max(6)).allow(""),
+    credits: Joi.array().items(
+      Joi.object({
+        episodeLink: Joi.string(),
+        role: Joi.string(),
+      }).allow(""),
+    ),
   }),
 };
 
@@ -64,81 +62,37 @@ class AuthController {
 
   static async signup(req, res) {
     try {
-      // Proceed with signup logic if validation succeeds
-      const { first_name, last_name, email, password, role, ...other } =
-        req.body;
+      const { firstName, lastName, email, password, role, ...other } = req.body;
 
-      // Validate request body against schema
       await schema[role].validateAsync(req.body);
 
       const db = admin.firestore();
-      let user = null;
-
-      // Create user in Firebase Authentication
-      user = await admin.auth().createUser({
-        email,
-        password,
-      });
+      const user = await admin.auth().createUser({ email, password });
 
       const uid = user.uid;
-      await admin.auth().setCustomUserClaims(uid, { role });
+      await admin.auth().setCustomUserClaims(uid, { role, subscribed: false });
 
-      // Generate OTP
-      const code = otpGenerator.generate(5, {
-        digits: true,
-        upperCase: false,
-        specialChars: false,
-        alphabets: false,
+      const usersCollectionRef = db.collection("users");
+
+      await usersCollectionRef.doc(user.uid).set({
+        uid: user.uid,
+        firstName,
+        lastName,
+        role,
+        email,
+        disabled: false,
+        subscribed: false,
+        ...other,
       });
 
-      // Save OTP in Firestore
-      await db.collection("otp").doc(email).set({
-        otp: code,
-      });
-
-      // Send verification email
-      const emailTemplate = sendOtpEmail({
-        name: first_name,
-        email: user.email,
-        otp: code,
-      });
-
-      const mailOptions = {
-        from: process.env.EMAIL,
-        to: user.email,
-        subject: "Creator Platform Account Verification",
-        html: emailTemplate,
-      };
-
-      const emailSent = await transporter.sendMail(mailOptions);
-
-      if (emailSent) {
-        // Save user details in Firestore
-        const usersCollectionRef = db.collection("users");
-
-        await usersCollectionRef.doc(user.uid).set({
-          uid: user.uid,
-          first_name,
-          last_name,
-          role,
-          isActivated: true,
-          ...other,
-        });
-
-        util.statusCode = 200;
-        util.setSuccess(200, "Success", { email, uid });
-        return util.send(res);
-      } else {
-        // Delete the user if email sending failed
-        await admin.auth().deleteUser(user.uid);
-        util.statusCode = 500;
-        util.message = "Failed to send verification email";
-        return util.send(res);
-      }
+      util.statusCode = 200;
+      util.setSuccess(200, "Success", { email, uid });
+      return util.send(res);
     } catch (error) {
+      console.log(error);
       const errorMessage = error?.errorInfo?.message;
       util.statusCode = 500;
-      util.message = errorMessage || error.message || "Server error";
+      util.message = errorMessage || error.message || " ";
       return util.send(res);
     }
   }
@@ -162,7 +116,6 @@ class AuthController {
       const updatedClaims = {
         ...currentClaims,
         emailVerified: true,
-        isActivated: true,
       };
       await admin.auth().setCustomUserClaims(uid, updatedClaims);
       await db.collection("otp").doc(email).delete();
@@ -180,80 +133,95 @@ class AuthController {
     }
   }
 
-  static async resetUserPassword(req, res) {
+  static async forgetPassword(req, res) {
     try {
       const { email } = req.body;
-      const actionCodeSettings = {
-        url: `${process.env.FRONT_END_URL}/login`,
-        handleCodeInApp: true,
+      const userRecord = await admin.auth().getUserByEmail(email);
+      if (userRecord.email !== email) {
+        return res.status(404).json({ res: "This email is not registered" });
+      }
+      const secret = process.env.JWT_SECRET + userRecord.uid;
+      const payload = {
+        uid: userRecord.uid,
       };
-      const resetLink = await admin
-        .auth()
-        .generatePasswordResetLink(email, actionCodeSettings);
+      const token = jwt.sign(payload, secret, { expiresIn: "15m" });
+      const link = `${process.env.DOMAIN}/reset-password?token=${token}`;
       const mailOptions = {
         from: process.env.EMAIL,
         to: email,
         subject: "Password Reset Request for Your Creator Platform Account",
-        html: SendPasswordReset(resetLink),
+        html: SendPasswordReset(link),
       };
       await transporter.sendMail(mailOptions);
-
       return res
         .status(200)
         .json({ message: "Password reset email sent successfully" });
     } catch (error) {
-      console.error("Error resetting user password:", error);
       return res.status(500).json({ message: error.message || "Server error" });
     }
   }
 
-  static async getUser(req, res) {
-    const { user_id } = req.user;
-    const db = admin.firestore();
-
+  static async resetUserPassword(req, res) {
+    const { password, uid } = req.body;
     try {
-      const docRef = db.collection("users").doc(user_id);
-      const docSnapshot = await docRef.get({ source: "cache" });
-      if (docSnapshot.exists) {
-        const serverSnapshot = await docRef.get();
-        if (
-          !serverSnapshot.exists ||
-          serverSnapshot.updateTime === docSnapshot.updateTime
-        ) {
-          util.statusCode = 200;
-          util.message = docSnapshot.data();
-          return util.send(res);
-        } else {
-          util.statusCode = 200;
-          util.message = serverSnapshot.data();
-          return util.send(res);
-        }
-      }
-      util.statusCode = 404;
-      util.message = "No such document!";
+      await admin.auth().updateUser(uid, {
+        password,
+      });
+      util.statusCode = 200;
+      util.message = "Password updated succesfully";
       return util.send(res);
     } catch (error) {
-      console.error("Error fetching user:", error);
       util.statusCode = 500;
       util.message = error.message || "Server error";
       return util.send(res);
     }
   }
 
+  static async getUser(req, res) {
+    const { user_id, role } = req.user;
+    const db = admin.firestore();
+    try {
+      const docRef = db.collection("users").doc(user_id);
+      const docSnapshot = await docRef.get();
+
+      if (docSnapshot.exists) {
+        const userData = docSnapshot.data();
+        if (role === "super_admin" || role === "admin") {
+          const settingsRef = userData?.organization;
+          if (settingsRef) {
+            const settingsSnapshot = await settingsRef?.get();
+            if (settingsSnapshot.exists) {
+              userData.organizationName =
+                settingsSnapshot.data().organizationName;
+              userData.organizationLogo =
+                settingsSnapshot.data().organizationLogo;
+            }
+          }
+        }
+        const { organization, subscribed, ...filteredData } = userData;
+        const dataToReturn = { ...filteredData };
+        return res.status(200).json(dataToReturn);
+      } else {
+        return res.status(404).json({ message: "No such document!" });
+      }
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      return res.status(500).json({ message: error.message || "Server error" });
+    }
+  }
+
   static async getPublicUser(req, res) {
     try {
-      const { user_id } = req.params; // Extract user ID from URL params
+      const { userId } = req.params;
 
-      if (!user_id) {
+      if (!userId) {
         util.statusCode = 400;
         util.message = "User ID is required";
         return util.send(res);
       }
 
       const db = admin.firestore();
-
-      // Construct the path to the user document based on the role and user ID
-      const usersCollection = db.collection("users").doc(user_id);
+      const usersCollection = db.collection("users").doc(userId);
 
       const querySnapshot = await usersCollection.get();
       if (!querySnapshot.exists) {
@@ -263,13 +231,38 @@ class AuthController {
       }
 
       const userData = querySnapshot.data();
-      // Extract bio and imageUrl from the user document
+      if (userData.role === "super_admin" || userData.role === "admin") {
+        const settingsRef = userData?.organization;
+        if (settingsRef) {
+          const settingsSnapshot = await settingsRef?.get();
+          if (settingsSnapshot.exists) {
+            userData.organizationName =
+              settingsSnapshot.data().organizationName;
+            userData.organizationLogo =
+              settingsSnapshot.data().organizationLogo;
+          }
+        }
+      }
+
       const nonSensitiveData = {
-        first_name: userData.first_name,
-        last_name: userData.last_name,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
         role: userData.role,
-        imageUrl: userData.imageUrl, // Assuming this field exists in the user document
-        bio: userData.bio, // Assuming this field exists in the user document
+        profilePhoto: userData.profilePhoto,
+        bio: userData.bio,
+        uid: userData.uid,
+        ...(userData.role === "creator" && { interests: userData.interests }),
+        ...(userData.organizationName
+          ? { organizationName: userData.organizationName }
+          : {}),
+        ...(userData.organizationLogo
+          ? { organizationLogo: userData.organizationLogo }
+          : {}),
+        meta: {
+          ...(userData.role === "creator"
+            ? { showcase: userData?.showcase, credits: userData?.credits }
+            : {}),
+        },
       };
 
       util.statusCode = 200;
@@ -287,35 +280,42 @@ class AuthController {
     try {
       const db = admin.firestore();
       const usersCollection = db.collection("users");
-
       const querySnapshot = await usersCollection.get();
-
       const users = [];
 
       if (!querySnapshot.empty) {
-        querySnapshot.forEach((doc) => {
+        for (const doc of querySnapshot.docs) {
           const userObj = doc.data();
-
-          // Only push objects with a uid field
-          if (Object.hasOwn(userObj, "uid")) {
-            users.push(userObj);
+          if (userObj.role === "super_admin" || userObj.role === "admin") {
+            const settingsRef = userObj?.organization;
+            if (settingsRef) {
+              const settingsSnapshot = await settingsRef?.get();
+              if (settingsSnapshot.exists) {
+                userObj.organizationName =
+                  settingsSnapshot.data().organizationName;
+                userObj.organizationLogo =
+                  settingsSnapshot.data().organizationLogo;
+              }
+            }
           }
-        });
+          const { organization, subscribed, ...filteredData } = userObj;
+          users.push(filteredData);
+        }
       }
 
       return res.status(200).json(users);
     } catch (error) {
-      util.statusCode = 500;
-      util.message = error.mesage || "Server error";
-      return util.send(res);
+      return res.status(500).json({
+        statusCode: 500,
+        message: error.message || "Server error",
+      });
     }
   }
 
   static async updateUser(req, res) {
     try {
-      // Proceed with update logic if validation succeeds
-      const { first_name, last_name, bio } = req.body;
-      const file = req.files?.imageUrl;
+      const { ...valuesToUpdate } = req.body;
+      const file = req.files?.profilePhoto;
 
       if (!file || file === undefined || file === null) {
         // Update user document in Firestore
@@ -323,10 +323,12 @@ class AuthController {
           .firestore()
           .collection("users")
           .doc(req.user.user_id);
-        await docRef.set({ first_name, last_name, bio }, { merge: true });
+        await docRef.set({ ...valuesToUpdate }, { merge: true });
 
         util.statusCode = 200;
         util.message = "User updated successfully";
+        util.setSuccess(200, "User updated successfully", valuesToUpdate);
+
         return util.send(res);
       } else {
         const tempFilePath = file.tempFilePath;
@@ -367,21 +369,27 @@ class AuthController {
 
         uploadTask
           .then(async (snapshot) => {
-            const imageUrl = snapshot[0].metadata.mediaLink;
+            // Once uploaded, get the image URL and update user data in Firestore
+            const profilePhoto = snapshot[0].metadata.mediaLink;
             const docRef = admin
               .firestore()
               .collection("users")
               .doc(req.user.user_id);
+
             await docRef.set(
-              { first_name, last_name, bio, imageUrl },
+              {
+                ...valuesToUpdate,
+                profilePhoto,
+              },
               { merge: true },
             );
 
-            // Clean up the temporary file
-            fs.unlinkSync(outputFilePath);
+            util.setSuccess(
+              200,
+              "User profile updated successfully",
+              profilePhoto,
+            );
 
-            util.statusCode = 200;
-            util.message = "Document updated successfully";
             return util.send(res);
           })
           .catch((error) => {
@@ -394,7 +402,6 @@ class AuthController {
           });
       }
     } catch (error) {
-      console.error("Error updating user profile:", error);
       util.statusCode = 500;
       util.message = error.message || "Server error";
       return util.send(res);
@@ -411,7 +418,6 @@ class AuthController {
       util.message = "Password updated succesfully";
       return util.send(res);
     } catch (error) {
-      console.error("Error updating password:", error);
       util.statusCode = 500;
       util.message = error.message || "Server error";
       return util.send(res);
@@ -434,7 +440,6 @@ class AuthController {
       if (error.code === "auth/user-not-found") {
         return res.status(200).json({ exists: false });
       }
-      console.error("Error checking email existence:", error);
       return res.status(500).json({ message: error.message || "Server error" });
     }
   }
@@ -464,11 +469,9 @@ class AuthController {
   }
 
   static async updateUserSubscription(req, res) {
-    console.log("this is being called update users");
     try {
       const { subscribed } = req.body;
-      const { user_id } = req.params; // Assuming you have access to the user's ID
-      console.log(user_id);
+      const { user_id } = req.user; // Assuming you have access to the user's ID
       const docRef = admin.firestore().collection("users").doc(user_id); // Use the user's ID to locate the document in the users collection
 
       await docRef.set({ subscribed }, { merge: true }); // Update the 'subscribed' field
@@ -477,7 +480,40 @@ class AuthController {
       util.message = "User subscribed status updated successfully";
       return util.send(res);
     } catch (error) {
-      console.error("Error updating user subscribed status:", error);
+      util.statusCode = 500;
+      util.message = error.message || "Server error";
+      return util.send(res);
+    }
+  }
+
+  static async checkSubscription(req, res) {
+    try {
+      const { user_id } = req.user;
+
+      if (!user_id) {
+        util.statusCode = 400;
+        util.message = "User ID is required";
+        return util.send(res);
+      }
+
+      const db = admin.firestore();
+      const docRef = db.collection("users").doc(user_id);
+      const docSnapshot = await docRef.get();
+
+      if (!docSnapshot.exists) {
+        util.statusCode = 404;
+        util.message = "User not found";
+        return util.send(res);
+      }
+
+      const userData = docSnapshot.data();
+      const isSubscribed = userData.subscribed || false;
+
+      util.statusCode = 200;
+      util.message = { subscribed: isSubscribed };
+      return util.send(res);
+    } catch (error) {
+      console.error("Error checking subscription:", error);
       util.statusCode = 500;
       util.message = error.message || "Server error";
       return util.send(res);

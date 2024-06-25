@@ -2,6 +2,8 @@ const { Router } = require("express");
 const {
   ApplicationsController,
 } = require("../controllers/applicationsController");
+const { protect } = require("../../middleware");
+const checkSubscribedUser = require("../../helper/checkSubscribedUser");
 
 const router = Router();
 
@@ -10,20 +12,25 @@ router.get("/", ApplicationsController.getAllApplications);
 
 // GET applications by opportunity ID
 router.get(
-  "/opportunity/:opportunity_id",
+  "/opportunity/:opportunityId",
   ApplicationsController.getAllApplicationsById,
 );
 
 // GET application by ID
-router.get("/:application_id", ApplicationsController.getApplicationById);
+router.get("/:applicationId", ApplicationsController.getApplicationById);
 
 // POST a new application
-router.post("/", ApplicationsController.createApplication);
+router.post(
+  "/",
+  protect,
+  checkSubscribedUser(),
+  ApplicationsController.createApplication,
+);
 
 // PATCH update an existing application
-router.patch("/:application_id", ApplicationsController.updateApplication);
+router.patch("/:applicationId", ApplicationsController.updateApplication);
 
 // DELETE an application
-router.delete("/:application_id", ApplicationsController.deleteApplication);
+router.delete("/:applicationId", ApplicationsController.deleteApplication);
 
 module.exports.applicationsRouter = router;

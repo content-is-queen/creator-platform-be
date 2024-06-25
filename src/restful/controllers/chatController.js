@@ -24,8 +24,6 @@ class ChatController {
         return res.status(400).json({ error: "Invalid request" });
       }
 
-      console.log("Message:", message); // Log the message to check its content
-
       const db = admin.firestore();
       const roomRef = db.collection("rooms").doc(id);
 
@@ -76,7 +74,7 @@ class ChatController {
       const db = admin.firestore();
       const roomsRef = db
         .collection("rooms")
-        .where("userIds", "array-contains", userId);
+        .where("participantIds", "array-contains", userId);
       const roomsSnapshot = await roomsRef.get();
 
       const userRooms = [];
@@ -165,11 +163,10 @@ class ChatController {
   }
 
   static async createRoom(req, res) {
-    console.log("is this being called");
     try {
-      const { id, fullName, userIds } = req.body;
+      const { id, fullName, participantIds } = req.body;
 
-      if (!id || !fullName || !Array.isArray(userIds)) {
+      if (!id || !fullName || !Array.isArray(participantIds)) {
         return res.status(400).json({ error: "Invalid request" });
       }
 
@@ -181,7 +178,7 @@ class ChatController {
         fullName,
         lastMessage: "",
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        userIds,
+        participantIds,
       };
 
       await roomRef.set(roomData);
@@ -205,7 +202,7 @@ class ChatController {
       const roomRef = db.collection("rooms").doc(roomId);
 
       await roomRef.update({
-        userIds: admin.firestore.FieldValue.arrayUnion(userId),
+        participantIds: admin.firestore.FieldValue.arrayUnion(userId),
       });
 
       res.json({ success: true });

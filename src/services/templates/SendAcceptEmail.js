@@ -2,7 +2,7 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-const SendPasswordReset = (emailData) => {
+const sendAcceptEmail = (name) => {
   const template = `<!DOCTYPE html>
   <html lang="en">
   
@@ -48,7 +48,7 @@ const SendPasswordReset = (emailData) => {
       .button {
         display: inline-block;
         background-color: #3677ed;
-        color: #ffffff !important;
+        color: #ffffff;
         padding: 10px 20px;
         border-radius: 5px;
         text-decoration: none;
@@ -63,15 +63,13 @@ const SendPasswordReset = (emailData) => {
         <img src="https://media.licdn.com/dms/image/D4E3DAQFc-hrExVgIUg/image-scale_191_1128/0/1707842351543/content_is_queen_podcasts_cover?e=2147483647&v=beta&t=etcyrsZcy5eBtGjVp18vW4aQXkHiNWU0rBY357UqjQg" alt="Logo">
       </div>
       <div class="content">
-        <p>Hello,</p>
-        <p>Follow this link to reset your Creator Platform account:</p>
+        <p>Hello, ${name}</p>
+        <p>We are pleased to inform you that your application to the Creator Platform has been successfully reviewed and accepted. Congratulations!</p>
       </div>
-      <div class="button-container" style="text-align: center;">
-        <a href=${emailData} class="button"><b>Reset Password</b></a>
-      </div>
+  
       <div class="content">
-        <p>If you didn’t ask to reset your password, you can ignore this email.</p>
-        <br />
+        <p>Please log in to your account to view the details of your allocation. If you have any questions or need further assistance, contact us at <strong>support@contentisqueen.com</strong> We're here to support you.</p>
+  
         <p>Best regards,</p>
         <p>Creator Platform Team</p>
       </div>
@@ -82,4 +80,4 @@ const SendPasswordReset = (emailData) => {
   return template;
 };
 
-module.exports = SendPasswordReset;
+module.exports.sendAcceptEmail = sendAcceptEmail;

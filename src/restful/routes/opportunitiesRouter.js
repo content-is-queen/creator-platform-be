@@ -2,23 +2,25 @@ const { Router } = require("express");
 const {
   OpportunitiesController,
 } = require("../controllers/opportunitiesController");
+const { protect } = require("../../middleware");
+const checkSubscribedUser = require("../../helper/checkSubscribedUser");
 
 const router = Router();
 
 router.get("/", OpportunitiesController.getAllOpportunities);
-router.get("/id/:user_id", OpportunitiesController.getAllOpportunitiesByUserId);
+router.get("/id/:userId", OpportunitiesController.getAllOpportunitiesByUserId);
 router.get("/status/:status", OpportunitiesController.getOpportunitiesByStatus);
 router.delete(
-  "/opportunityid/:opportunity_id",
+  "/opportunityid/:opportunityId",
   OpportunitiesController.deleteOpportunityById,
 );
 router.get(
-  "/opportunityid/:opportunity_id",
+  "/opportunityid/:opportunityId",
   OpportunitiesController.getOpportunityById,
 );
 
 // POST endpoint for creating opportunities
-router.post("/", async (req, res) => {
+router.post("/", protect, checkSubscribedUser(), async (req, res) => {
   const { type } = req.body;
   if (!type || !["job", "pitch", "campaign"].includes(type)) {
     return res
@@ -45,7 +47,7 @@ router.post("/", async (req, res) => {
 
 // UPDATE endpoint
 router.put(
-  "/opportunityid/:opportunity_id",
+  "/opportunityid/:opportunityId",
   OpportunitiesController.updateOpportunityById,
 ); // New route for update
 

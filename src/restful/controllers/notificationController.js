@@ -20,10 +20,9 @@ class NotificationsController {
    */
 
   static async sendNotification(req, res) {
-    const { title, body, userId } = req.body;
+    const { body, userId } = req.body;
     try {
       const notificationData = {
-        title,
         body,
         timestamp: admin.firestore.FieldValue.serverTimestamp(),
       };

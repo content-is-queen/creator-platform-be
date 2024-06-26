@@ -1,9 +1,8 @@
 const admin = require("firebase-admin");
 
-async function sendNotification({ title, body, userId }) {
+async function sendNotification({ body, userId }) {
   try {
     const notificationData = {
-      title,
       body,
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
     };

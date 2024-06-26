@@ -4,6 +4,10 @@ const admin = require("firebase-admin");
 const { sendAcceptEmail } = require("../../services/templates/SendAcceptEmail");
 const transporter = require("../../helper/mailHelper");
 const sendNotification = require("../../helper/sendNotification");
+const { sendRejectEmail } = require("../../services/templates/SendRejectEmail");
+const {
+  SendReceiveApllicationEmail,
+} = require("../../services/templates/SendReceiveApllicationEmail");
 
 dotenv.config();
 
@@ -178,6 +182,33 @@ class ApplicationsController {
         opportunitiesAppliedCount: admin.firestore.FieldValue.increment(1),
       });
 
+      const userRef = db.collection("users").doc(authorId);
+      const doc = await userRef.get();
+      if (doc.exists) {
+        const { firstName, email, uid } = doc.data();
+        if (email) {
+          const data = {
+            name: firstName,
+          };
+          const emailTemplate = SendReceiveApllicationEmail(data);
+
+          const mailOptions = {
+            from: process.env.EMAIL,
+            to: email,
+            subject: "Application received for...",
+            html: emailTemplate,
+          };
+
+          await transporter.sendMail(mailOptions);
+        }
+        if (uid) {
+          const notificationData = {
+            body: "You have received an application for...",
+            userId: uid,
+          };
+          await sendNotification(notificationData);
+        }
+      }
       util.statusCode = 201;
       util.message = newApplicationData;
       return util.send(res);
@@ -205,19 +236,47 @@ class ApplicationsController {
 
       if (status === "accepted") {
         const participantIds = [authorId, creatorId];
-        // Call createRoom function with data
         const { roomId } = await createRoom(
           db,
           participantIds,
           opportunityTitle,
         );
 
-        const userRef = db.collection("users").doc(authorId);
+        const userRef = db.collection("users").doc(creatorId);
         const doc = await userRef.get();
         if (doc.exists) {
-          const { firstName, email, fcmToken, uid } = doc.data();
+          const { firstName, email, uid } = doc.data();
           if (email) {
             const emailTemplate = sendAcceptEmail(firstName);
+
+            const mailOptions = {
+              from: process.env.EMAIL,
+              to: email,
+              subject: "Application update for...",
+              html: emailTemplate,
+            };
+
+            await transporter.sendMail(mailOptions);
+          }
+          if (uid) {
+            const notificationData = {
+              body: "Your Application has been approved for...",
+              userId: uid,
+            };
+            await sendNotification(notificationData);
+          }
+        }
+
+        util.statusCode = 200;
+        util.message = { roomId };
+        return util.send(res);
+      } else if (status === "rejected") {
+        const userRef = db.collection("users").doc(creatorId);
+        const doc = await userRef.get();
+        if (doc.exists) {
+          const { firstName, email, uid } = doc.data();
+          if (email) {
+            const emailTemplate = sendRejectEmail(firstName);
 
             const mailOptions = {
               from: process.env.EMAIL,
@@ -228,20 +287,14 @@ class ApplicationsController {
 
             await transporter.sendMail(mailOptions);
           }
-          if (fcmToken) {
+          if (uid) {
             const notificationData = {
-              token: fcmToken,
-              title: "Your Application Update",
-              body: "Your Application has been approved!",
+              body: "Your application for... was rejected",
               userId: uid,
             };
             await sendNotification(notificationData);
           }
         }
-
-        util.statusCode = 200;
-        util.message = { roomId };
-        return util.send(res);
       }
 
       util.statusCode = 200;

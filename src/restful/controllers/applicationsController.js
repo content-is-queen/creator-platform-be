@@ -185,7 +185,7 @@ class ApplicationsController {
           const mailOptions = {
             from: process.env.EMAIL,
             to: email,
-            subject: "Creator Platform Application Received",
+            subject: "Application received for...",
             html: emailTemplate,
           };
 
@@ -193,8 +193,7 @@ class ApplicationsController {
         }
         if (uid) {
           const notificationData = {
-            title: "New Application Received",
-            body: "Please review the recently received application.",
+            body: "You have received an application for...",
             userId: uid,
           };
           await sendNotification(notificationData);
@@ -243,7 +242,7 @@ class ApplicationsController {
             const mailOptions = {
               from: process.env.EMAIL,
               to: email,
-              subject: "Creator Platform Application Update",
+              subject: "Application update for...",
               html: emailTemplate,
             };
 
@@ -251,8 +250,7 @@ class ApplicationsController {
           }
           if (uid) {
             const notificationData = {
-              title: "Your Application Update",
-              body: "Your Application has been approved!",
+              body: "Your Application has been approved for...",
               userId: uid,
             };
             await sendNotification(notificationData);
@@ -281,8 +279,7 @@ class ApplicationsController {
           }
           if (uid) {
             const notificationData = {
-              title: "Your Creator Platform Application Update",
-              body: "We regret to inform you that your application has not been approved.",
+              body: "Your application for... was rejected",
               userId: uid,
             };
             await sendNotification(notificationData);

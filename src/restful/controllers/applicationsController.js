@@ -155,17 +155,17 @@ class ApplicationsController {
         util.message = `You can only apply to up to ${authorData.maxOpportunitiesApplied} opportunities.`;
         return util.send(res);
       }
-      const existingApplicationsSnapshot = await db
-        .collection("applications")
-        .where("authorId", "==", authorId)
-        .where("opportunityId", "==", opportunityId)
-        .get();
+      // const existingApplicationsSnapshot = await db
+      //   .collection("applications")
+      //   .where("authorId", "==", authorId)
+      //   .where("opportunityId", "==", opportunityId)
+      //   .get();
 
-      if (!existingApplicationsSnapshot.empty) {
-        util.statusCode = 400;
-        util.message = "You have already applied for this opportunity.";
-        return util.send(res);
-      }
+      // if (!existingApplicationsSnapshot.empty) {
+      //   util.statusCode = 400;
+      //   util.message = "You have already applied for this opportunity.";
+      //   return util.send(res);
+      // }
       const applicationRef = db.collection("applications").doc();
       const newApplicationData = {
         applicationId: applicationRef.id,
@@ -175,6 +175,9 @@ class ApplicationsController {
         creatorId,
         status: "pending",
       };
+      const opportunityRef = db.collection("opportunities").doc(opportunityId);
+      const opportunityDoc = await opportunityRef.get();
+      const { title } = opportunityDoc.data();
       await applicationRef.set(newApplicationData);
 
       // Increment the opportunitiesAppliedCount for the user
@@ -189,13 +192,14 @@ class ApplicationsController {
         if (email) {
           const data = {
             name: firstName,
+            title,
           };
           const emailTemplate = SendReceiveApllicationEmail(data);
 
           const mailOptions = {
             from: process.env.EMAIL,
             to: email,
-            subject: "Application received for...",
+            subject: `Application received for ${title}`,
             html: emailTemplate,
           };
 
@@ -203,7 +207,7 @@ class ApplicationsController {
         }
         if (uid) {
           const notificationData = {
-            body: "You have received an application for...",
+            body: `You have received an application for ${title}`,
             userId: uid,
           };
           await sendNotification(notificationData);
@@ -246,13 +250,17 @@ class ApplicationsController {
         const doc = await userRef.get();
         if (doc.exists) {
           const { firstName, email, uid } = doc.data();
+          const payLoad = {
+            firstName,
+            opportunityTitle
+          }
           if (email) {
-            const emailTemplate = sendAcceptEmail(firstName);
+            const emailTemplate = sendAcceptEmail(payLoad);
 
             const mailOptions = {
               from: process.env.EMAIL,
               to: email,
-              subject: "Application update for...",
+              subject: `Application update for ${opportunityTitle}`,
               html: emailTemplate,
             };
 
@@ -260,7 +268,7 @@ class ApplicationsController {
           }
           if (uid) {
             const notificationData = {
-              body: "Your Application has been approved for...",
+              body: `Your Application has been approved for ${opportunityTitle}`,
               userId: uid,
             };
             await sendNotification(notificationData);

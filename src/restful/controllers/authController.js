@@ -355,17 +355,17 @@ class AuthController {
         if (metadata.width > 200 || metadata.height > 200) {
           throw new Error("Processed image dimensions exceed 200x200 pixels");
         }
-
-        const storageRef = admin
-          .storage()
-          .bucket(`gs://contentisqueen-97ae5.appspot.com`);
-        const uploadTask = storageRef.upload(outputFilePath, {
+        // If there's a file, upload it to Firebase Storage
+        const storageRef = admin.storage().bucket();
+        const fileName = `profile/picture/${uuidv4()}_${file.name}`;
+        const uploadTask = storageRef.upload(file.tempFilePath, {
           public: true,
-          destination: `profile/picture/${uuidv4()}_${file.name}`,
+          destination: fileName,
           metadata: {
             firebaseStorageDownloadTokens: uuidv4(),
           },
         });
+
         uploadTask
           .then(async (snapshot) => {
             // Once uploaded, get the image URL and update user data in Firestore

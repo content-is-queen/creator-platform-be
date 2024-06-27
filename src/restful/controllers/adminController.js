@@ -211,12 +211,12 @@ class AdminController {
         .where("status", "==", "completed")
         .get();
       const infoData = [
-        { title: "Users", value: `${usersQuery.size}` },
-        { title: "Subscribed Users", value: `${subscribedUsersQuery.size}` },
-        { title: "Opportunities", value: `${opportunitiesQuery.size}` },
+        { title: "Users", children: `${usersQuery.size}` },
+        { title: "Subscribed Users", children: `${subscribedUsersQuery.size}` },
+        { title: "Opportunities", children: `${opportunitiesQuery.size}` },
         {
           title: "Completed Opportunities",
-          value: `${completedOpportunitiesQuery.size}`,
+          children: `${completedOpportunitiesQuery.size}`,
         },
       ];
 

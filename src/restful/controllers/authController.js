@@ -315,9 +315,8 @@ class AuthController {
 
   static async updateUser(req, res) {
     try {
-      // Only
       const { ...valuesToUpdate } = req.body;
-      const file = req.files?.imageUrl;
+      const file = req.files?.profilePhoto;
 
       if (!file) {
         // If there's no file, update user data directly in Firestore
@@ -327,10 +326,10 @@ class AuthController {
           .doc(req.user.user_id);
         await docRef.set({ ...valuesToUpdate }, { merge: true });
 
-        util.statusCode = 200;
-        util.message = "User updated successfully";
+        util.setSuccess(200, "User updated successfully", valuesToUpdate);
         return util.send(res);
       } else {
+        // If there's a file, process and upload it
         const tempFilePath = file.tempFilePath;
         const outputFilePath = path.join(__dirname, `temp_${uuidv4()}.jpg`);
 
@@ -356,49 +355,50 @@ class AuthController {
           throw new Error("Processed image dimensions exceed 200x200 pixels");
         }
 
-        const storageRef = admin
-          .storage()
-          .bucket(`gs://contentisqueen-97ae5.appspot.com`);
+        const storageRef = admin.storage().bucket();
+        const fileName = `profile/picture/${uuidv4()}_${file.name}`;
         const uploadTask = storageRef.upload(outputFilePath, {
           public: true,
-          destination: `profile/picture/${uuidv4()}_${file.name}`,
+          destination: fileName,
           metadata: {
             firebaseStorageDownloadTokens: uuidv4(),
           },
         });
+
         uploadTask
           .then(async (snapshot) => {
             // Once uploaded, get the image URL and update user data in Firestore
-            const imageUrl = snapshot[0].metadata.mediaLink;
+            const profilePhoto = snapshot[0].metadata.mediaLink;
             const docRef = admin
               .firestore()
               .collection("users")
               .doc(req.user.user_id);
+
             await docRef.set(
               {
-                imageUrl,
                 ...valuesToUpdate,
+                profilePhoto,
               },
               { merge: true },
             );
 
-            util.statusCode = 200;
-            util.message = "User data updated successfully";
+            util.setSuccess(
+              200,
+              "User profile updated successfully",
+              profilePhoto,
+            );
             return util.send(res);
           })
           .catch((error) => {
             // Handle errors during file upload
             console.error("Error uploading image:", error);
-            util.statusCode = 500;
-            util.message = "Failed to upload image";
+            util.setError(500, "Failed to upload image");
             return util.send(res);
           });
       }
     } catch (error) {
-      // Handle other errors
       console.error("Error updating user data:", error);
-      util.statusCode = 500;
-      util.message = "Server error";
+      util.setError(500, "Server error");
       return util.send(res);
     }
   }

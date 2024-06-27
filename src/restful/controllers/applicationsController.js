@@ -155,17 +155,17 @@ class ApplicationsController {
         util.message = `You can only apply to up to ${authorData.maxOpportunitiesApplied} opportunities.`;
         return util.send(res);
       }
-      // const existingApplicationsSnapshot = await db
-      //   .collection("applications")
-      //   .where("authorId", "==", authorId)
-      //   .where("opportunityId", "==", opportunityId)
-      //   .get();
+      const existingApplicationsSnapshot = await db
+        .collection("applications")
+        .where("authorId", "==", authorId)
+        .where("opportunityId", "==", opportunityId)
+        .get();
 
-      // if (!existingApplicationsSnapshot.empty) {
-      //   util.statusCode = 400;
-      //   util.message = "You have already applied for this opportunity.";
-      //   return util.send(res);
-      // }
+      if (!existingApplicationsSnapshot.empty) {
+        util.statusCode = 400;
+        util.message = "You have already applied for this opportunity.";
+        return util.send(res);
+      }
       const applicationRef = db.collection("applications").doc();
       const newApplicationData = {
         applicationId: applicationRef.id,
@@ -252,8 +252,8 @@ class ApplicationsController {
           const { firstName, email, uid } = doc.data();
           const payLoad = {
             firstName,
-            opportunityTitle
-          }
+            opportunityTitle,
+          };
           if (email) {
             const emailTemplate = sendAcceptEmail(payLoad);
 
@@ -284,12 +284,16 @@ class ApplicationsController {
         if (doc.exists) {
           const { firstName, email, uid } = doc.data();
           if (email) {
-            const emailTemplate = sendRejectEmail(firstName);
+            const payLoad = {
+              firstName,
+              opportunityTitle,
+            };
+            const emailTemplate = sendRejectEmail(payLoad);
 
             const mailOptions = {
               from: process.env.EMAIL,
               to: email,
-              subject: "Creator Platform Application Update",
+              subject: `Creator Platform Application Update for ${opportunityTitle}`,
               html: emailTemplate,
             };
 
@@ -297,7 +301,7 @@ class ApplicationsController {
           }
           if (uid) {
             const notificationData = {
-              body: "Your application for... was rejected",
+              body: `Your application for ${opportunityTitle} was rejected`,
               userId: uid,
             };
             await sendNotification(notificationData);

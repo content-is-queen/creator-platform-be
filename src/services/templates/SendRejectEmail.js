@@ -2,7 +2,8 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-const sendRejectEmail = (name) => {
+const sendRejectEmail = (data) => {
+  const { opportunityTitle, firstName } = data;
   const template = `<!DOCTYPE html>
   <html lang="en">
   
@@ -63,8 +64,8 @@ const sendRejectEmail = (name) => {
         <img src="https://media.licdn.com/dms/image/D4E3DAQFc-hrExVgIUg/image-scale_191_1128/0/1707842351543/content_is_queen_podcasts_cover?e=2147483647&v=beta&t=etcyrsZcy5eBtGjVp18vW4aQXkHiNWU0rBY357UqjQg" alt="Logo">
       </div>
       <div class="content">
-        <p>Hello, ${name}</p>
-        <p>Thank you for your interest in the Creator Platform and for taking the time to apply. We have carefully reviewed your application, but we regret to inform you that we cannot move forward with it at this time.</p>
+        <p>Hello, ${firstName}</p>
+        <p>Thank you for your interest in Creator Platform and for taking the time to apply for ${opportunityTitle}. We have carefully reviewed your application, but we regret to inform you that we cannot move forward with it at this time.</p>
       </div>
   
       <div class="content">

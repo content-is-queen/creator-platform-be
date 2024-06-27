@@ -3,7 +3,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const sendAcceptEmail = (name) => {
-  const {opportunityTitle, firstName} = name;
+  const { opportunityTitle, firstName } = name;
   const template = `<!DOCTYPE html>
   <html lang="en">
   

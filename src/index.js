@@ -22,7 +22,7 @@ const serviceAccount = {
 
 dotenv.config();
 
-const PORT = 5000;
+const PORT = process.env.PORT || 8080;
 const app = express();
 app.use(cors());
 app.use(express.json());

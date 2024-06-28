@@ -312,8 +312,7 @@ class OpportunitiesController {
     const db = admin.firestore();
     try {
       const { opportunityId } = req.params;
-      const { type, ...fields } = req.body;
-      await schema[type].validateAsync(req.body);
+      const { status } = req.body;
 
       // Fetch the opportunity document
       const opportunityRef = db.collection("opportunities").doc(opportunityId);
@@ -325,7 +324,7 @@ class OpportunitiesController {
       }
 
       // Perform the update
-      await opportunityRef.update(fields);
+      await opportunityRef.update({ status });
 
       // Return success response
       return res

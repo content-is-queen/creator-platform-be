@@ -526,6 +526,15 @@ class AuthController {
         });
       }
 
+      if (userData.profilePhoto) {
+        // Extract the filename from the profilePhoto URL or path
+        const fileName = userData.profilePhoto.split("/").pop();
+
+        // Delete the file from Firebase Storage
+        const storageRef = admin.storage().bucket();
+        await storageRef.file(`profile/picture/${fileName}`).delete();
+      }
+
       // Archive open or in-progress opportunities/applications based on user role
       if (role === "brand" || role === "admin") {
         const opportunitiesRef = db

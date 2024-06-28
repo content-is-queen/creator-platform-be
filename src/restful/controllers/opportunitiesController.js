@@ -2,6 +2,7 @@ const dotenv = require("dotenv");
 const { Util } = require("../../helper/utils");
 const admin = require("firebase-admin");
 const { v4: uuidv4 } = require("uuid"); // Import uuidv4 directly
+const Joi = require("joi");
 
 dotenv.config();
 /**
@@ -10,6 +11,49 @@ dotenv.config();
  */
 
 const util = new Util();
+
+const defaultSchema = {
+  title: Joi.string(),
+  description: Joi.string(),
+  type: Joi.any().allow("pitch", "campaign", "job").required(),
+  userId: Joi.string(),
+  applicationInstructions: Joi.string().allow(""),
+};
+
+const schema = {
+  job: Joi.object({
+    ...defaultSchema,
+    category: Joi.string().allow(""),
+    contractType: Joi.string().allow(""),
+    experience: Joi.string().allow(""),
+    skills: Joi.array().items(Joi.string()).required(),
+    location: Joi.string().allow(""),
+    education: Joi.string().allow(""),
+    salary: Joi.string().allow(""),
+    terms: Joi.string().allow(""),
+    deadline: Joi.date().required(),
+    benefits: Joi.string().allow(""),
+  }),
+  pitch: Joi.object({
+    ...defaultSchema,
+    targetAudience: Joi.array().items(Joi.string()),
+    contentDuration: Joi.string().allow(""),
+    contentType: Joi.string().allow(""),
+    keyMessage: Joi.string().allow(""),
+    deadline: Joi.date().required(),
+    budget: Joi.string().allow(""),
+  }),
+  campaign: Joi.object({
+    ...defaultSchema,
+    targetAudience: Joi.string().allow(""),
+    targetDemographic: Joi.array().items(Joi.string()).required(),
+    budget: Joi.string(),
+    adType: Joi.string().allow(""),
+    startDate: Joi.date().required(),
+    length: Joi.string().allow(""),
+    endDate: Joi.date().required(),
+  }),
+};
 class OpportunitiesController {
   /**
    * @param {Object} req request Object.
@@ -268,7 +312,8 @@ class OpportunitiesController {
     const db = admin.firestore();
     try {
       const { opportunityId } = req.params;
-      const { type } = req.body;
+      const { type, ...fields } = req.body;
+      await schema[type].validateAsync(req.body);
 
       // Fetch the opportunity document
       const opportunityRef = db.collection("opportunities").doc(opportunityId);
@@ -279,25 +324,8 @@ class OpportunitiesController {
         return res.status(404).json({ message: "Opportunity not found" });
       }
 
-      // Validate type field
-      if (!type || !["job", "pitch", "campaign"].includes(type)) {
-        throw new Error("Invalid or missing opportunity type");
-      }
-
-      // Get required fields based on the type
-      const requiredFields = getTypeRequiredFields(type);
-
-      // Prepare the update object with only provided fields
-      const updateData = {};
-      requiredFields.forEach((field) => {
-        // Check if the field is provided in the request body
-        if (Object.hasOwn(req.body, field)) {
-          updateData[field] = req.body[field];
-        }
-      });
-
       // Perform the update
-      await opportunityRef.update(updateData);
+      await opportunityRef.update(fields);
 
       // Return success response
       return res
@@ -315,7 +343,9 @@ class OpportunitiesController {
   static async createOpportunity(req, res, type) {
     const db = admin.firestore();
     try {
-      const { userId } = req.body;
+      const { userId, type } = req.body;
+
+      await schema[type].validateAsync(req.body);
 
       // Fetch the user document
       const userRef = db.collection("users").doc(userId);
@@ -355,17 +385,6 @@ class OpportunitiesController {
       } else {
         opportunityData.profilePhotoRef = userRef;
       }
-
-      // Validate required fields
-      // const requiredFields = getTypeRequiredFields(type);
-      // const isValid = requiredFields.every((field) =>
-      //   Object.hasOwn(opportunityData, field),
-      // );
-      // if (!isValid) {
-      //   util.statusCode = 400;
-      //   util.message = "Please fill in all required fields";
-      //   return util.send(res);
-      // }
 
       // Check if opportunity with same ID already exists
       const existingOpportunity = await db
@@ -414,48 +433,6 @@ class OpportunitiesController {
 
   static async createCampaignOpportunity(req, res) {
     return OpportunitiesController.createOpportunity(req, res, "campaign");
-  }
-}
-
-const requiredFields = ["title", "description", "userId"];
-
-function getTypeRequiredFields(type) {
-  switch (type) {
-    case "job":
-      return [
-        ...requiredFields,
-        "category",
-        "contractType",
-        "location",
-        "experience",
-        "skills",
-        "education",
-        "salary",
-        "terms",
-        "deadline",
-      ];
-    case "pitch":
-      return [
-        ...requiredFields,
-        "targetAudience",
-        "contentDuration",
-        "contentType",
-        "keyMessage",
-      ];
-    case "campaign":
-      return [
-        ...requiredFields,
-        "targetAudience",
-        "targetDemographic",
-        "compensation",
-        "adType",
-        "length",
-        "budget",
-        "startDate",
-        "endDate",
-      ];
-    default:
-      return [];
   }
 }
 

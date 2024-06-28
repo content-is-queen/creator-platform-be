@@ -11,6 +11,9 @@ router.post(
   allowedRole(["admin", "super_admin"]),
   AdminController.adminCreateUser,
 );
+
+router.post("/company", AdminController.updateCompanyInfo);
+
 router.get("/users", AdminController.admingetAllUsers);
 router.get(
   "/info",
@@ -44,9 +47,10 @@ router.patch(
   allowedRole(["super_admin"]),
   AdminController.adminUpdateUserLimits,
 );
+
 router.get("/opportunities", AdminController.getAllOpportunities);
 router.get("/company", AdminController.getCompanyInfo);
-router.put("/company", AdminController.updateCompanyInfo);
+
 router.put(
   "/limits",
   protect,

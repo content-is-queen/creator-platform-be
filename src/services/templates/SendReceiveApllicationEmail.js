@@ -3,7 +3,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const SendReceiveApllicationEmail = (data) => {
-  const { name } = data;
+  const { name, title } = data;
   const template = `<!DOCTYPE html>
   <html lang="en">
   
@@ -65,7 +65,7 @@ const SendReceiveApllicationEmail = (data) => {
       </div>
       <div class="content">
         <p>Hello, ${name}</p>
-        <p>We are pleased to inform you that a new application has been submitted.</p>
+        <p>We are pleased to inform you that a new application for ${title} has been submitted.</p>
       </div>
   
       <div class="content">

@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const sendAcceptEmail = (name) => {
+  const { opportunityTitle, firstName } = name;
   const template = `<!DOCTYPE html>
   <html lang="en">
   
@@ -63,8 +64,8 @@ const sendAcceptEmail = (name) => {
         <img src="https://media.licdn.com/dms/image/D4E3DAQFc-hrExVgIUg/image-scale_191_1128/0/1707842351543/content_is_queen_podcasts_cover?e=2147483647&v=beta&t=etcyrsZcy5eBtGjVp18vW4aQXkHiNWU0rBY357UqjQg" alt="Logo">
       </div>
       <div class="content">
-        <p>Hello, ${name}</p>
-        <p>We are pleased to inform you that your application to the Creator Platform has been successfully reviewed and accepted. Congratulations!</p>
+        <p>Hello, ${firstName}</p>
+        <p>We are pleased to inform you that your application for ${opportunityTitle} to the Creator Platform has been successfully reviewed and accepted. Congratulations!</p>
       </div>
   
       <div class="content">

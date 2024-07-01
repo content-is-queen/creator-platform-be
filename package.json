@@ -6,8 +6,8 @@
   "type": "commonjs",
   "scripts": {
     "dev": "nodemon --exec babel-node src/index.js",
-    "deploy": "firebase deploy --only functions -P default",
-    "deploy:staging":"firebase deploy --only functions -P staging",
+    "start": "node src/index.js",
+    "deploy": "gcloud app deploy",
     "check": "npx prettier ./src --check",
     "format": "npx prettier ./src --write",
     "lint": "npx eslint . --ext .js",

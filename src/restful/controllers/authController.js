@@ -4,7 +4,6 @@ const { Util } = require("../../helper/utils");
 const SendPasswordReset = require("../../services/templates/SendPasswordReset");
 const transporter = require("../../helper/mailHelper");
 const admin = require("firebase-admin");
-const { v4: uuidv4 } = require("uuid");
 const jwt = require("jsonwebtoken");
 const Joi = require("joi");
 
@@ -315,66 +314,17 @@ class AuthController {
   static async updateUser(req, res) {
     try {
       const { ...valuesToUpdate } = req.body;
-      const file = req.files?.profilePhoto;
 
-      if (!file) {
-        // If there's no file, update user data directly in Firestore
-        const docRef = admin
-          .firestore()
-          .collection("users")
-          .doc(req.user.user_id);
-        await docRef.set({ ...valuesToUpdate }, { merge: true });
+      // If there's no file, update user data directly in Firestore
+      const docRef = admin
+        .firestore()
+        .collection("users")
+        .doc(req.user.user_id);
+      await docRef.set({ ...valuesToUpdate }, { merge: true });
 
-        util.statusCode = 200;
-        util.message = "User updated successfully";
-        util.setSuccess(200, "User updated successfully", valuesToUpdate);
+      util.setSuccess(200, "Profile updated successfully", valuesToUpdate);
 
-        return util.send(res);
-      } else {
-        // If there's a file, upload it to Firebase Storage
-        const storageRef = admin.storage().bucket();
-        const fileName = `profile/picture/${uuidv4()}_${file.name}`;
-        const uploadTask = storageRef.upload(file.tempFilePath, {
-          public: true,
-          destination: fileName,
-          metadata: {
-            firebaseStorageDownloadTokens: uuidv4(),
-          },
-        });
-
-        uploadTask
-          .then(async (snapshot) => {
-            // Once uploaded, get the image URL and update user data in Firestore
-            const profilePhoto = snapshot[0].metadata.mediaLink;
-            const docRef = admin
-              .firestore()
-              .collection("users")
-              .doc(req.user.user_id);
-
-            await docRef.set(
-              {
-                ...valuesToUpdate,
-                profilePhoto,
-              },
-              { merge: true },
-            );
-
-            util.setSuccess(
-              200,
-              "User profile updated successfully",
-              profilePhoto,
-            );
-
-            return util.send(res);
-          })
-          .catch((error) => {
-            // Handle errors during file upload
-            console.error("Error uploading image:", error);
-            util.statusCode = 500;
-            util.message = "Failed to upload image";
-            return util.send(res);
-          });
-      }
+      return util.send(res);
     } catch (error) {
       util.statusCode = 500;
       util.message = error.message || "Server error";
@@ -423,14 +373,14 @@ class AuthController {
     const { user_id } = req.user;
     try {
       if (email !== req.user.email) {
+        await admin.auth().updateUser(user_id, {
+          email,
+        });
         const docRef = admin
           .firestore()
           .collection("users")
           .doc(req.user.user_id);
         await docRef.set({ email }, { merge: true });
-        await admin.auth().updateUser(user_id, {
-          email,
-        });
       }
       util.statusCode = 200;
       util.message = "Email changed successfully";

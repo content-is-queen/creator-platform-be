@@ -186,11 +186,14 @@ class AuthController {
           const settingsRef = userData?.organization;
           if (settingsRef) {
             const settingsSnapshot = await settingsRef?.get();
+
             if (settingsSnapshot.exists) {
               userData.organizationName =
                 settingsSnapshot.data().organizationName;
               userData.organizationLogo =
                 settingsSnapshot.data().organizationLogo;
+              userData.organizationBio =
+                settingsSnapshot.data().organizationBio;
             }
           }
         }

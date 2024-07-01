@@ -12,7 +12,7 @@ router.post(
   AdminController.adminCreateUser,
 );
 
-router.post("/company", AdminController.updateCompanyInfo);
+router.put("/company", AdminController.updateCompanyInfo);
 
 router.get("/users", AdminController.admingetAllUsers);
 router.get(

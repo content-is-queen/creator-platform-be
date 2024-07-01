@@ -91,9 +91,13 @@ class OpportunitiesController {
           if (doc.data().profilePhotoRef) {
             const profileData = await doc.data().profilePhotoRef.get();
             opportunitiesDetails.profilePhoto = profileData.data().profilePhoto;
+            console.log(profileData);
           } else {
             const profileData = await doc.data().profileCompanyPhotoRef.get();
+            console.log(profileData);
             opportunitiesDetails.profilePhoto =
+              profileData.data().organizationLogo;
+            opportunitiesDetails.organizationLogo =
               profileData.data().organizationLogo;
             opportunitiesDetails.organizationName =
               profileData.data().organizationName;
@@ -179,7 +183,6 @@ class OpportunitiesController {
         return res.status(404).json({ message: "No opportunities found" });
       }
     } catch (error) {
-      console.error("Error fetching opportunities by user ID:", error);
       return res.status(500).json({ message: "Server error" });
     }
   }
@@ -216,7 +219,6 @@ class OpportunitiesController {
 
       return res.status(200).json(restFromFiltered);
     } catch (error) {
-      console.error("Error fetching opportunity by ID:", error);
       return res.status(500).json({ message: "Server error" });
     }
   }

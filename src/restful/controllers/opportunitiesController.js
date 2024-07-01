@@ -18,6 +18,7 @@ const defaultSchema = {
   type: Joi.any().allow("pitch", "campaign", "job").required(),
   userId: Joi.string(),
   applicationInstructions: Joi.string().allow(""),
+  link: Joi.string().uri().allow(""),
 };
 
 const schema = {

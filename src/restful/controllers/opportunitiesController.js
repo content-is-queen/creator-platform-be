@@ -53,8 +53,8 @@ class OpportunitiesController {
             console.log(profileData);
             opportunitiesDetails.profilePhoto =
               profileData.data().organizationLogo;
-            opportunitiesDetails.organizationLogo = 
-            profileData.data().organizationLogo;
+            opportunitiesDetails.organizationLogo =
+              profileData.data().organizationLogo;
             opportunitiesDetails.organizationName =
               profileData.data().organizationName;
           }

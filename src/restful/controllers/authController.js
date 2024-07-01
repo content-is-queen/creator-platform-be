@@ -180,23 +180,25 @@ class AuthController {
     try {
       const docRef = db.collection("users").doc(user_id);
       const docSnapshot = await docRef.get();
-
+      
       if (docSnapshot.exists) {
         const userData = docSnapshot.data();
         if (role === "super_admin" || role === "admin") {
           const settingsRef = userData?.organization;
           if (settingsRef) {
             const settingsSnapshot = await settingsRef?.get();
+            console.log(settingsSnapshot.data(),"??????????????????????????????????????????????????????????");
             if (settingsSnapshot.exists) {
               userData.organizationName =
-                settingsSnapshot.data().organizationName;
+              settingsSnapshot.data().organizationName;
               userData.organizationLogo =
-                settingsSnapshot.data().organizationLogo;
+              settingsSnapshot.data().organizationLogo;
             }
           }
         }
         const { organization, subscribed, ...filteredData } = userData;
         const dataToReturn = { ...filteredData };
+        // console.log(filteredData, "??????????????????????????????????????????????????????????");
         return res.status(200).json(dataToReturn);
       } else {
         return res.status(404).json({ message: "No such document!" });

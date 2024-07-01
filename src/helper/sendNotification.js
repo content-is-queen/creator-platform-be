@@ -1,16 +1,8 @@
 const admin = require("firebase-admin");
 
-async function sendNotification({ token, title, body, userId }) {
+async function sendNotification({ body, userId }) {
   try {
-    await admin.messaging().send({
-      token,
-      notification: {
-        title,
-        body,
-      },
-    });
     const notificationData = {
-      title,
       body,
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
     };

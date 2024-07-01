@@ -2,8 +2,8 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-const sendAcceptEmail = (name) => {
-  const { opportunityTitle, firstName } = name;
+const sendRejectEmail = (data) => {
+  const { opportunityTitle, firstName } = data;
   const template = `<!DOCTYPE html>
   <html lang="en">
   
@@ -65,12 +65,13 @@ const sendAcceptEmail = (name) => {
       </div>
       <div class="content">
         <p>Hello, ${firstName}</p>
-        <p>We are pleased to inform you that your application for ${opportunityTitle} to the Creator Platform has been successfully reviewed and accepted. Congratulations!</p>
+        <p>Thank you for your interest in Creator Platform and for taking the time to apply for ${opportunityTitle}. We have carefully reviewed your application, but we regret to inform you that we cannot move forward with it at this time.</p>
       </div>
   
       <div class="content">
-        <p>Please log in to your account to view the details of your allocation. If you have any questions or need further assistance, contact us at <strong>support@contentisqueen.com</strong> We're here to support you.</p>
-  
+        <p>We appreciate the effort you put into your application and encourage you to apply again in the future. If you have any questions or would like feedback on your application, please do not hesitate to contact us at <strong>support@contentisqueen.com</strong> We are here to assist you.</p>
+        <br />
+  <p>Thank you once again for considering the Creator Platform.</p>
         <p>Best regards,</p>
         <p>Creator Platform Team</p>
       </div>
@@ -81,4 +82,4 @@ const sendAcceptEmail = (name) => {
   return template;
 };
 
-module.exports.sendAcceptEmail = sendAcceptEmail;
+module.exports.sendRejectEmail = sendRejectEmail;

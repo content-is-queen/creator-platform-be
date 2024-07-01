@@ -2,8 +2,8 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-const sendAcceptEmail = (name) => {
-  const { opportunityTitle, firstName } = name;
+const SendReceiveApllicationEmail = (data) => {
+  const { name, title } = data;
   const template = `<!DOCTYPE html>
   <html lang="en">
   
@@ -64,13 +64,13 @@ const sendAcceptEmail = (name) => {
         <img src="https://media.licdn.com/dms/image/D4E3DAQFc-hrExVgIUg/image-scale_191_1128/0/1707842351543/content_is_queen_podcasts_cover?e=2147483647&v=beta&t=etcyrsZcy5eBtGjVp18vW4aQXkHiNWU0rBY357UqjQg" alt="Logo">
       </div>
       <div class="content">
-        <p>Hello, ${firstName}</p>
-        <p>We are pleased to inform you that your application for ${opportunityTitle} to the Creator Platform has been successfully reviewed and accepted. Congratulations!</p>
+        <p>Hello, ${name}</p>
+        <p>We are pleased to inform you that a new application for ${title} has been submitted.</p>
       </div>
   
       <div class="content">
-        <p>Please log in to your account to view the details of your allocation. If you have any questions or need further assistance, contact us at <strong>support@contentisqueen.com</strong> We're here to support you.</p>
-  
+      <p>You can review the applicant’s details and qualifications by logging into your account. If you have any questions or need further assistance, please feel free to contact us at <strong>support@contentisqueen.com</strong>.
+        Thank you for using our platform to post your opportunity. We hope you find the perfect match for your needs.</p> <br />
         <p>Best regards,</p>
         <p>Creator Platform Team</p>
       </div>
@@ -81,4 +81,4 @@ const sendAcceptEmail = (name) => {
   return template;
 };
 
-module.exports.sendAcceptEmail = sendAcceptEmail;
+module.exports.SendReceiveApllicationEmail = SendReceiveApllicationEmail;

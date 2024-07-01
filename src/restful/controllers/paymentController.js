@@ -10,7 +10,7 @@ const admin = require("firebase-admin");
  */
 
 const createCheckoutSession = async (req, res) => {
-  const origin = req.headers.origin || "http://localhost:3000";
+  const origin = req.headers.origin || process.env.DOMAIN;
   try {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],

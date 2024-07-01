@@ -10,7 +10,7 @@ const { protect } = require("../../middleware");
 
 const router = express.Router();
 
-router.post("/create-checkout-session", protect, createCheckoutSession);
+router.get("/create-checkout-session", protect, createCheckoutSession);
 router.post("/subscribe", protect, subscribeUser);
 router.post("/cancel-subscription", cancelSubscription);
 

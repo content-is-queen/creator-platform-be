@@ -4,6 +4,10 @@ const admin = require("firebase-admin");
 const { sendAcceptEmail } = require("../../services/templates/SendAcceptEmail");
 const transporter = require("../../helper/mailHelper");
 const sendNotification = require("../../helper/sendNotification");
+const { sendRejectEmail } = require("../../services/templates/SendRejectEmail");
+const {
+  SendReceiveApllicationEmail,
+} = require("../../services/templates/SendReceiveApllicationEmail");
 
 dotenv.config();
 
@@ -151,7 +155,17 @@ class ApplicationsController {
         util.message = `You can only apply to up to ${authorData.maxOpportunitiesApplied} opportunities.`;
         return util.send(res);
       }
+      const existingApplicationsSnapshot = await db
+        .collection("applications")
+        .where("authorId", "==", authorId)
+        .where("opportunityId", "==", opportunityId)
+        .get();
 
+      if (!existingApplicationsSnapshot.empty) {
+        util.statusCode = 400;
+        util.message = "You have already applied for this opportunity.";
+        return util.send(res);
+      }
       const applicationRef = db.collection("applications").doc();
       const newApplicationData = {
         applicationId: applicationRef.id,
@@ -161,6 +175,9 @@ class ApplicationsController {
         creatorId,
         status: "pending",
       };
+      const opportunityRef = db.collection("opportunities").doc(opportunityId);
+      const opportunityDoc = await opportunityRef.get();
+      const { title } = opportunityDoc.data();
       await applicationRef.set(newApplicationData);
 
       // Increment the opportunitiesAppliedCount for the user
@@ -168,6 +185,34 @@ class ApplicationsController {
         opportunitiesAppliedCount: admin.firestore.FieldValue.increment(1),
       });
 
+      const userRef = db.collection("users").doc(authorId);
+      const doc = await userRef.get();
+      if (doc.exists) {
+        const { firstName, email, uid } = doc.data();
+        if (email) {
+          const data = {
+            name: firstName,
+            title,
+          };
+          const emailTemplate = SendReceiveApllicationEmail(data);
+
+          const mailOptions = {
+            from: process.env.EMAIL,
+            to: email,
+            subject: `Application received for ${title}`,
+            html: emailTemplate,
+          };
+
+          await transporter.sendMail(mailOptions);
+        }
+        if (uid) {
+          const notificationData = {
+            body: `You have received an application for ${title}`,
+            userId: uid,
+          };
+          await sendNotification(notificationData);
+        }
+      }
       util.statusCode = 201;
       util.message = newApplicationData;
       return util.send(res);
@@ -195,34 +240,35 @@ class ApplicationsController {
 
       if (status === "accepted") {
         const participantIds = [authorId, creatorId];
-        // Call createRoom function with data
         const { roomId } = await createRoom(
           db,
           participantIds,
           opportunityTitle,
         );
 
-        const userRef = db.collection("users").doc(authorId);
+        const userRef = db.collection("users").doc(creatorId);
         const doc = await userRef.get();
         if (doc.exists) {
-          const { firstName, email, fcmToken, uid } = doc.data();
+          const { firstName, email, uid } = doc.data();
+          const payLoad = {
+            firstName,
+            opportunityTitle,
+          };
           if (email) {
-            const emailTemplate = sendAcceptEmail(firstName);
+            const emailTemplate = sendAcceptEmail(payLoad);
 
             const mailOptions = {
               from: process.env.EMAIL,
               to: email,
-              subject: "Creator Platform Application Update",
+              subject: `Application update for ${opportunityTitle}`,
               html: emailTemplate,
             };
 
             await transporter.sendMail(mailOptions);
           }
-          if (fcmToken) {
+          if (uid) {
             const notificationData = {
-              token: fcmToken,
-              title: "Your Application Update",
-              body: "Your Application has been approved!",
+              body: `Your Application has been approved for ${opportunityTitle}`,
               userId: uid,
             };
             await sendNotification(notificationData);
@@ -232,6 +278,35 @@ class ApplicationsController {
         util.statusCode = 200;
         util.message = { roomId };
         return util.send(res);
+      } else if (status === "rejected") {
+        const userRef = db.collection("users").doc(creatorId);
+        const doc = await userRef.get();
+        if (doc.exists) {
+          const { firstName, email, uid } = doc.data();
+          if (email) {
+            const payLoad = {
+              firstName,
+              opportunityTitle,
+            };
+            const emailTemplate = sendRejectEmail(payLoad);
+
+            const mailOptions = {
+              from: process.env.EMAIL,
+              to: email,
+              subject: `Creator Platform Application Update for ${opportunityTitle}`,
+              html: emailTemplate,
+            };
+
+            await transporter.sendMail(mailOptions);
+          }
+          if (uid) {
+            const notificationData = {
+              body: `Your application for ${opportunityTitle} was rejected`,
+              userId: uid,
+            };
+            await sendNotification(notificationData);
+          }
+        }
       }
 
       util.statusCode = 200;

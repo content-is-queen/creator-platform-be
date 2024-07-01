@@ -2,6 +2,7 @@
 const dotenv = require("dotenv");
 const admin = require("firebase-admin");
 const { Util } = require("../../helper/utils");
+const Joi = require("joi");
 /* eslint-disable quotes */
 
 dotenv.config();
@@ -211,12 +212,12 @@ class AdminController {
         .where("status", "==", "completed")
         .get();
       const infoData = [
-        { title: "Users", value: `${usersQuery.size}` },
-        { title: "Subscribed Users", value: `${subscribedUsersQuery.size}` },
-        { title: "Opportunities", value: `${opportunitiesQuery.size}` },
+        { title: "Users", children: `${usersQuery.size}` },
+        { title: "Subscribed Users", children: `${subscribedUsersQuery.size}` },
+        { title: "Opportunities", children: `${opportunitiesQuery.size}` },
         {
           title: "Completed Opportunities",
-          value: `${completedOpportunitiesQuery.size}`,
+          children: `${completedOpportunitiesQuery.size}`,
         },
       ];
 
@@ -309,34 +310,20 @@ class AdminController {
   }
 
   static async updateCompanyInfo(req, res) {
+    const schema = Joi.object({
+      organizationName: Joi.string().allow(""),
+      organizationBio: Joi.string().allow(""),
+      organizationLogo: Joi.string().uri().allow(""),
+    });
+
     try {
-      const { organizationName, organizationBio, organizationLogo } = req.body;
-      if (!organizationName && !organizationBio) {
-        util.statusCode = 400;
-        util.message = "Organization name and bio is required.";
-        return util.send(res);
-      }
+      await schema.validateAsync(req.body);
+
       const db = admin.firestore();
       const ciQRef = db.collection("settings").doc("organization");
-      const updateData = {};
 
-      if (organizationName) {
-        updateData.organizationName = organizationName;
-      }
-
-      if (organizationBio !== undefined) {
-        updateData.organizationBio = organizationBio;
-      }
-
-      if (organizationLogo) {
-        updateData.organizationLogo = organizationLogo;
-      }
-      await ciQRef.set(updateData, { merge: true });
-      util.setSuccess(
-        200,
-        updateData,
-        "Organization info updated successfully!",
-      );
+      await ciQRef.set(req.body, { merge: true });
+      util.setSuccess(200, "Organization info updated successfully!", req.body);
       return util.send(res);
     } catch (error) {
       util.statusCode = 500;

@@ -50,7 +50,12 @@ router.patch(
 
 router.get("/opportunities", AdminController.getAllOpportunities);
 router.get("/company", AdminController.getCompanyInfo);
-router.get("/reset", protect, allowedRole(["super_admin"]), AdminController.resetAllUsersLimit);
+router.get(
+  "/reset",
+  protect,
+  allowedRole(["super_admin"]),
+  AdminController.resetAllUsersLimit,
+);
 
 router.put(
   "/limits",

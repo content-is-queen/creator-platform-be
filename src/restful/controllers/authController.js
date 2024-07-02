@@ -447,13 +447,6 @@ class AuthController {
   static async deleteAccount(req, res) {
     const { fullName } = req.body;
     const { user_id, role } = req.user;
-    console.log(
-      "Deleting account for user:",
-      user_id,
-      "with full name:",
-      fullName,
-    );
-
     if (!fullName) {
       return res.status(400).json({ message: "Full name is required" });
     }
@@ -521,7 +514,6 @@ class AuthController {
 
       return res.status(200).json({ message: "Account deleted successfully" });
     } catch (error) {
-      console.error("Error deleting account:", error);
       return res.status(500).json({ message: error.message || "Server error" });
     }
   }

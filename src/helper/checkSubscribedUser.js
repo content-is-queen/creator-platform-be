@@ -20,7 +20,7 @@ const checkSubscribedUser = () => {
       if (opportunitiesPostedCount > numberOfOpportunitiesAllowed) {
         util.statusCode = 403;
         util.message =
-          "Number of opportunities allowed for unpaid accounts has been reached";
+          "The credit limit for unsubscribed accounts has been reached";
         return util.send(res);
       } else {
         return next();
@@ -33,7 +33,7 @@ const checkSubscribedUser = () => {
       if (opportunitiesAppliedCount > numberOfApplicationsAllowed) {
         util.statusCode = 403;
         util.message =
-          "Number of applications allowed for unpaid accounts has been reached";
+          "The credit limit for unsubscribed accounts has been reached";
         return util.send(res);
       } else {
         return next();

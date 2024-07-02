@@ -40,7 +40,7 @@ app.use(
   }),
 );
 app.use(router);
-// cronJob();
+cronJob();
 const start = () => {
   try {
     app.listen(PORT, () => console.log(`App listening on port ${PORT}`));

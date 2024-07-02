@@ -389,6 +389,51 @@ class AdminController {
       return util.send(res);
     }
   }
+
+  static async resetAllUsersLimit(req, res){
+    try {
+      const db = admin.firestore();
+      const usersCollection = db.collection("users");
+  
+      const querySnapshot = await usersCollection.get();
+  
+      if (!querySnapshot.empty) {
+        const batch = db.batch();
+  
+        querySnapshot.forEach((doc) => {
+          const userObj = doc.data();
+          if (Object.hasOwn(userObj, "uid")) {
+            const userRole = userObj.role;
+            const userRef = usersCollection.doc(doc.id);
+  
+            if (userRole === 'brand') {
+              if (Object.hasOwn(userObj, "opportunitiesPostedCount")) {
+                userObj.opportunitiesPostedCount = 0;
+                batch.update(userRef, { opportunitiesPostedCount: 0 });
+              }
+            } else if (userRole === 'creator') {
+              if (Object.hasOwn(userObj, "opportunitiesAppliedCount")) {
+                userObj.opportunitiesAppliedCount = 0;
+                batch.update(userRef, { opportunitiesAppliedCount: 0 });
+              }
+              if (Object.hasOwn(userObj, "opportunitiesPostedCount")) {
+                userObj.opportunitiesPostedCount = 0;
+                batch.update(userRef, { opportunitiesPostedCount: 0 });
+              }
+            }
+  
+          }
+        });
+        await batch.commit();
+      }
+    } catch (error) {
+      console.log(error);
+      util.statusCode = 500;
+      util.message = error.message || "Server error";
+      return util.send(res);
+    }
+  }
+
 }
 
 exports.AdminController = AdminController;

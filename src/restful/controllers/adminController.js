@@ -145,14 +145,6 @@ class AdminController {
 
       const profilePhoto = userData?.profilePhoto || null;
 
-      let file = userData.profilePhoto?.split("%2F").pop();
-
-      file = file.substring(0, file.lastIndexOf("?"));
-
-      const fileRef = bucket.file(`profilePhotos/${file}`);
-
-      const removeProfilePhoto = await fileRef.delete();
-
       const removeDocument = await db.collection("users").doc(userId).delete();
 
       const removeAuth = await admin.auth().deleteUser(userId);
@@ -160,6 +152,13 @@ class AdminController {
       const tasks = [removeDocument, removeAuth];
 
       if (profilePhoto) {
+        let file = userData.profilePhoto?.split("%2F").pop();
+
+        file = file?.substring(0, file.lastIndexOf("?"));
+
+        const fileRef = bucket?.file(`profilePhotos/${file}`);
+
+        const removeProfilePhoto = await fileRef.delete();
         tasks.unshift(removeProfilePhoto);
       }
 
@@ -169,9 +168,9 @@ class AdminController {
       util.setSuccess(200, "User deleted successfully!");
       return util.send(res);
     } catch (error) {
-      console.log(error.message);
+      console.log(error.message || "Server error");
       util.statusCode = 500;
-      util.message = error.message || "Server error";
+      util.message = "There was an error deleting the user";
       return util.send(res);
     }
   }

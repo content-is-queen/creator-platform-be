@@ -142,15 +142,16 @@ class AdminController {
       const userData = userDoc.data();
 
       const bucket = admin.storage().bucket();
-      const fileName = userData.profilePhoto?.split(userId).pop();
-      const subFileName = fileName.substring(
-        fileName.indexOf("%") + 1,
-        fileName.lastIndexOf("?"),
-      );
 
-      const file = bucket.file(`profilePhotos/${userId}-${subFileName}`);
+      const profilePhoto = userData?.profilePhoto || null;
 
-      const removeProfilePhoto = await file.delete();
+      let file = userData.profilePhoto?.split("%2F").pop();
+
+      file = file.substring(0, file.lastIndexOf("?"));
+
+      const fileRef = bucket.file(`profilePhotos/${file}`);
+
+      const removeProfilePhoto = await fileRef.delete();
 
       const removeDocument = await db.collection("users").doc(userId).delete();
 
@@ -158,14 +159,14 @@ class AdminController {
 
       const tasks = [removeDocument, removeAuth];
 
-      if (file) {
+      if (profilePhoto) {
         tasks.unshift(removeProfilePhoto);
       }
 
-      Promise.all(tasks);
+      await Promise.all(tasks);
 
       util.statusCode = 200;
-      util.setSuccess(200, "User deleted successfully!", userData);
+      util.setSuccess(200, "User deleted successfully!");
       return util.send(res);
     } catch (error) {
       console.log(error.message);

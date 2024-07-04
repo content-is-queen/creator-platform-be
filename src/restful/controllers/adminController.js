@@ -79,7 +79,7 @@ class AdminController {
       util.setSuccess(200, "User activated successfully!");
       return util.send(res);
     } catch (error) {
-      console.log(error);
+      console.log(error.message);
       util.statusCode = 500;
       util.message = error.message || "Server error";
       return util.send(res);
@@ -99,7 +99,7 @@ class AdminController {
       util.setSuccess(200, "User deactivated successfully!");
       return util.send(res);
     } catch (error) {
-      console.log(error);
+      console.log(error.message);
       util.statusCode = 500;
       util.message = error.message || "Server error";
       return util.send(res);
@@ -127,7 +127,7 @@ class AdminController {
 
       return res.status(200).json(users);
     } catch (error) {
-      console.log(error);
+      console.log(error.message);
       util.statusCode = 500;
       util.message = error.message || "Server error";
       return util.send(res);
@@ -140,20 +140,35 @@ class AdminController {
       const db = admin.firestore();
       const userDoc = await db.collection("users").doc(userId).get();
       const userData = userDoc.data();
-      const profilePhoto = userData?.profilePhoto;
-      await admin.auth().deleteUser(userId);
-      await db.collection("users").doc(userId).delete();
-      if (profilePhoto) {
-        const fileName = profilePhoto.split("/").pop();
-        const bucket = admin.storage().bucket();
-        await bucket.file(`profile/picture/${fileName}`).delete();
+
+      const bucket = admin.storage().bucket();
+      const fileName = userData.profilePhoto?.split(userId).pop();
+      const subFileName = fileName.substring(
+        fileName.indexOf("%") + 1,
+        fileName.lastIndexOf("?"),
+      );
+
+      const file = bucket.file(`profilePhotos/${userId}-${subFileName}`);
+
+      const removeProfilePhoto = await file.delete();
+
+      const removeDocument = await db.collection("users").doc(userId).delete();
+
+      const removeAuth = await admin.auth().deleteUser(userId);
+
+      const tasks = [removeDocument, removeAuth];
+
+      if (file) {
+        tasks.unshift(removeProfilePhoto);
       }
 
+      Promise.all(tasks);
+
       util.statusCode = 200;
-      util.setSuccess(200, "User deleted successfully!");
+      util.setSuccess(200, "User deleted successfully!", userData);
       return util.send(res);
     } catch (error) {
-      console.log(error);
+      console.log(error.message);
       util.statusCode = 500;
       util.message = error.message || "Server error";
       return util.send(res);
@@ -191,7 +206,7 @@ class AdminController {
       util.setSuccess(200, "User limits updated successfully!");
       return util.send(res);
     } catch (error) {
-      console.log(error);
+      console.log(error.message);
       util.statusCode = 500;
       util.message = error.message || "Server error";
       return util.send(res);

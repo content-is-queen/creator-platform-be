@@ -24,11 +24,11 @@ const defaultSchema = {
 const schema = {
   job: Joi.object({
     ...defaultSchema,
-    category: Joi.string().allow(""),
+    category: Joi.string(),
     contractType: Joi.string().allow(""),
     experience: Joi.string().allow(""),
     skills: Joi.array().items(Joi.string()).required(),
-    location: Joi.string().allow(""),
+    location: Joi.string(),
     education: Joi.string().allow(""),
     salary: Joi.string().allow(""),
     terms: Joi.string().allow(""),
@@ -42,13 +42,13 @@ const schema = {
     contentType: Joi.string().allow(""),
     keyMessage: Joi.string().allow(""),
     deadline: Joi.date().required(),
-    budget: Joi.string().allow(""),
+    budget: Joi.string(),
   }),
   campaign: Joi.object({
     ...defaultSchema,
     targetAudience: Joi.string().allow(""),
     targetDemographic: Joi.array().items(Joi.string()).required(),
-    budget: Joi.string(),
+    budget: Joi.string().allow(""),
     adType: Joi.string().allow(""),
     startDate: Joi.date().required(),
     length: Joi.string().allow(""),
@@ -92,10 +92,8 @@ class OpportunitiesController {
           if (doc.data().profilePhotoRef) {
             const profileData = await doc.data().profilePhotoRef.get();
             opportunitiesDetails.profilePhoto = profileData.data().profilePhoto;
-            console.log(profileData);
           } else {
             const profileData = await doc.data().profileCompanyPhotoRef.get();
-            console.log(profileData);
             opportunitiesDetails.profilePhoto =
               profileData.data().organizationLogo;
             opportunitiesDetails.organizationLogo =
@@ -342,7 +340,7 @@ class OpportunitiesController {
     }
   }
 
-  static async createOpportunity(req, res, type) {
+  static async createOpportunity(req, res) {
     const db = admin.firestore();
     try {
       const { userId, type } = req.body;

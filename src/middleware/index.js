@@ -17,6 +17,15 @@ const protect = async (req, res, next) => {
     if (!decodedToken) {
       return res.status(401).json({ error: "Not Authenticated!" });
     }
+    const user = await admin.auth().getUser(decodedToken.uid);
+    if (user.disabled) {
+      return res
+        .status(401)
+        .json({
+          error:
+            "Your account has been disabled. Please contact the administrator for assistance.",
+        });
+    }
     req.user = decodedToken;
     next();
   } catch (error) {

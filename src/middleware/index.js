@@ -19,12 +19,10 @@ const protect = async (req, res, next) => {
     }
     const user = await admin.auth().getUser(decodedToken.uid);
     if (user.disabled) {
-      return res
-        .status(401)
-        .json({
-          error:
-            "Your account has been disabled. Please contact the administrator for assistance.",
-        });
+      return res.status(401).json({
+        error:
+          "Your account has been disabled. Please contact the administrator for assistance.",
+      });
     }
     req.user = decodedToken;
     next();

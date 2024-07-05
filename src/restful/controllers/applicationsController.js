@@ -134,25 +134,12 @@ class ApplicationsController {
     const db = admin.firestore();
     const { authorId, opportunityId, proposal, creatorId } = req.body;
     try {
-      // Fetch the user document
       const creatorRef = db.collection("users").doc(creatorId);
       const authorDoc = await creatorRef.get();
 
       if (!authorDoc.exists) {
         util.statusCode = 404;
         util.message = "User not found";
-        return util.send(res);
-      }
-
-      const authorData = authorDoc.data();
-
-      // Check the number of applications made by the creator
-      if (
-        authorData.opportunitiesAppliedCount >=
-        authorData.maxOpportunitiesApplied
-      ) {
-        util.statusCode = 400;
-        util.message = `You can only apply to up to ${authorData.maxOpportunitiesApplied} opportunities.`;
         return util.send(res);
       }
       const existingApplicationsSnapshot = await db
@@ -189,7 +176,6 @@ class ApplicationsController {
       const doc = await userRef.get();
       if (doc.exists) {
         const { firstName, email, uid } = doc.data();
-        if (email) {
           const data = {
             name: firstName,
             title,
@@ -204,14 +190,11 @@ class ApplicationsController {
           };
 
           await transporter.sendMail(mailOptions);
-        }
-        if (uid) {
           const notificationData = {
             body: `You have received an application for ${title}`,
             userId: uid,
           };
           await sendNotification(notificationData);
-        }
       }
       util.statusCode = 201;
       util.message = newApplicationData;

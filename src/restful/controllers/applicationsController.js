@@ -176,25 +176,25 @@ class ApplicationsController {
       const doc = await userRef.get();
       if (doc.exists) {
         const { firstName, email, uid } = doc.data();
-          const data = {
-            name: firstName,
-            title,
-          };
-          const emailTemplate = SendReceiveApllicationEmail(data);
+        const data = {
+          name: firstName,
+          title,
+        };
+        const emailTemplate = SendReceiveApllicationEmail(data);
 
-          const mailOptions = {
-            from: process.env.EMAIL,
-            to: email,
-            subject: `Application received for ${title}`,
-            html: emailTemplate,
-          };
+        const mailOptions = {
+          from: process.env.EMAIL,
+          to: email,
+          subject: `Application received for ${title}`,
+          html: emailTemplate,
+        };
 
-          await transporter.sendMail(mailOptions);
-          const notificationData = {
-            body: `You have received an application for ${title}`,
-            userId: uid,
-          };
-          await sendNotification(notificationData);
+        await transporter.sendMail(mailOptions);
+        const notificationData = {
+          body: `You have received an application for ${title}`,
+          userId: uid,
+        };
+        await sendNotification(notificationData);
       }
       util.statusCode = 201;
       util.message = newApplicationData;

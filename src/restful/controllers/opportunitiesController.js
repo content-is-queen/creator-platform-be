@@ -375,6 +375,8 @@ class OpportunitiesController {
         opportunityData.status = "open";
       }
 
+      opportunityData.createdAt = admin.firestore.FieldValue.serverTimestamp();
+
       // If company details are not provided, use organizationName from user data
       if (!opportunityData.company) {
         opportunityData.company = userData.organizationName || null;

@@ -161,11 +161,11 @@ class ApplicationsController {
         .where("opportunityId", "==", opportunityId)
         .get();
 
-      if (!existingApplicationsSnapshot.empty) {
-        util.statusCode = 400;
-        util.message = "You have already applied for this opportunity.";
-        return util.send(res);
-      }
+      // if (!existingApplicationsSnapshot.empty) {
+      //   util.statusCode = 400;
+      //   util.message = "You have already applied for this opportunity.";
+      //   return util.send(res);
+      // }
       const applicationRef = db.collection("applications").doc();
       const newApplicationData = {
         applicationId: applicationRef.id,
@@ -338,33 +338,46 @@ class ApplicationsController {
 
   static async getAllApplicationsById(req, res) {
     const { opportunityId } = req.params;
+    const { limit = 10, startAfter: startAfterId = null } = req.query;
 
     try {
       const db = admin.firestore();
       const applicationsRef = db.collection("applications");
-
-      // Query applications where opportunityId matches
-      const querySnapshot = await applicationsRef
-        .where("opportunityId", "==", opportunityId)
-        .get();
-
       const applications = [];
+
+      let query = applicationsRef
+        .where("opportunityId", "==", opportunityId)
+        .limit(parseInt(limit));
+
+      if (startAfterId) {
+        const startAfterDoc = await applicationsRef.doc(startAfterId).get();
+        if (startAfterDoc.exists) {
+          query = query.startAfter(startAfterDoc);
+        } else {
+          return res.status(400).json({ message: "Invalid startAfter ID" });
+        }
+      }
+
+      const querySnapshot = await query.get();
 
       console.log(`Query returned ${querySnapshot.size} documents`);
 
       if (!querySnapshot.empty) {
-        // Extract application data from query snapshot
         querySnapshot.forEach((doc) => {
           console.log(`Found application: ${JSON.stringify(doc.data())}`);
           applications.push({ id: doc.id, ...doc.data() });
+        });
+
+        return res.status(200).json({
+          applications,
+          nextStartAfterId: applications[applications.length - 1].id,
         });
       } else {
         console.log(
           `No applications found for opportunityId: ${opportunityId}`,
         );
+        return res.status(404).json({ message: "No applications found" });
       }
-
-      return res.status(200).json(applications);
     } catch (error) {
       console.error(
         `Error fetching applications for opportunityId: ${opportunityId}`,

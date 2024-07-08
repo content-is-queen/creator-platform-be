@@ -161,11 +161,11 @@ class ApplicationsController {
         .where("opportunityId", "==", opportunityId)
         .get();
 
-      // if (!existingApplicationsSnapshot.empty) {
-      //   util.statusCode = 400;
-      //   util.message = "You have already applied for this opportunity.";
-      //   return util.send(res);
-      // }
+      if (!existingApplicationsSnapshot.empty) {
+        util.statusCode = 400;
+        util.message = "You have already applied for this opportunity.";
+        return util.send(res);
+      }
       const applicationRef = db.collection("applications").doc();
       const newApplicationData = {
         applicationId: applicationRef.id,

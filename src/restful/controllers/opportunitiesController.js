@@ -71,7 +71,7 @@ class OpportunitiesController {
       let query = db
         .collection("opportunities")
         .where("status", "!=", "archived")
-        .orderBy("status")
+        .orderBy("createdAt")
         .limit(parseInt(limit));
       if (startAfterId) {
         const startAfterDoc = await db
@@ -101,7 +101,6 @@ class OpportunitiesController {
             opportunitiesDetails.organizationName =
               profileData.data().organizationName;
           }
-          // const { profilePhotoRef, ...restFromFiltered } = opportunitiesDetails;
           const {
             profilePhotoRef,
             profileCompanyPhotoRef,

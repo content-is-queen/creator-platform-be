@@ -71,7 +71,7 @@ class OpportunitiesController {
       let query = db
         .collection("opportunities")
         .where("status", "!=", "archived")
-        .orderBy("createdAt")
+        .orderBy("createdAt", "desc")
         .limit(parseInt(limit));
       if (startAfterId) {
         const startAfterDoc = await db

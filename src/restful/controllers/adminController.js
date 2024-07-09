@@ -140,7 +140,18 @@ class AdminController {
       const db = admin.firestore();
       const userDoc = await db.collection("users").doc(userId).get();
       const userData = userDoc.data();
+      const { role } = userData;
+      if(role === "super_admin") {
+      util.statusCode = 403;
+      util.setSuccess(403, "Super admin cannot be deleted");
+      return util.send(res);
+      }
 
+      if(role === "admin" && req.user.role === "admin" ) {
+        util.statusCode = 403;
+        util.setSuccess(403, "Only a super admin can delete an admin");
+        return util.send(res);
+      }
       const bucket = admin.storage().bucket();
 
       const profilePhoto = userData?.profilePhoto || null;

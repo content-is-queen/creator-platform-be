@@ -6,7 +6,9 @@ const transporter = require("../../helper/mailHelper");
 const admin = require("firebase-admin");
 const jwt = require("jsonwebtoken");
 const Joi = require("joi");
-const { sendEmailVerification } = require("../../services/templates/SendEmailVerification");
+const {
+  sendEmailVerification,
+} = require("../../services/templates/SendEmailVerification");
 
 dotenv.config();
 /**
@@ -86,12 +88,14 @@ class AuthController {
         url: `${process.env.DOMAIN}/login`,
         handleCodeInApp: true,
       };
-  
-      const emailVerificationLink = await admin.auth().generateEmailVerificationLink(email, actionCodeSettings);
+
+      const emailVerificationLink = await admin
+        .auth()
+        .generateEmailVerificationLink(email, actionCodeSettings);
       const emailData = {
         name: firstName,
         link: emailVerificationLink,
-      }
+      };
       const mailOptions = {
         from: process.env.EMAIL,
         to: email,
@@ -104,7 +108,7 @@ class AuthController {
       return util.send(res);
     } catch (error) {
       if (user) {
-          await admin.auth().deleteUser(user.uid);
+        await admin.auth().deleteUser(user.uid);
       }
       const errorMessage = error?.errorInfo?.message;
       util.statusCode = 500;

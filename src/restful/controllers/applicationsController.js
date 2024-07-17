@@ -158,6 +158,7 @@ class ApplicationsController {
       const existingApplicationsSnapshot = await db
         .collection("applications")
         .where("authorId", "==", authorId)
+        .where("creatorId", "==", creatorId)
         .where("opportunityId", "==", opportunityId)
         .get();
 

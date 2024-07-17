@@ -428,6 +428,33 @@ class OpportunitiesController {
   static async createCampaignOpportunity(req, res) {
     return OpportunitiesController.createOpportunity(req, res, "campaign");
   }
+
+  static async deleteExpiredOpportunities(req,res){
+    const db = admin.firestore();
+    const now = new Date();
+
+  try {
+    const opportunitiesRef = db.collection('opportunities');
+    const snapshot = await opportunitiesRef.where(new Date('deadline'), '<', now).get();
+
+    if (snapshot.empty) {
+      console.log('No expired opportunities found');
+      return;
+    }
+    const batch = db.batch();
+    snapshot.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+
+    await batch.commit();
+    console.log("done bro");
+  } catch (error) {
+    console.log("error_______________________", error);
+    util.statusCode = 500;
+    util.message = error.message || "Server error";
+    return util.send(res);
+  }
+  }
 }
 
 exports.OpportunitiesController = OpportunitiesController;

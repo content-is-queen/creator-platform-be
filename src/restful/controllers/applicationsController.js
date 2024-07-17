@@ -8,6 +8,7 @@ const { sendRejectEmail } = require("../../services/templates/SendRejectEmail");
 const {
   SendReceiveApllicationEmail,
 } = require("../../services/templates/SendReceiveApllicationEmail");
+const checkEmailVerified = require("../../helper/checkEmailVerified");
 
 dotenv.config();
 
@@ -159,6 +160,7 @@ class ApplicationsController {
         .collection("applications")
         .where("authorId", "==", authorId)
         .where("opportunityId", "==", opportunityId)
+        .where("creatorId", "==", creatorId)
         .get();
 
       if (!existingApplicationsSnapshot.empty) {
@@ -250,11 +252,12 @@ class ApplicationsController {
         const doc = await userRef.get();
         if (doc.exists) {
           const { firstName, email, uid } = doc.data();
+          const isEmailVerified = await checkEmailVerified(uid);
           const payLoad = {
             firstName,
             opportunityTitle,
           };
-          if (email) {
+          if (isEmailVerified) {
             const emailTemplate = sendAcceptEmail(payLoad);
 
             const mailOptions = {
@@ -283,7 +286,9 @@ class ApplicationsController {
         const doc = await userRef.get();
         if (doc.exists) {
           const { firstName, email, uid } = doc.data();
-          if (email) {
+          const isEmailVerified = await checkEmailVerified(uid);
+
+          if (isEmailVerified) {
             const payLoad = {
               firstName,
               opportunityTitle,

@@ -402,34 +402,32 @@ class AdminController {
 
         querySnapshot.forEach((doc) => {
           const userObj = doc.data();
-          if (Object.hasOwn(userObj, "uid")) {
-            const userRole = userObj.role;
-            const userRef = usersCollection.doc(doc.id);
+          const userRole = userObj.role;
+          const userRef = usersCollection.doc(doc.id);
 
-            if (userRole === "brand") {
-              if (Object.hasOwn(userObj, "opportunitiesPostedCount")) {
-                userObj.opportunitiesPostedCount = 0;
-                batch.update(userRef, { opportunitiesPostedCount: 0 });
-              }
-            } else if (userRole === "creator") {
-              if (Object.hasOwn(userObj, "opportunitiesAppliedCount")) {
-                userObj.opportunitiesAppliedCount = 0;
-                batch.update(userRef, { opportunitiesAppliedCount: 0 });
-              }
-              if (Object.hasOwn(userObj, "opportunitiesPostedCount")) {
-                userObj.opportunitiesPostedCount = 0;
-                batch.update(userRef, { opportunitiesPostedCount: 0 });
-              }
-            }
+          if (userRole === "brand") {
+            userObj.opportunitiesPostedCount = 0;
+            batch.update(userRef, { opportunitiesPostedCount: 0 });
+          } else if (userRole === "creator") {
+            userObj.opportunitiesAppliedCount = 0;
+            userObj.opportunitiesPostedCount = 0;
+            batch.update(userRef, {
+              opportunitiesAppliedCount: 0,
+              opportunitiesPostedCount: 0,
+            });
           }
         });
+
         await batch.commit();
       }
+      if (res) {
+        res.status(200).send("All user limits have been reset.");
+      } else {
+        console.log("All user limits have been reset.");
+      }
     } catch (error) {
-      console.log(error);
-      util.statusCode = 500;
-      util.message = error.message || "Server error";
-      return util.send(res);
+      console.error("Error resetting user limits:", error);
+      res.status(500).send("Internal Server Error");
     }
   }
 }

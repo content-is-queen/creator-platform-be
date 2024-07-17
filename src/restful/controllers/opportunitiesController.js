@@ -356,13 +356,6 @@ class OpportunitiesController {
         return util.send(res);
       }
       const userData = userDoc.data();
-      // Check the number of opportunities posted by the brand
-      if (userData.opportunitiesPostedCount >= userData.maxOpportunities) {
-        util.statusCode = 400;
-        util.message = `You can only post up to ${userData.maxOpportunities} opportunities.`;
-        return util.send(res);
-      }
-
       // Generate UUID for opportunityId
       const opportunityId = uuidv4();
 

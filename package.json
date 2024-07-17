@@ -76,6 +76,7 @@
     "firebase-functions": "^5.0.1",
     "joi": "^17.13.1",
     "jsonwebtoken": "^9.0.2",
+    "node-cron": "^3.0.3",
     "nodemailer": "^6.9.13",
     "prettier": "^3.2.5",
     "stripe": "^15.8.0",

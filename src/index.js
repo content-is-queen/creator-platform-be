@@ -5,6 +5,7 @@ const functions = require("firebase-functions");
 const { initializeApp, cert } = require("firebase-admin/app");
 const fileUploader = require("express-fileupload");
 const router = require("./restful/routes");
+const { cronJob } = require("./helper/cronjob");
 
 const serviceAccount = {
   type: "service_account",
@@ -39,6 +40,7 @@ app.use(
   }),
 );
 app.use(router);
+cronJob();
 const start = () => {
   try {
     app.listen(PORT, () => console.log(`App listening on port ${PORT}`));

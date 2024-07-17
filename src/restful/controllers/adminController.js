@@ -389,6 +389,47 @@ class AdminController {
       return util.send(res);
     }
   }
+
+  static async resetAllUsersLimit(req, res) {
+    try {
+      const db = admin.firestore();
+      const usersCollection = db.collection("users");
+
+      const querySnapshot = await usersCollection.get();
+
+      if (!querySnapshot.empty) {
+        const batch = db.batch();
+
+        querySnapshot.forEach((doc) => {
+          const userObj = doc.data();
+          const userRole = userObj.role;
+          const userRef = usersCollection.doc(doc.id);
+
+          if (userRole === "brand") {
+            userObj.opportunitiesPostedCount = 0;
+            batch.update(userRef, { opportunitiesPostedCount: 0 });
+          } else if (userRole === "creator") {
+            userObj.opportunitiesAppliedCount = 0;
+            userObj.opportunitiesPostedCount = 0;
+            batch.update(userRef, {
+              opportunitiesAppliedCount: 0,
+              opportunitiesPostedCount: 0,
+            });
+          }
+        });
+
+        await batch.commit();
+      }
+      if (res) {
+        res.status(200).send("All user limits have been reset.");
+      } else {
+        console.log("All user limits have been reset.");
+      }
+    } catch (error) {
+      console.error("Error resetting user limits:", error);
+      res.status(500).send("Internal Server Error");
+    }
+  }
 }
 
 exports.AdminController = AdminController;

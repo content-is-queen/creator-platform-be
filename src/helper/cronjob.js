@@ -7,7 +7,7 @@ export const cronJob = () => {
     AdminController.resetAllUsersLimit();
   });
 
-  cron.schedule("* * * *", () => {
+  cron.schedule("0 0 * * *", () => {
     OpportunitiesController.deleteExpiredOpportunities();
   });
 };

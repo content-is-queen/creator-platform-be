@@ -64,26 +64,14 @@ class OpportunitiesController {
 
   static async getAllOpportunities(req, res) {
     const db = admin.firestore();
-    const { limit = 10, startAfter: startAfterId = null } = req.query;
+    const { limit = 10, page = 1 } = req.query;
 
     try {
       const opportunitiesData = [];
-      let query = db
+      const query = db
         .collection("opportunities")
         .where("status", "!=", "archived")
-        .orderBy("createdAt", "desc")
-        .limit(parseInt(limit));
-      if (startAfterId) {
-        const startAfterDoc = await db
-          .collection("opportunities")
-          .doc(startAfterId)
-          .get();
-        if (startAfterDoc.exists) {
-          query = query.startAfter(startAfterDoc);
-        } else {
-          return res.status(400).json({ message: "Invalid startAfter ID" });
-        }
-      }
+        .orderBy("createdAt", "desc");
 
       const querySnapshot = await query.get();
       await Promise.all(
@@ -110,11 +98,25 @@ class OpportunitiesController {
         }),
       );
 
-      if (opportunitiesData.length > 0) {
+      // Calculate pagination details
+      const totalItems = opportunitiesData.length;
+      const totalPages = Math.ceil(totalItems / limit);
+      const startIndex = (page - 1) * limit;
+      const endIndex = page * limit;
+
+      // Slice the array to get the current page's items
+      const paginatedOpportunities = opportunitiesData.slice(
+        startIndex,
+        endIndex,
+      );
+
+      if (paginatedOpportunities.length > 0) {
         util.statusCode = 200;
         util.message = {
-          opportunities: opportunitiesData,
-          nextStartAfterId: opportunitiesData[opportunitiesData.length - 1].id,
+          opportunities: paginatedOpportunities,
+          currentPage: parseInt(page),
+          totalPages,
+          totalItems,
         };
         return util.send(res);
       } else {

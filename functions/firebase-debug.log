@@ -1159,3 +1159,368 @@ SyntaxError: Unexpected token ')'
 
 [debug] [2024-07-19T11:14:45.426Z] Got response from /__/functions.yaml {"endpoints":{"stripeEvent":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"stripeEvent"}},"specVersion":"v1alpha1","requiredAPIs":[]}
 [info] ✔  functions: Loaded functions definitions from source: stripeEvent. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: stripeEvent."}}
+[debug] [2024-07-19T11:27:33.991Z] ----------------------------------------------------------------------
+[debug] [2024-07-19T11:27:33.995Z] Command:       /home/kaleshe/.nvm/versions/node/v21.4.0/bin/node /home/kaleshe/.nvm/versions/node/v21.4.0/bin/firebase deploy --only functions
+[debug] [2024-07-19T11:27:33.996Z] CLI Version:   13.13.3
+[debug] [2024-07-19T11:27:33.996Z] Platform:      linux
+[debug] [2024-07-19T11:27:33.996Z] Node Version:  v21.4.0
+[debug] [2024-07-19T11:27:33.997Z] Time:          Fri Jul 19 2024 12:27:33 GMT+0100 (British Summer Time)
+[debug] [2024-07-19T11:27:33.997Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2024-07-19T11:27:34.102Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2024-07-19T11:27:34.104Z] > authorizing via signed-in user (service@contentisqueen.org)
+[debug] [2024-07-19T11:27:34.104Z] [iam] checking project contentisqueen-97ae5 for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[debug] [2024-07-19T11:27:34.105Z] > refreshing access token with scopes: []
+[debug] [2024-07-19T11:27:34.108Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2024-07-19T11:27:34.108Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2024-07-19T11:27:34.379Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2024-07-19T11:27:34.379Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2024-07-19T11:27:34.389Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/contentisqueen-97ae5:testIamPermissions [none]
+[debug] [2024-07-19T11:27:34.389Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/contentisqueen-97ae5:testIamPermissions x-goog-quota-user=projects/contentisqueen-97ae5
+[debug] [2024-07-19T11:27:34.389Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/contentisqueen-97ae5:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2024-07-19T11:27:35.167Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/contentisqueen-97ae5:testIamPermissions 200
+[debug] [2024-07-19T11:27:35.168Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/contentisqueen-97ae5:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2024-07-19T11:27:35.169Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/contentisqueen-97ae5/serviceAccounts/contentisqueen-97ae5@appspot.gserviceaccount.com:testIamPermissions [none]
+[debug] [2024-07-19T11:27:35.169Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/contentisqueen-97ae5/serviceAccounts/contentisqueen-97ae5@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[debug] [2024-07-19T11:27:35.930Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/contentisqueen-97ae5/serviceAccounts/contentisqueen-97ae5@appspot.gserviceaccount.com:testIamPermissions 200
+[debug] [2024-07-19T11:27:35.930Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/contentisqueen-97ae5/serviceAccounts/contentisqueen-97ae5@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[info] 
+[info] === Deploying to 'contentisqueen-97ae5'...
+[info] 
+[info] i  deploying functions 
+[debug] [2024-07-19T11:27:35.935Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/contentisqueen-97ae5 [none]
+[debug] [2024-07-19T11:27:36.275Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/contentisqueen-97ae5 200
+[debug] [2024-07-19T11:27:36.276Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/contentisqueen-97ae5 {"projectId":"contentisqueen-97ae5","projectNumber":"126138379488","displayName":"Creator Platform - Development","name":"projects/contentisqueen-97ae5","resources":{"hostingSite":"contentisqueen-97ae5","realtimeDatabaseInstance":"contentisqueen-97ae5-default-rtdb","storageBucket":"contentisqueen-97ae5.appspot.com","locationId":"us-central"},"state":"ACTIVE","etag":"1_9fdefd11-45fb-490b-b174-0c510d8b2bf5"}
+[info] i  functions: preparing codebase default for deployment 
+[info] i  functions: ensuring required API cloudfunctions.googleapis.com is enabled... 
+[info] i  functions: ensuring required API cloudbuild.googleapis.com is enabled... 
+[info] i  artifactregistry: ensuring required API artifactregistry.googleapis.com is enabled... 
+[debug] [2024-07-19T11:27:36.278Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/cloudfunctions.googleapis.com [none]
+[debug] [2024-07-19T11:27:36.278Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/cloudfunctions.googleapis.com x-goog-quota-user=projects/contentisqueen-97ae5
+[debug] [2024-07-19T11:27:36.279Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/runtimeconfig.googleapis.com [none]
+[debug] [2024-07-19T11:27:36.279Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/runtimeconfig.googleapis.com x-goog-quota-user=projects/contentisqueen-97ae5
+[debug] [2024-07-19T11:27:36.281Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/cloudbuild.googleapis.com [none]
+[debug] [2024-07-19T11:27:36.281Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/cloudbuild.googleapis.com x-goog-quota-user=projects/contentisqueen-97ae5
+[debug] [2024-07-19T11:27:36.283Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/artifactregistry.googleapis.com [none]
+[debug] [2024-07-19T11:27:36.283Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/artifactregistry.googleapis.com x-goog-quota-user=projects/contentisqueen-97ae5
+[debug] [2024-07-19T11:27:37.236Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/runtimeconfig.googleapis.com 200
+[debug] [2024-07-19T11:27:37.237Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/runtimeconfig.googleapis.com [omitted]
+[debug] [2024-07-19T11:27:37.237Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/cloudfunctions.googleapis.com 200
+[debug] [2024-07-19T11:27:37.238Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/cloudfunctions.googleapis.com [omitted]
+[info] ✔  functions: required API cloudfunctions.googleapis.com is enabled 
+[debug] [2024-07-19T11:27:37.240Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/artifactregistry.googleapis.com 200
+[debug] [2024-07-19T11:27:37.240Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/artifactregistry.googleapis.com [omitted]
+[info] ✔  artifactregistry: required API artifactregistry.googleapis.com is enabled 
+[debug] [2024-07-19T11:27:37.303Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/cloudbuild.googleapis.com 200
+[debug] [2024-07-19T11:27:37.303Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/cloudbuild.googleapis.com [omitted]
+[info] ✔  functions: required API cloudbuild.googleapis.com is enabled 
+[debug] [2024-07-19T11:27:37.304Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/contentisqueen-97ae5/adminSdkConfig [none]
+[debug] [2024-07-19T11:27:37.905Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/contentisqueen-97ae5/adminSdkConfig 200
+[debug] [2024-07-19T11:27:37.905Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/contentisqueen-97ae5/adminSdkConfig {"projectId":"contentisqueen-97ae5","databaseURL":"https://contentisqueen-97ae5-default-rtdb.europe-west1.firebasedatabase.app","storageBucket":"contentisqueen-97ae5.appspot.com","locationId":"us-central"}
+[debug] [2024-07-19T11:27:37.906Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/contentisqueen-97ae5/configs [none]
+[debug] [2024-07-19T11:27:38.253Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/contentisqueen-97ae5/configs 200
+[debug] [2024-07-19T11:27:38.254Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/contentisqueen-97ae5/configs {}
+[debug] [2024-07-19T11:27:38.255Z] Validating nodejs source
+[debug] [2024-07-19T11:27:39.747Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^12.1.0",
+    "firebase-functions": "^5.0.0"
+  },
+  "devDependencies": {
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2024-07-19T11:27:39.747Z] Building nodejs source
+[info] i  functions: Loading and analyzing source code for codebase default to determine what to deploy 
+[debug] [2024-07-19T11:27:39.749Z] Could not find functions.yaml. Must use http discovery
+[debug] [2024-07-19T11:27:39.757Z] Found firebase-functions binary at '/home/kaleshe/creator-platform-be/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8747
+
+[debug] [2024-07-19T11:27:40.814Z] Got response from /__/functions.yaml {"endpoints":{"stripeEvent":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"stripeEvent"}},"specVersion":"v1alpha1","requiredAPIs":[]}
+[info] i  functions: Loaded environment variables from .env. 
+[info] i  functions: preparing functions directory for uploading... 
+[info] i  functions: packaged /home/kaleshe/creator-platform-be/functions (62.01 KB) for uploading 
+[debug] [2024-07-19T11:27:45.916Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v1/projects/contentisqueen-97ae5/locations/-/functions [none]
+[debug] [2024-07-19T11:27:49.821Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v1/projects/contentisqueen-97ae5/locations/-/functions 200
+[debug] [2024-07-19T11:27:49.822Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v1/projects/contentisqueen-97ae5/locations/-/functions {}
+[debug] [2024-07-19T11:27:49.829Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/-/functions filter=environment%3D%22GEN_2%22
+[debug] [2024-07-19T11:27:50.857Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/-/functions 200
+[debug] [2024-07-19T11:27:50.857Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/-/functions {}
+[info] i  functions: ensuring required API run.googleapis.com is enabled... 
+[info] i  functions: ensuring required API eventarc.googleapis.com is enabled... 
+[info] i  functions: ensuring required API pubsub.googleapis.com is enabled... 
+[info] i  functions: ensuring required API storage.googleapis.com is enabled... 
+[debug] [2024-07-19T11:27:50.859Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/run.googleapis.com [none]
+[debug] [2024-07-19T11:27:50.859Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/run.googleapis.com x-goog-quota-user=projects/contentisqueen-97ae5
+[debug] [2024-07-19T11:27:50.861Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/eventarc.googleapis.com [none]
+[debug] [2024-07-19T11:27:50.861Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/eventarc.googleapis.com x-goog-quota-user=projects/contentisqueen-97ae5
+[debug] [2024-07-19T11:27:50.863Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/pubsub.googleapis.com [none]
+[debug] [2024-07-19T11:27:50.864Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/pubsub.googleapis.com x-goog-quota-user=projects/contentisqueen-97ae5
+[debug] [2024-07-19T11:27:50.866Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/storage.googleapis.com [none]
+[debug] [2024-07-19T11:27:50.866Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/storage.googleapis.com x-goog-quota-user=projects/contentisqueen-97ae5
+[debug] [2024-07-19T11:27:51.800Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/run.googleapis.com 200
+[debug] [2024-07-19T11:27:51.800Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/run.googleapis.com [omitted]
+[info] ✔  functions: required API run.googleapis.com is enabled 
+[debug] [2024-07-19T11:27:51.801Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/pubsub.googleapis.com 200
+[debug] [2024-07-19T11:27:51.801Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/pubsub.googleapis.com [omitted]
+[info] ✔  functions: required API pubsub.googleapis.com is enabled 
+[debug] [2024-07-19T11:27:51.814Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/eventarc.googleapis.com 200
+[debug] [2024-07-19T11:27:51.814Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/eventarc.googleapis.com [omitted]
+[info] ✔  functions: required API eventarc.googleapis.com is enabled 
+[debug] [2024-07-19T11:27:51.871Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/storage.googleapis.com 200
+[debug] [2024-07-19T11:27:51.872Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/contentisqueen-97ae5/services/storage.googleapis.com [omitted]
+[info] ✔  functions: required API storage.googleapis.com is enabled 
+[info] i  functions: generating the service identity for pubsub.googleapis.com... 
+[info] i  functions: generating the service identity for eventarc.googleapis.com... 
+[debug] [2024-07-19T11:27:51.873Z] >>> [apiv2][query] POST https://serviceusage.googleapis.com/v1beta1/projects/126138379488/services/pubsub.googleapis.com:generateServiceIdentity [none]
+[debug] [2024-07-19T11:27:51.873Z] >>> [apiv2][query] POST https://serviceusage.googleapis.com/v1beta1/projects/126138379488/services/eventarc.googleapis.com:generateServiceIdentity [none]
+[debug] [2024-07-19T11:27:52.538Z] <<< [apiv2][status] POST https://serviceusage.googleapis.com/v1beta1/projects/126138379488/services/pubsub.googleapis.com:generateServiceIdentity 200
+[debug] [2024-07-19T11:27:52.539Z] <<< [apiv2][body] POST https://serviceusage.googleapis.com/v1beta1/projects/126138379488/services/pubsub.googleapis.com:generateServiceIdentity {"name":"operations/finished.DONE_OPERATION","done":true,"response":{"@type":"type.googleapis.com/google.api.serviceusage.v1beta1.ServiceIdentity","email":"service-126138379488@gcp-sa-pubsub.iam.gserviceaccount.com","uniqueId":"110094162441709286006"}}
+[debug] [2024-07-19T11:27:52.837Z] <<< [apiv2][status] POST https://serviceusage.googleapis.com/v1beta1/projects/126138379488/services/eventarc.googleapis.com:generateServiceIdentity 200
+[debug] [2024-07-19T11:27:52.838Z] <<< [apiv2][body] POST https://serviceusage.googleapis.com/v1beta1/projects/126138379488/services/eventarc.googleapis.com:generateServiceIdentity {"name":"operations/finished.DONE_OPERATION","done":true,"response":{"@type":"type.googleapis.com/google.api.serviceusage.v1beta1.ServiceIdentity","email":"service-126138379488@gcp-sa-eventarc.iam.gserviceaccount.com","uniqueId":"116351312203950159690"}}
+[debug] [2024-07-19T11:27:52.841Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/contentisqueen-97ae5 [none]
+[debug] [2024-07-19T11:27:53.186Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/contentisqueen-97ae5 200
+[debug] [2024-07-19T11:27:53.186Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/contentisqueen-97ae5 {"projectId":"contentisqueen-97ae5","projectNumber":"126138379488","displayName":"Creator Platform - Development","name":"projects/contentisqueen-97ae5","resources":{"hostingSite":"contentisqueen-97ae5","realtimeDatabaseInstance":"contentisqueen-97ae5-default-rtdb","storageBucket":"contentisqueen-97ae5.appspot.com","locationId":"us-central"},"state":"ACTIVE","etag":"1_9fdefd11-45fb-490b-b174-0c510d8b2bf5"}
+[debug] [2024-07-19T11:27:53.188Z] [functions] found 1 new HTTP functions, testing setIamPolicy permission...
+[debug] [2024-07-19T11:27:53.188Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/contentisqueen-97ae5:testIamPermissions [none]
+[debug] [2024-07-19T11:27:53.189Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/contentisqueen-97ae5:testIamPermissions x-goog-quota-user=projects/contentisqueen-97ae5
+[debug] [2024-07-19T11:27:53.189Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/contentisqueen-97ae5:testIamPermissions {"permissions":["cloudfunctions.functions.setIamPolicy"]}
+[debug] [2024-07-19T11:27:53.969Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/contentisqueen-97ae5:testIamPermissions 200
+[debug] [2024-07-19T11:27:53.969Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/contentisqueen-97ae5:testIamPermissions {"permissions":["cloudfunctions.functions.setIamPolicy"]}
+[debug] [2024-07-19T11:27:53.969Z] [functions] found setIamPolicy permission, proceeding with deploy
+[debug] [2024-07-19T11:27:53.970Z] >>> [apiv2][query] POST https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/functions:generateUploadUrl [none]
+[debug] [2024-07-19T11:27:54.833Z] <<< [apiv2][status] POST https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/functions:generateUploadUrl 200
+[debug] [2024-07-19T11:27:54.833Z] <<< [apiv2][body] POST https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/functions:generateUploadUrl {"uploadUrl":"https://storage.googleapis.com/gcf-v2-uploads-126138379488-us-central1/11706198-dac8-437d-bdbb-f946efe00b40.zip?GoogleAccessId=service-126138379488@gcf-admin-robot.iam.gserviceaccount.com&Expires=1721390512&Signature=a3rEkVdy6cEy3OCxaawvSgu5rehulvhPQ%2FxQO28yAnRF4eWeR2zkem%2BDuKAD%2FirZ5hfPgHnJ5cF74fLoVMbrXm11IwtgW%2F0Wv7G6TLkOONYg1ZY23%2FpLf3LCVq2YE22tBH1VfeDdEbDh7oOiQuAByuq9LjqCGa9MfcZuhH2p9qH5M1qOqmGlGznK09RYZcXkKh2hCmv8vehTwrwrYPWMLP5z%2BDTYZse2FctsOnVQQMPXP85ssJQgMzw25iofFPLXJ61QxVR8WNAaE%2F8fW5g692RyoclBxKrkZjalEEnr2pQC5ivVPF43ZrCy5BUc%2BzQSJb3FXbnlSoKZq68i%2F4%2FC0A%3D%3D","storageSource":{"bucket":"gcf-v2-uploads-126138379488-us-central1","object":"11706198-dac8-437d-bdbb-f946efe00b40.zip"}}
+[debug] [2024-07-19T11:27:54.847Z] >>> [apiv2][query] PUT https://storage.googleapis.com/gcf-v2-uploads-126138379488-us-central1/11706198-dac8-437d-bdbb-f946efe00b40.zip GoogleAccessId=service-126138379488%40gcf-admin-robot.iam.gserviceaccount.com&Expires=1721390512&Signature=a3rEkVdy6cEy3OCxaawvSgu5rehulvhPQ%2FxQO28yAnRF4eWeR2zkem%2BDuKAD%2FirZ5hfPgHnJ5cF74fLoVMbrXm11IwtgW%2F0Wv7G6TLkOONYg1ZY23%2FpLf3LCVq2YE22tBH1VfeDdEbDh7oOiQuAByuq9LjqCGa9MfcZuhH2p9qH5M1qOqmGlGznK09RYZcXkKh2hCmv8vehTwrwrYPWMLP5z%2BDTYZse2FctsOnVQQMPXP85ssJQgMzw25iofFPLXJ61QxVR8WNAaE%2F8fW5g692RyoclBxKrkZjalEEnr2pQC5ivVPF43ZrCy5BUc%2BzQSJb3FXbnlSoKZq68i%2F4%2FC0A%3D%3D
+[debug] [2024-07-19T11:27:54.847Z] >>> [apiv2][body] PUT https://storage.googleapis.com/gcf-v2-uploads-126138379488-us-central1/11706198-dac8-437d-bdbb-f946efe00b40.zip [stream]
+[debug] [2024-07-19T11:27:55.446Z] <<< [apiv2][status] PUT https://storage.googleapis.com/gcf-v2-uploads-126138379488-us-central1/11706198-dac8-437d-bdbb-f946efe00b40.zip 200
+[debug] [2024-07-19T11:27:55.446Z] <<< [apiv2][body] PUT https://storage.googleapis.com/gcf-v2-uploads-126138379488-us-central1/11706198-dac8-437d-bdbb-f946efe00b40.zip [omitted]
+[info] ✔  functions: functions folder uploaded successfully 
+[info] i  functions: creating Node.js 20 (2nd Gen) function stripeEvent(us-central1)... 
+[debug] [2024-07-19T11:27:55.453Z] >>> [apiv2][query] POST https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/functions functionId=stripeEvent
+[debug] [2024-07-19T11:27:55.453Z] >>> [apiv2][body] POST https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/functions {"name":"projects/contentisqueen-97ae5/locations/us-central1/functions/stripeEvent","buildConfig":{"runtime":"nodejs20","entryPoint":"stripeEvent","source":{"storageSource":{"bucket":"gcf-v2-uploads-126138379488-us-central1","object":"11706198-dac8-437d-bdbb-f946efe00b40.zip"}},"environmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""}},"serviceConfig":{"environmentVariables":{"STRIPE_WHSEC":"whsec_194dfd1f856d8fbd6c8229549047384ac424665dff7725846c407f1a8534f813","FIREBASE_CONFIG":"{\"projectId\":\"contentisqueen-97ae5\",\"databaseURL\":\"https://contentisqueen-97ae5-default-rtdb.europe-west1.firebasedatabase.app\",\"storageBucket\":\"contentisqueen-97ae5.appspot.com\",\"locationId\":\"us-central\"}","GCLOUD_PROJECT":"contentisqueen-97ae5","EVENTARC_CLOUD_EVENT_SOURCE":"projects/contentisqueen-97ae5/locations/us-central1/services/stripeEvent","FUNCTION_TARGET":"stripeEvent"},"ingressSettings":null,"timeoutSeconds":null,"serviceAccountEmail":null,"availableMemory":"256Mi","minInstanceCount":null,"maxInstanceCount":null,"maxInstanceRequestConcurrency":80,"availableCpu":"1","vpcConnector":null,"vpcConnectorEgressSettings":null},"labels":{"deployment-tool":"cli-firebase","firebase-functions-hash":"a94bc0abcedc23b35c422ea7b3373b719aa5478b"}}
+[debug] [2024-07-19T11:27:56.843Z] <<< [apiv2][status] POST https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/functions 200
+[debug] [2024-07-19T11:27:56.843Z] <<< [apiv2][body] POST https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/functions {"name":"projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8","metadata":{"@type":"type.googleapis.com/google.cloud.functions.v2.OperationMetadata","createTime":"2024-07-19T11:31:54.857088837Z","target":"projects/contentisqueen-97ae5/locations/us-central1/functions/stripeEvent","verb":"create","cancelRequested":false,"apiVersion":"v2"},"done":false}
+[debug] [2024-07-19T11:27:56.844Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 [none]
+[debug] [2024-07-19T11:27:57.624Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 200
+[debug] [2024-07-19T11:27:57.625Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 {"name":"projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8","metadata":{"@type":"type.googleapis.com/google.cloud.functions.v2.OperationMetadata","createTime":"2024-07-19T11:31:54.857088837Z","target":"projects/contentisqueen-97ae5/locations/us-central1/functions/stripeEvent","verb":"create","cancelRequested":false,"apiVersion":"v2","requestResource":{"@type":"type.googleapis.com/google.cloud.functions.v2.Function","name":"projects/contentisqueen-97ae5/locations/us-central1/functions/stripeEvent","buildConfig":{"runtime":"nodejs20","entryPoint":"stripeEvent","source":{"storageSource":{"bucket":"gcf-v2-sources-126138379488-us-central1","object":"stripeEvent/function-source.zip","generation":"1721388714468762"}},"environmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"automaticUpdatePolicy":{}},"serviceConfig":{"service":"projects/contentisqueen-97ae5/locations/us-central1/services/stripeevent","timeoutSeconds":60,"environmentVariables":{"STRIPE_WHSEC":"whsec_194dfd1f856d8fbd6c8229549047384ac424665dff7725846c407f1a8534f813","FIREBASE_CONFIG":"{\"projectId\":\"contentisqueen-97ae5\",\"databaseURL\":\"https://contentisqueen-97ae5-default-rtdb.europe-west1.firebasedatabase.app\",\"storageBucket\":\"contentisqueen-97ae5.appspot.com\",\"locationId\":\"us-central\"}","GCLOUD_PROJECT":"contentisqueen-97ae5","EVENTARC_CLOUD_EVENT_SOURCE":"projects/contentisqueen-97ae5/locations/us-central1/services/stripeEvent","FUNCTION_TARGET":"stripeEvent","LOG_EXECUTION_ID":"true"},"ingressSettings":"ALLOW_ALL","serviceAccountEmail":"126138379488-compute@developer.gserviceaccount.com","availableMemory":"256Mi","maxInstanceRequestConcurrency":80,"availableCpu":"1"},"labels":{"deployment-tool":"cli-firebase","firebase-functions-hash":"a94bc0abcedc23b35c422ea7b3373b719aa5478b"},"environment":"GEN_2"},"stages":[{"name":"BUILD","message":"Creating build","state":"IN_PROGRESS","resource":"projects/126138379488/locations/us-central1/builds/1a700786-0c16-4078-96d7-fdc23054b650","resourceUri":"https://console.cloud.google.com/cloud-build/builds;region=us-central1/1a700786-0c16-4078-96d7-fdc23054b650?project=126138379488"},{"name":"SERVICE","state":"NOT_STARTED"}],"operationType":"CREATE_FUNCTION"},"done":false}
+[debug] [2024-07-19T11:27:58.134Z] [create-default-us-central1-stripeEvent] Retrying task index 0
+[debug] [2024-07-19T11:27:58.134Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 [none]
+[debug] [2024-07-19T11:27:58.900Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 200
+[debug] [2024-07-19T11:27:58.900Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 {"name":"projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8","metadata":{"@type":"type.googleapis.com/google.cloud.functions.v2.OperationMetadata","createTime":"2024-07-19T11:31:54.857088837Z","target":"projects/contentisqueen-97ae5/locations/us-central1/functions/stripeEvent","verb":"create","cancelRequested":false,"apiVersion":"v2","requestResource":{"@type":"type.googleapis.com/google.cloud.functions.v2.Function","name":"projects/contentisqueen-97ae5/locations/us-central1/functions/stripeEvent","buildConfig":{"runtime":"nodejs20","entryPoint":"stripeEvent","source":{"storageSource":{"bucket":"gcf-v2-sources-126138379488-us-central1","object":"stripeEvent/function-source.zip","generation":"1721388714468762"}},"environmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"automaticUpdatePolicy":{}},"serviceConfig":{"service":"projects/contentisqueen-97ae5/locations/us-central1/services/stripeevent","timeoutSeconds":60,"environmentVariables":{"STRIPE_WHSEC":"whsec_194dfd1f856d8fbd6c8229549047384ac424665dff7725846c407f1a8534f813","FIREBASE_CONFIG":"{\"projectId\":\"contentisqueen-97ae5\",\"databaseURL\":\"https://contentisqueen-97ae5-default-rtdb.europe-west1.firebasedatabase.app\",\"storageBucket\":\"contentisqueen-97ae5.appspot.com\",\"locationId\":\"us-central\"}","GCLOUD_PROJECT":"contentisqueen-97ae5","EVENTARC_CLOUD_EVENT_SOURCE":"projects/contentisqueen-97ae5/locations/us-central1/services/stripeEvent","FUNCTION_TARGET":"stripeEvent","LOG_EXECUTION_ID":"true"},"ingressSettings":"ALLOW_ALL","serviceAccountEmail":"126138379488-compute@developer.gserviceaccount.com","availableMemory":"256Mi","maxInstanceRequestConcurrency":80,"availableCpu":"1"},"labels":{"deployment-tool":"cli-firebase","firebase-functions-hash":"a94bc0abcedc23b35c422ea7b3373b719aa5478b"},"environment":"GEN_2"},"stages":[{"name":"BUILD","message":"Build in progress","state":"IN_PROGRESS","resource":"projects/126138379488/locations/us-central1/builds/1a700786-0c16-4078-96d7-fdc23054b650","resourceUri":"https://console.cloud.google.com/cloud-build/builds;region=us-central1/1a700786-0c16-4078-96d7-fdc23054b650?project=126138379488"},{"name":"SERVICE","state":"NOT_STARTED"}],"operationType":"CREATE_FUNCTION"},"done":false}
+[debug] [2024-07-19T11:27:59.906Z] [create-default-us-central1-stripeEvent] Retrying task index 0
+[debug] [2024-07-19T11:27:59.907Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 [none]
+[debug] [2024-07-19T11:28:00.676Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 200
+[debug] [2024-07-19T11:28:00.676Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 {"name":"projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8","metadata":{"@type":"type.googleapis.com/google.cloud.functions.v2.OperationMetadata","createTime":"2024-07-19T11:31:54.857088837Z","target":"projects/contentisqueen-97ae5/locations/us-central1/functions/stripeEvent","verb":"create","cancelRequested":false,"apiVersion":"v2","requestResource":{"@type":"type.googleapis.com/google.cloud.functions.v2.Function","name":"projects/contentisqueen-97ae5/locations/us-central1/functions/stripeEvent","buildConfig":{"runtime":"nodejs20","entryPoint":"stripeEvent","source":{"storageSource":{"bucket":"gcf-v2-sources-126138379488-us-central1","object":"stripeEvent/function-source.zip","generation":"1721388714468762"}},"environmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"automaticUpdatePolicy":{}},"serviceConfig":{"service":"projects/contentisqueen-97ae5/locations/us-central1/services/stripeevent","timeoutSeconds":60,"environmentVariables":{"STRIPE_WHSEC":"whsec_194dfd1f856d8fbd6c8229549047384ac424665dff7725846c407f1a8534f813","FIREBASE_CONFIG":"{\"projectId\":\"contentisqueen-97ae5\",\"databaseURL\":\"https://contentisqueen-97ae5-default-rtdb.europe-west1.firebasedatabase.app\",\"storageBucket\":\"contentisqueen-97ae5.appspot.com\",\"locationId\":\"us-central\"}","GCLOUD_PROJECT":"contentisqueen-97ae5","EVENTARC_CLOUD_EVENT_SOURCE":"projects/contentisqueen-97ae5/locations/us-central1/services/stripeEvent","FUNCTION_TARGET":"stripeEvent","LOG_EXECUTION_ID":"true"},"ingressSettings":"ALLOW_ALL","serviceAccountEmail":"126138379488-compute@developer.gserviceaccount.com","availableMemory":"256Mi","maxInstanceRequestConcurrency":80,"availableCpu":"1"},"labels":{"deployment-tool":"cli-firebase","firebase-functions-hash":"a94bc0abcedc23b35c422ea7b3373b719aa5478b"},"environment":"GEN_2"},"stages":[{"name":"BUILD","message":"Build in progress","state":"IN_PROGRESS","resource":"projects/126138379488/locations/us-central1/builds/1a700786-0c16-4078-96d7-fdc23054b650","resourceUri":"https://console.cloud.google.com/cloud-build/builds;region=us-central1/1a700786-0c16-4078-96d7-fdc23054b650?project=126138379488"},{"name":"SERVICE","state":"NOT_STARTED"}],"operationType":"CREATE_FUNCTION"},"done":false}
+[debug] [2024-07-19T11:28:02.685Z] [create-default-us-central1-stripeEvent] Retrying task index 0
+[debug] [2024-07-19T11:28:02.685Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 [none]
+[debug] [2024-07-19T11:28:03.468Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 200
+[debug] [2024-07-19T11:28:03.468Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 {"name":"projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8","metadata":{"@type":"type.googleapis.com/google.cloud.functions.v2.OperationMetadata","createTime":"2024-07-19T11:31:54.857088837Z","target":"projects/contentisqueen-97ae5/locations/us-central1/functions/stripeEvent","verb":"create","cancelRequested":false,"apiVersion":"v2","requestResource":{"@type":"type.googleapis.com/google.cloud.functions.v2.Function","name":"projects/contentisqueen-97ae5/locations/us-central1/functions/stripeEvent","buildConfig":{"runtime":"nodejs20","entryPoint":"stripeEvent","source":{"storageSource":{"bucket":"gcf-v2-sources-126138379488-us-central1","object":"stripeEvent/function-source.zip","generation":"1721388714468762"}},"environmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"automaticUpdatePolicy":{}},"serviceConfig":{"service":"projects/contentisqueen-97ae5/locations/us-central1/services/stripeevent","timeoutSeconds":60,"environmentVariables":{"STRIPE_WHSEC":"whsec_194dfd1f856d8fbd6c8229549047384ac424665dff7725846c407f1a8534f813","FIREBASE_CONFIG":"{\"projectId\":\"contentisqueen-97ae5\",\"databaseURL\":\"https://contentisqueen-97ae5-default-rtdb.europe-west1.firebasedatabase.app\",\"storageBucket\":\"contentisqueen-97ae5.appspot.com\",\"locationId\":\"us-central\"}","GCLOUD_PROJECT":"contentisqueen-97ae5","EVENTARC_CLOUD_EVENT_SOURCE":"projects/contentisqueen-97ae5/locations/us-central1/services/stripeEvent","FUNCTION_TARGET":"stripeEvent","LOG_EXECUTION_ID":"true"},"ingressSettings":"ALLOW_ALL","serviceAccountEmail":"126138379488-compute@developer.gserviceaccount.com","availableMemory":"256Mi","maxInstanceRequestConcurrency":80,"availableCpu":"1"},"labels":{"deployment-tool":"cli-firebase","firebase-functions-hash":"a94bc0abcedc23b35c422ea7b3373b719aa5478b"},"environment":"GEN_2"},"stages":[{"name":"BUILD","message":"Build in progress","state":"IN_PROGRESS","resource":"projects/126138379488/locations/us-central1/builds/1a700786-0c16-4078-96d7-fdc23054b650","resourceUri":"https://console.cloud.google.com/cloud-build/builds;region=us-central1/1a700786-0c16-4078-96d7-fdc23054b650?project=126138379488"},{"name":"SERVICE","state":"NOT_STARTED"}],"operationType":"CREATE_FUNCTION"},"done":false}
+[debug] [2024-07-19T11:28:07.471Z] [create-default-us-central1-stripeEvent] Retrying task index 0
+[debug] [2024-07-19T11:28:07.471Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 [none]
+[debug] [2024-07-19T11:28:08.226Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 200
+[debug] [2024-07-19T11:28:08.226Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 {"name":"projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8","metadata":{"@type":"type.googleapis.com/google.cloud.functions.v2.OperationMetadata","createTime":"2024-07-19T11:31:54.857088837Z","target":"projects/contentisqueen-97ae5/locations/us-central1/functions/stripeEvent","verb":"create","cancelRequested":false,"apiVersion":"v2","requestResource":{"@type":"type.googleapis.com/google.cloud.functions.v2.Function","name":"projects/contentisqueen-97ae5/locations/us-central1/functions/stripeEvent","buildConfig":{"runtime":"nodejs20","entryPoint":"stripeEvent","source":{"storageSource":{"bucket":"gcf-v2-sources-126138379488-us-central1","object":"stripeEvent/function-source.zip","generation":"1721388714468762"}},"environmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"automaticUpdatePolicy":{}},"serviceConfig":{"service":"projects/contentisqueen-97ae5/locations/us-central1/services/stripeevent","timeoutSeconds":60,"environmentVariables":{"STRIPE_WHSEC":"whsec_194dfd1f856d8fbd6c8229549047384ac424665dff7725846c407f1a8534f813","FIREBASE_CONFIG":"{\"projectId\":\"contentisqueen-97ae5\",\"databaseURL\":\"https://contentisqueen-97ae5-default-rtdb.europe-west1.firebasedatabase.app\",\"storageBucket\":\"contentisqueen-97ae5.appspot.com\",\"locationId\":\"us-central\"}","GCLOUD_PROJECT":"contentisqueen-97ae5","EVENTARC_CLOUD_EVENT_SOURCE":"projects/contentisqueen-97ae5/locations/us-central1/services/stripeEvent","FUNCTION_TARGET":"stripeEvent","LOG_EXECUTION_ID":"true"},"ingressSettings":"ALLOW_ALL","serviceAccountEmail":"126138379488-compute@developer.gserviceaccount.com","availableMemory":"256Mi","maxInstanceRequestConcurrency":80,"availableCpu":"1"},"labels":{"deployment-tool":"cli-firebase","firebase-functions-hash":"a94bc0abcedc23b35c422ea7b3373b719aa5478b"},"environment":"GEN_2"},"stages":[{"name":"BUILD","message":"Build in progress","state":"IN_PROGRESS","resource":"projects/126138379488/locations/us-central1/builds/1a700786-0c16-4078-96d7-fdc23054b650","resourceUri":"https://console.cloud.google.com/cloud-build/builds;region=us-central1/1a700786-0c16-4078-96d7-fdc23054b650?project=126138379488"},{"name":"SERVICE","state":"NOT_STARTED"}],"operationType":"CREATE_FUNCTION"},"done":false}
+[debug] [2024-07-19T11:28:16.229Z] [create-default-us-central1-stripeEvent] Retrying task index 0
+[debug] [2024-07-19T11:28:16.230Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 [none]
+[debug] [2024-07-19T11:28:17.092Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 200
+[debug] [2024-07-19T11:28:17.092Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 {"name":"projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8","metadata":{"@type":"type.googleapis.com/google.cloud.functions.v2.OperationMetadata","createTime":"2024-07-19T11:31:54.857088837Z","target":"projects/contentisqueen-97ae5/locations/us-central1/functions/stripeEvent","verb":"create","cancelRequested":false,"apiVersion":"v2","requestResource":{"@type":"type.googleapis.com/google.cloud.functions.v2.Function","name":"projects/contentisqueen-97ae5/locations/us-central1/functions/stripeEvent","buildConfig":{"runtime":"nodejs20","entryPoint":"stripeEvent","source":{"storageSource":{"bucket":"gcf-v2-sources-126138379488-us-central1","object":"stripeEvent/function-source.zip","generation":"1721388714468762"}},"environmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"automaticUpdatePolicy":{}},"serviceConfig":{"service":"projects/contentisqueen-97ae5/locations/us-central1/services/stripeevent","timeoutSeconds":60,"environmentVariables":{"STRIPE_WHSEC":"whsec_194dfd1f856d8fbd6c8229549047384ac424665dff7725846c407f1a8534f813","FIREBASE_CONFIG":"{\"projectId\":\"contentisqueen-97ae5\",\"databaseURL\":\"https://contentisqueen-97ae5-default-rtdb.europe-west1.firebasedatabase.app\",\"storageBucket\":\"contentisqueen-97ae5.appspot.com\",\"locationId\":\"us-central\"}","GCLOUD_PROJECT":"contentisqueen-97ae5","EVENTARC_CLOUD_EVENT_SOURCE":"projects/contentisqueen-97ae5/locations/us-central1/services/stripeEvent","FUNCTION_TARGET":"stripeEvent","LOG_EXECUTION_ID":"true"},"ingressSettings":"ALLOW_ALL","serviceAccountEmail":"126138379488-compute@developer.gserviceaccount.com","availableMemory":"256Mi","maxInstanceRequestConcurrency":80,"availableCpu":"1"},"labels":{"deployment-tool":"cli-firebase","firebase-functions-hash":"a94bc0abcedc23b35c422ea7b3373b719aa5478b"},"environment":"GEN_2"},"stages":[{"name":"BUILD","message":"Build in progress","state":"IN_PROGRESS","resource":"projects/126138379488/locations/us-central1/builds/1a700786-0c16-4078-96d7-fdc23054b650","resourceUri":"https://console.cloud.google.com/cloud-build/builds;region=us-central1/1a700786-0c16-4078-96d7-fdc23054b650?project=126138379488"},{"name":"SERVICE","state":"NOT_STARTED"}],"operationType":"CREATE_FUNCTION"},"done":false}
+[debug] [2024-07-19T11:28:27.098Z] [create-default-us-central1-stripeEvent] Retrying task index 0
+[debug] [2024-07-19T11:28:27.099Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 [none]
+[debug] [2024-07-19T11:28:27.962Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 200
+[debug] [2024-07-19T11:28:27.963Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 {"name":"projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8","metadata":{"@type":"type.googleapis.com/google.cloud.functions.v2.OperationMetadata","createTime":"2024-07-19T11:31:54.857088837Z","target":"projects/contentisqueen-97ae5/locations/us-central1/functions/stripeEvent","verb":"create","cancelRequested":false,"apiVersion":"v2","requestResource":{"@type":"type.googleapis.com/google.cloud.functions.v2.Function","name":"projects/contentisqueen-97ae5/locations/us-central1/functions/stripeEvent","buildConfig":{"runtime":"nodejs20","entryPoint":"stripeEvent","source":{"storageSource":{"bucket":"gcf-v2-sources-126138379488-us-central1","object":"stripeEvent/function-source.zip","generation":"1721388714468762"}},"environmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"automaticUpdatePolicy":{}},"serviceConfig":{"service":"projects/contentisqueen-97ae5/locations/us-central1/services/stripeevent","timeoutSeconds":60,"environmentVariables":{"STRIPE_WHSEC":"whsec_194dfd1f856d8fbd6c8229549047384ac424665dff7725846c407f1a8534f813","FIREBASE_CONFIG":"{\"projectId\":\"contentisqueen-97ae5\",\"databaseURL\":\"https://contentisqueen-97ae5-default-rtdb.europe-west1.firebasedatabase.app\",\"storageBucket\":\"contentisqueen-97ae5.appspot.com\",\"locationId\":\"us-central\"}","GCLOUD_PROJECT":"contentisqueen-97ae5","EVENTARC_CLOUD_EVENT_SOURCE":"projects/contentisqueen-97ae5/locations/us-central1/services/stripeEvent","FUNCTION_TARGET":"stripeEvent","LOG_EXECUTION_ID":"true"},"ingressSettings":"ALLOW_ALL","serviceAccountEmail":"126138379488-compute@developer.gserviceaccount.com","availableMemory":"256Mi","maxInstanceRequestConcurrency":80,"availableCpu":"1"},"labels":{"deployment-tool":"cli-firebase","firebase-functions-hash":"a94bc0abcedc23b35c422ea7b3373b719aa5478b"},"environment":"GEN_2"},"stages":[{"name":"BUILD","message":"Build in progress","state":"IN_PROGRESS","resource":"projects/126138379488/locations/us-central1/builds/1a700786-0c16-4078-96d7-fdc23054b650","resourceUri":"https://console.cloud.google.com/cloud-build/builds;region=us-central1/1a700786-0c16-4078-96d7-fdc23054b650?project=126138379488"},{"name":"SERVICE","state":"NOT_STARTED"}],"operationType":"CREATE_FUNCTION"},"done":false}
+[debug] [2024-07-19T11:28:37.974Z] [create-default-us-central1-stripeEvent] Retrying task index 0
+[debug] [2024-07-19T11:28:37.975Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 [none]
+[debug] [2024-07-19T11:28:38.815Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 200
+[debug] [2024-07-19T11:28:38.815Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 {"name":"projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8","metadata":{"@type":"type.googleapis.com/google.cloud.functions.v2.OperationMetadata","createTime":"2024-07-19T11:31:54.857088837Z","target":"projects/contentisqueen-97ae5/locations/us-central1/functions/stripeEvent","verb":"create","cancelRequested":false,"apiVersion":"v2","requestResource":{"@type":"type.googleapis.com/google.cloud.functions.v2.Function","name":"projects/contentisqueen-97ae5/locations/us-central1/functions/stripeEvent","buildConfig":{"runtime":"nodejs20","entryPoint":"stripeEvent","source":{"storageSource":{"bucket":"gcf-v2-sources-126138379488-us-central1","object":"stripeEvent/function-source.zip","generation":"1721388714468762"}},"environmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"automaticUpdatePolicy":{}},"serviceConfig":{"service":"projects/contentisqueen-97ae5/locations/us-central1/services/stripeevent","timeoutSeconds":60,"environmentVariables":{"STRIPE_WHSEC":"whsec_194dfd1f856d8fbd6c8229549047384ac424665dff7725846c407f1a8534f813","FIREBASE_CONFIG":"{\"projectId\":\"contentisqueen-97ae5\",\"databaseURL\":\"https://contentisqueen-97ae5-default-rtdb.europe-west1.firebasedatabase.app\",\"storageBucket\":\"contentisqueen-97ae5.appspot.com\",\"locationId\":\"us-central\"}","GCLOUD_PROJECT":"contentisqueen-97ae5","EVENTARC_CLOUD_EVENT_SOURCE":"projects/contentisqueen-97ae5/locations/us-central1/services/stripeEvent","FUNCTION_TARGET":"stripeEvent","LOG_EXECUTION_ID":"true"},"ingressSettings":"ALLOW_ALL","serviceAccountEmail":"126138379488-compute@developer.gserviceaccount.com","availableMemory":"256Mi","maxInstanceRequestConcurrency":80,"availableCpu":"1"},"labels":{"deployment-tool":"cli-firebase","firebase-functions-hash":"a94bc0abcedc23b35c422ea7b3373b719aa5478b"},"environment":"GEN_2"},"stages":[{"name":"BUILD","message":"Build in progress","state":"IN_PROGRESS","resource":"projects/126138379488/locations/us-central1/builds/1a700786-0c16-4078-96d7-fdc23054b650","resourceUri":"https://console.cloud.google.com/cloud-build/builds;region=us-central1/1a700786-0c16-4078-96d7-fdc23054b650?project=126138379488"},{"name":"SERVICE","state":"NOT_STARTED"}],"operationType":"CREATE_FUNCTION"},"done":false}
+[debug] [2024-07-19T11:28:48.823Z] [create-default-us-central1-stripeEvent] Retrying task index 0
+[debug] [2024-07-19T11:28:48.824Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 [none]
+[debug] [2024-07-19T11:28:49.672Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 200
+[debug] [2024-07-19T11:28:49.672Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 {"name":"projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8","metadata":{"@type":"type.googleapis.com/google.cloud.functions.v2.OperationMetadata","createTime":"2024-07-19T11:31:54.857088837Z","target":"projects/contentisqueen-97ae5/locations/us-central1/functions/stripeEvent","verb":"create","cancelRequested":false,"apiVersion":"v2","requestResource":{"@type":"type.googleapis.com/google.cloud.functions.v2.Function","name":"projects/contentisqueen-97ae5/locations/us-central1/functions/stripeEvent","buildConfig":{"runtime":"nodejs20","entryPoint":"stripeEvent","source":{"storageSource":{"bucket":"gcf-v2-sources-126138379488-us-central1","object":"stripeEvent/function-source.zip","generation":"1721388714468762"}},"environmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"automaticUpdatePolicy":{}},"serviceConfig":{"service":"projects/contentisqueen-97ae5/locations/us-central1/services/stripeevent","timeoutSeconds":60,"environmentVariables":{"STRIPE_WHSEC":"whsec_194dfd1f856d8fbd6c8229549047384ac424665dff7725846c407f1a8534f813","FIREBASE_CONFIG":"{\"projectId\":\"contentisqueen-97ae5\",\"databaseURL\":\"https://contentisqueen-97ae5-default-rtdb.europe-west1.firebasedatabase.app\",\"storageBucket\":\"contentisqueen-97ae5.appspot.com\",\"locationId\":\"us-central\"}","GCLOUD_PROJECT":"contentisqueen-97ae5","EVENTARC_CLOUD_EVENT_SOURCE":"projects/contentisqueen-97ae5/locations/us-central1/services/stripeEvent","FUNCTION_TARGET":"stripeEvent","LOG_EXECUTION_ID":"true"},"ingressSettings":"ALLOW_ALL","serviceAccountEmail":"126138379488-compute@developer.gserviceaccount.com","availableMemory":"256Mi","maxInstanceRequestConcurrency":80,"availableCpu":"1"},"labels":{"deployment-tool":"cli-firebase","firebase-functions-hash":"a94bc0abcedc23b35c422ea7b3373b719aa5478b"},"environment":"GEN_2"},"stages":[{"name":"BUILD","message":"Build finished","state":"COMPLETE","resource":"projects/126138379488/locations/us-central1/builds/1a700786-0c16-4078-96d7-fdc23054b650","resourceUri":"https://console.cloud.google.com/cloud-build/builds;region=us-central1/1a700786-0c16-4078-96d7-fdc23054b650?project=126138379488"},{"name":"SERVICE","message":"Creating Cloud Run service","state":"IN_PROGRESS","resource":"projects/contentisqueen-97ae5/locations/us-central1/services/stripeevent","resourceUri":"https://console.cloud.google.com/run/detail/us-central1/stripeevent?project=contentisqueen-97ae5"}],"sourceToken":"Cldwcm9qZWN0cy8xMjYxMzgzNzk0ODgvbG9jYXRpb25zL3VzLWNlbnRyYWwxL2J1aWxkcy8xYTcwMDc4Ni0wYzE2LTQwNzgtOTZkNy1mZGMyMzA1NGI2NTASVHVzLWNlbnRyYWwxLWRvY2tlci5wa2cuZGV2L2NvbnRlbnRpc3F1ZWVuLTk3YWU1L2djZi1hcnRpZmFjdHMvc3RyaXBlX2V2ZW50OnZlcnNpb25fMRjg2bvz1QMiSXByb2plY3RzL2NvbnRlbnRpc3F1ZWVuLTk3YWU1L2xvY2F0aW9ucy91cy1jZW50cmFsMS9mdW5jdGlvbnMvc3RyaXBlRXZlbnQqCwjYnem0BhDY/6pZMghub2RlanMyMDp2CiNnY3IuaW8vZ2FlLXJ1bnRpbWVzL25vZGVqczIwOnN0YWJsZRJPdXMtY2VudHJhbDEtZG9ja2VyLnBrZy5kZXYvc2VydmVybGVzcy1ydW50aW1lcy9nb29nbGUtMjItZnVsbC9ydW50aW1lcy9ub2RlanMyMEAB","operationType":"CREATE_FUNCTION"},"done":false}
+[debug] [2024-07-19T11:28:49.672Z] Got source token Cldwcm9qZWN0cy8xMjYxMzgzNzk0ODgvbG9jYXRpb25zL3VzLWNlbnRyYWwxL2J1aWxkcy8xYTcwMDc4Ni0wYzE2LTQwNzgtOTZkNy1mZGMyMzA1NGI2NTASVHVzLWNlbnRyYWwxLWRvY2tlci5wa2cuZGV2L2NvbnRlbnRpc3F1ZWVuLTk3YWU1L2djZi1hcnRpZmFjdHMvc3RyaXBlX2V2ZW50OnZlcnNpb25fMRjg2bvz1QMiSXByb2plY3RzL2NvbnRlbnRpc3F1ZWVuLTk3YWU1L2xvY2F0aW9ucy91cy1jZW50cmFsMS9mdW5jdGlvbnMvc3RyaXBlRXZlbnQqCwjYnem0BhDY/6pZMghub2RlanMyMDp2CiNnY3IuaW8vZ2FlLXJ1bnRpbWVzL25vZGVqczIwOnN0YWJsZRJPdXMtY2VudHJhbDEtZG9ja2VyLnBrZy5kZXYvc2VydmVybGVzcy1ydW50aW1lcy9nb29nbGUtMjItZnVsbC9ydW50aW1lcy9ub2RlanMyMEAB for region us-central1
+[debug] [2024-07-19T11:28:59.688Z] [create-default-us-central1-stripeEvent] Retrying task index 0
+[debug] [2024-07-19T11:28:59.689Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 [none]
+[debug] [2024-07-19T11:29:00.601Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 200
+[debug] [2024-07-19T11:29:00.601Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v2/projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8 {"name":"projects/contentisqueen-97ae5/locations/us-central1/operations/operation-1721388714299-61d980ad610f1-8838920c-847d19a8","metadata":{"@type":"type.googleapis.com/google.cloud.functions.v2.OperationMetadata","createTime":"2024-07-19T11:31:54.857088837Z","endTime":"2024-07-19T11:32:51.518754714Z","target":"projects/contentisqueen-97ae5/locations/us-central1/functions/stripeEvent","verb":"create","cancelRequested":false,"apiVersion":"v2","requestResource":{"@type":"type.googleapis.com/google.cloud.functions.v2.Function","name":"projects/contentisqueen-97ae5/locations/us-central1/functions/stripeEvent","buildConfig":{"runtime":"nodejs20","entryPoint":"stripeEvent","source":{"storageSource":{"bucket":"gcf-v2-sources-126138379488-us-central1","object":"stripeEvent/function-source.zip","generation":"1721388714468762"}},"environmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"automaticUpdatePolicy":{}},"serviceConfig":{"service":"projects/contentisqueen-97ae5/locations/us-central1/services/stripeevent","timeoutSeconds":60,"environmentVariables":{"STRIPE_WHSEC":"whsec_194dfd1f856d8fbd6c8229549047384ac424665dff7725846c407f1a8534f813","FIREBASE_CONFIG":"{\"projectId\":\"contentisqueen-97ae5\",\"databaseURL\":\"https://contentisqueen-97ae5-default-rtdb.europe-west1.firebasedatabase.app\",\"storageBucket\":\"contentisqueen-97ae5.appspot.com\",\"locationId\":\"us-central\"}","GCLOUD_PROJECT":"contentisqueen-97ae5","EVENTARC_CLOUD_EVENT_SOURCE":"projects/contentisqueen-97ae5/locations/us-central1/services/stripeEvent","FUNCTION_TARGET":"stripeEvent","LOG_EXECUTION_ID":"true"},"ingressSettings":"ALLOW_ALL","serviceAccountEmail":"126138379488-compute@developer.gserviceaccount.com","availableMemory":"256Mi","maxInstanceRequestConcurrency":80,"availableCpu":"1"},"labels":{"deployment-tool":"cli-firebase","firebase-functions-hash":"a94bc0abcedc23b35c422ea7b3373b719aa5478b"},"environment":"GEN_2"},"stages":[{"name":"ARTIFACT_REGISTRY","message":"Deleting function artifacts in Artifact Registry","state":"COMPLETE"},{"name":"SERVICE","message":"Deleting Cloud Run service","state":"COMPLETE","resource":"projects/contentisqueen-97ae5/locations/us-central1/services/stripeevent"}],"operationType":"CREATE_FUNCTION"},"done":true,"error":{"code":3,"message":"Could not create or update Cloud Run service stripeevent, Container Healthcheck failed. Revision 'stripeevent-00001-cey' is not ready and cannot serve traffic. The user-provided container failed to start and listen on the port defined provided by the PORT=8080 environment variable. Logs for this revision might contain more information.\n\nLogs URL: https://console.cloud.google.com/logs/viewer?project=contentisqueen-97ae5&resource=cloud_run_revision/service_name/stripeevent/revision_name/stripeevent-00001-cey&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22stripeevent%22%0Aresource.labels.revision_name%3D%22stripeevent-00001-cey%22 \nFor more troubleshooting guidance, see https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start"}}
+[debug] [2024-07-19T11:29:00.602Z] Got source token undefined for region us-central1
+[error] Could not create or update Cloud Run service stripeevent, Container Healthcheck failed. Revision 'stripeevent-00001-cey' is not ready and cannot serve traffic. The user-provided container failed to start and listen on the port defined provided by the PORT=8080 environment variable. Logs for this revision might contain more information.
+
+Logs URL: https://console.cloud.google.com/logs/viewer?project=contentisqueen-97ae5&resource=cloud_run_revision/service_name/stripeevent/revision_name/stripeevent-00001-cey&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22stripeevent%22%0Aresource.labels.revision_name%3D%22stripeevent-00001-cey%22 
+For more troubleshooting guidance, see https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start
+[debug] [2024-07-19T11:29:00.609Z] Total Function Deployment time: 65154
+[debug] [2024-07-19T11:29:00.609Z] 1 Functions Deployed
+[debug] [2024-07-19T11:29:00.609Z] 1 Functions Errored
+[debug] [2024-07-19T11:29:00.609Z] 0 Function Deployments Aborted
+[debug] [2024-07-19T11:29:00.609Z] Average Function Deployment time: 65153
+[info] 
+[info] Functions deploy had errors with the following functions:
+	stripeEvent(us-central1)
+[debug] [2024-07-19T11:29:00.758Z] Not printing URL for HTTPS function. Typically this means it didn't match a filter or we failed deployment
+[info] i  functions: cleaning up build files... 
+[debug] [2024-07-19T11:29:00.760Z] >>> [apiv2][query] DELETE https://artifactregistry.googleapis.com/v1beta2/projects/contentisqueen-97ae5/locations/us-central1/repositories/gcf-artifacts/packages/stripe_event [none]
+[debug] [2024-07-19T11:29:00.761Z] >>> [apiv2][query] GET https://us.gcr.io/v2/contentisqueen-97ae5/gcf/us-central1/tags/list [none]
+[debug] [2024-07-19T11:29:01.220Z] <<< [apiv2][status] GET https://us.gcr.io/v2/contentisqueen-97ae5/gcf/us-central1/tags/list 404
+[debug] [2024-07-19T11:29:01.220Z] <<< [apiv2][body] GET https://us.gcr.io/v2/contentisqueen-97ae5/gcf/us-central1/tags/list {"errors":[{"code":"NAME_UNKNOWN","message":"Repository \"us.gcr.io\" not found"}]}
+[debug] [2024-07-19T11:29:01.221Z] Failed docker command with error  HTTP Error: 404, Not Found {"name":"FirebaseError","children":[],"context":{"body":{"errors":[{"code":"NAME_UNKNOWN","message":"Repository \"us.gcr.io\" not found"}],"error":{"message":"Not Found"}},"response":{"statusCode":404}},"exit":1,"message":"HTTP Error: 404, Not Found","status":404}
+[debug] [2024-07-19T11:29:01.223Z] >>> [apiv2][query] GET https://us.gcr.io/v2/contentisqueen-97ae5/gcf/us-central1/tags/list [none]
+[debug] [2024-07-19T11:29:01.505Z] <<< [apiv2][status] GET https://us.gcr.io/v2/contentisqueen-97ae5/gcf/us-central1/tags/list 404
+[debug] [2024-07-19T11:29:01.505Z] <<< [apiv2][body] GET https://us.gcr.io/v2/contentisqueen-97ae5/gcf/us-central1/tags/list {"errors":[{"code":"NAME_UNKNOWN","message":"Repository \"us.gcr.io\" not found"}]}
+[debug] [2024-07-19T11:29:01.505Z] Failed docker command with error  HTTP Error: 404, Not Found {"name":"FirebaseError","children":[],"context":{"body":{"errors":[{"code":"NAME_UNKNOWN","message":"Repository \"us.gcr.io\" not found"}],"error":{"message":"Not Found"}},"response":{"statusCode":404}},"exit":1,"message":"HTTP Error: 404, Not Found","status":404}
+[debug] [2024-07-19T11:29:01.609Z] >>> [apiv2][query] GET https://us.gcr.io/v2/contentisqueen-97ae5/gcf/us-central1/tags/list [none]
+[debug] [2024-07-19T11:29:01.728Z] <<< [apiv2][status] DELETE https://artifactregistry.googleapis.com/v1beta2/projects/contentisqueen-97ae5/locations/us-central1/repositories/gcf-artifacts/packages/stripe_event 404
+[debug] [2024-07-19T11:29:01.728Z] <<< [apiv2][body] DELETE https://artifactregistry.googleapis.com/v1beta2/projects/contentisqueen-97ae5/locations/us-central1/repositories/gcf-artifacts/packages/stripe_event {"error":{"code":404,"message":"Package \"projects/contentisqueen-97ae5/locations/us-central1/repositories/gcf-artifacts/packages/stripe_event\" was not found.","status":"NOT_FOUND"}}
+[debug] [2024-07-19T11:29:01.923Z] <<< [apiv2][status] GET https://us.gcr.io/v2/contentisqueen-97ae5/gcf/us-central1/tags/list 404
+[debug] [2024-07-19T11:29:01.923Z] <<< [apiv2][body] GET https://us.gcr.io/v2/contentisqueen-97ae5/gcf/us-central1/tags/list {"errors":[{"code":"NAME_UNKNOWN","message":"Repository \"us.gcr.io\" not found"}]}
+[debug] [2024-07-19T11:29:01.923Z] Failed docker command with error  HTTP Error: 404, Not Found {"name":"FirebaseError","children":[],"context":{"body":{"errors":[{"code":"NAME_UNKNOWN","message":"Repository \"us.gcr.io\" not found"}],"error":{"message":"Not Found"}},"response":{"statusCode":404}},"exit":1,"message":"HTTP Error: 404, Not Found","status":404}
+[warn] ⚠  functions: Unhandled error cleaning up build images. This could result in a small monthly bill if not corrected. You can attempt to delete these images by redeploying or you can delete them manually at https://console.cloud.google.com/gcr/images/contentisqueen-97ae5/us/gcf 
+[debug] [2024-07-19T11:29:01.923Z] Functions deploy failed.
+[debug] [2024-07-19T11:29:01.923Z] {
+  "endpoint": {
+    "id": "stripeEvent",
+    "project": "contentisqueen-97ae5",
+    "region": "us-central1",
+    "entryPoint": "stripeEvent",
+    "platform": "gcfv2",
+    "runtime": "nodejs20",
+    "httpsTrigger": {},
+    "labels": {
+      "deployment-tool": "cli-firebase"
+    },
+    "ingressSettings": null,
+    "availableMemoryMb": null,
+    "serviceAccount": null,
+    "timeoutSeconds": null,
+    "maxInstances": null,
+    "minInstances": null,
+    "concurrency": 80,
+    "vpc": null,
+    "environmentVariables": {
+      "STRIPE_WHSEC": "whsec_194dfd1f856d8fbd6c8229549047384ac424665dff7725846c407f1a8534f813",
+      "FIREBASE_CONFIG": "{\"projectId\":\"contentisqueen-97ae5\",\"databaseURL\":\"https://contentisqueen-97ae5-default-rtdb.europe-west1.firebasedatabase.app\",\"storageBucket\":\"contentisqueen-97ae5.appspot.com\",\"locationId\":\"us-central\"}",
+      "GCLOUD_PROJECT": "contentisqueen-97ae5",
+      "EVENTARC_CLOUD_EVENT_SOURCE": "projects/contentisqueen-97ae5/locations/us-central1/services/stripeEvent"
+    },
+    "codebase": "default",
+    "cpu": 1,
+    "targetedByOnly": false,
+    "hash": "a94bc0abcedc23b35c422ea7b3373b719aa5478b"
+  },
+  "op": "create",
+  "original": {
+    "name": "FirebaseError",
+    "children": [],
+    "exit": 1,
+    "message": "Could not create or update Cloud Run service stripeevent, Container Healthcheck failed. Revision 'stripeevent-00001-cey' is not ready and cannot serve traffic. The user-provided container failed to start and listen on the port defined provided by the PORT=8080 environment variable. Logs for this revision might contain more information.\n\nLogs URL: https://console.cloud.google.com/logs/viewer?project=contentisqueen-97ae5&resource=cloud_run_revision/service_name/stripeevent/revision_name/stripeevent-00001-cey&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22stripeevent%22%0Aresource.labels.revision_name%3D%22stripeevent-00001-cey%22 \nFor more troubleshooting guidance, see https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start",
+    "original": {
+      "code": 3,
+      "message": "Could not create or update Cloud Run service stripeevent, Container Healthcheck failed. Revision 'stripeevent-00001-cey' is not ready and cannot serve traffic. The user-provided container failed to start and listen on the port defined provided by the PORT=8080 environment variable. Logs for this revision might contain more information.\n\nLogs URL: https://console.cloud.google.com/logs/viewer?project=contentisqueen-97ae5&resource=cloud_run_revision/service_name/stripeevent/revision_name/stripeevent-00001-cey&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22stripeevent%22%0Aresource.labels.revision_name%3D%22stripeevent-00001-cey%22 \nFor more troubleshooting guidance, see https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start"
+    },
+    "status": 3,
+    "code": 3
+  }
+}
+[debug] [2024-07-19T11:29:06.943Z] Error: Timed out.
+    at Timeout._onTimeout (/home/kaleshe/.nvm/versions/node/v21.4.0/lib/node_modules/firebase-tools/lib/utils.js:268:49)
+    at listOnTimeout (node:internal/timers:573:17)
+    at process.processTimers (node:internal/timers:514:7)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2024-07-19T11:38:36.826Z] File /home/kaleshe/creator-platform-be/functions/index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File /home/kaleshe/creator-platform-be/functions/index.js changed, reloading triggers"}}
+[debug] [2024-07-19T11:38:37.884Z] Validating nodejs source
+[debug] [2024-07-19T11:38:40.006Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^12.1.0",
+    "firebase-functions": "^5.0.0"
+  },
+  "devDependencies": {
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2024-07-19T11:38:40.007Z] Building nodejs source
+[debug] [2024-07-19T11:38:40.008Z] Failed to find version of module node: reached end of search path /home/kaleshe/creator-platform-be/functions/node_modules
+[info] ✔  functions: Using node@20 from host. 
+[info] i  functions: Loaded environment variables from .env. 
+[debug] [2024-07-19T11:38:40.044Z] Could not find functions.yaml. Must use http discovery
+[debug] [2024-07-19T11:38:40.063Z] Found firebase-functions binary at '/home/kaleshe/creator-platform-be/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8411
+
+[error] /home/kaleshe/creator-platform-be/functions/index.js:10
+if ()
+    ^
+
+SyntaxError: Unexpected token ')'
+    at internalCompileFunction (node:internal/vm:77:18)
+    at wrapSafe (node:internal/modules/cjs/loader:1288:20)
+    at Module._compile (node:internal/modules/cjs/loader:1340:27)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1435:10)
+    at Module.load (node:internal/modules/cjs/loader:1207:32)
+    at Module._load (node:internal/modules/cjs/loader:1023:12)
+    at Module.require (node:internal/modules/cjs/loader:1235:19)
+    at require (node:internal/modules/helpers:176:18)
+    at loadModule (/home/kaleshe/creator-platform-be/functions/node_modules/firebase-functions/lib/runtime/loader.js:40:16)
+    at loadStack (/home/kaleshe/creator-platform-be/functions/node_modules/firebase-functions/lib/runtime/loader.js:93:23)
+
+[debug] [2024-07-19T11:38:40.506Z] Got response code 400; body Failed to generate manifest from function source: SyntaxError: Unexpected token ')'
+[error] ⬢  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2024-07-19T11:38:57.719Z] File /home/kaleshe/creator-platform-be/functions/index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File /home/kaleshe/creator-platform-be/functions/index.js changed, reloading triggers"}}
+[debug] [2024-07-19T11:38:58.720Z] Validating nodejs source
+[debug] [2024-07-19T11:39:00.939Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^12.1.0",
+    "firebase-functions": "^5.0.0"
+  },
+  "devDependencies": {
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2024-07-19T11:39:00.940Z] Building nodejs source
+[debug] [2024-07-19T11:39:00.941Z] Failed to find version of module node: reached end of search path /home/kaleshe/creator-platform-be/functions/node_modules
+[info] ✔  functions: Using node@20 from host. 
+[info] i  functions: Loaded environment variables from .env. 
+[debug] [2024-07-19T11:39:00.957Z] Could not find functions.yaml. Must use http discovery
+[debug] [2024-07-19T11:39:00.976Z] Found firebase-functions binary at '/home/kaleshe/creator-platform-be/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8097
+
+[debug] [2024-07-19T11:39:02.042Z] Got response from /__/functions.yaml {"endpoints":{"stripeEvent":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"stripeEvent"}},"specVersion":"v1alpha1","requiredAPIs":[]}
+[info] ✔  functions: Loaded functions definitions from source: stripeEvent. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: stripeEvent."}}

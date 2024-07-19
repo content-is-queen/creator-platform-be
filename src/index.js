@@ -33,8 +33,6 @@ initializeApp({
   storageBucket: `${process.env.PROJECT_ID}.appspot.com`,
 });
 
-app.use(stripeEvent);
-
 app.use(
   fileUploader({
     fileSize: 50 * 1024 * 1024,
@@ -54,3 +52,5 @@ const start = () => {
 };
 start();
 module.exports = app;
+
+exports.stripeEvent = stripeEvent;

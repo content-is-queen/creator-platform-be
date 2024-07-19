@@ -1,6 +1,7 @@
 # Dependency directories
 node_modules/
 api_logs.txt
+ui-debug.log
 
 .env
 .env.local

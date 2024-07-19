@@ -11,12 +11,19 @@ const admin = require("firebase-admin");
 
 const createCheckoutSession = async (req, res) => {
   const origin = req.headers.origin || process.env.DOMAIN;
+
+  const { role } = req.body;
+
+  const productId = {
+    brand: "price_1PdwrBA0tTttcwfyIDPVzj99",
+    creator: "price_1PdwluA0tTttcwfyYpc4jGVz",
+  };
   try {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
         {
-          price: "price_1PLO1XA0tTttcwfynID8uLdO",
+          price: productId[role],
           quantity: 1,
         },
       ],
@@ -54,13 +61,12 @@ const cancelSubscription = async (req, res) => {
     }
 
     // Cancel the subscription using Stripe API
-    const cancellation = await stripe.subscriptions.cancel(subscriptionId);
+    const cancellation = await stripe.subscriptions.update(subscriptionId, {
+      cancel_at_period_end: true,
+    });
 
     // Update the user's subscription status in Firestore
-    await db
-      .collection("users")
-      .doc(userId)
-      .update({ subscribed: false, subscriptionId: null });
+    await db.collection("users").doc(userId).update({ subscribed: false });
 
     await admin.auth().setCustomUserClaims(userId, { subscribed: false });
 
@@ -96,7 +102,7 @@ const subscribeUser = async (req, res) => {
 
       await admin.auth().setCustomUserClaims(userId, { subscribed: true });
 
-      res.status(200).json({ session });
+      res.status(200).json({ session, subscriptionId });
     } else {
       res.status(400).json({
         error: {

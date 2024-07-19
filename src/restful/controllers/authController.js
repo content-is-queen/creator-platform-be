@@ -315,7 +315,6 @@ class AuthController {
     try {
       const { ...valuesToUpdate } = req.body;
 
-      // If there's no file, update user data directly in Firestore
       const docRef = admin
         .firestore()
         .collection("users")
@@ -323,13 +322,11 @@ class AuthController {
       await docRef.set({ ...valuesToUpdate }, { merge: true });
 
       util.setSuccess(200, "Profile updated successfully", valuesToUpdate);
-
-      return util.send(res);
     } catch (error) {
       util.statusCode = 500;
       util.message = error.message || "Server error";
-      return util.send(res);
     }
+    return util.send(res);
   }
 
   static async changePassword(req, res) {
@@ -340,12 +337,11 @@ class AuthController {
       });
       util.statusCode = 200;
       util.message = "Password updated succesfully";
-      return util.send(res);
     } catch (error) {
       util.statusCode = 500;
       util.message = error.message || "Server error";
-      return util.send(res);
     }
+    return util.send(res);
   }
 
   static async checkEmailExists(req, res) {

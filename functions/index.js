@@ -36,7 +36,7 @@ exports.stripeEvent = onRequest(async (request, response) => {
         }
 
         for (const doc of snapshot.docs) {
-          await doc.ref.update({ subscriptionId: null });
+          await doc.ref.update({ subscriptionId: null, subscribed: false });
           logger.info(
             `Removed the the subscription id: ${subscriptionId} from user: ${doc.id}`,
           );

@@ -4,7 +4,7 @@ const cors = require("cors");
 const { initializeApp, cert } = require("firebase-admin/app");
 const fileUploader = require("express-fileupload");
 const router = require("./restful/routes");
-const { cronJob } = require("./helper/cronjob");
+const cronJob = require("./helper/cronjob");
 const { stripeEvent } = require("../functions");
 
 const serviceAccount = {
@@ -32,7 +32,6 @@ initializeApp({
   credential: cert(serviceAccount),
   storageBucket: `${process.env.PROJECT_ID}.appspot.com`,
 });
-
 
 app.use(
   fileUploader({

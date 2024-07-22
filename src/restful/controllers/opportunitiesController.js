@@ -430,6 +430,36 @@ class OpportunitiesController {
   static async createCampaignOpportunity(req, res) {
     return OpportunitiesController.createOpportunity(req, res, "campaign");
   }
+
+  static async deleteExpiredOpportunities(req, res) {
+    const db = admin.firestore();
+    const now = new Date();
+    const currentDateString = now.toISOString().split("T")[0];
+
+    try {
+      // Fetch opportunities where the deadline has passed
+      const opportunitiesRef = db.collection("opportunities");
+      const snapshot = await opportunitiesRef
+        .where("endDate", "<", currentDateString)
+        .get();
+
+      if (snapshot.empty) {
+        console.log("No expired opportunities found");
+        return;
+      }
+
+      // Batch update the status of expired opportunities to "archived"
+      const batch = db.batch();
+      snapshot.docs.forEach((doc) => {
+        batch.update(doc.ref, { status: "archived" });
+      });
+
+      await batch.commit();
+      console.log("Expired opportunities archived successfully");
+    } catch (error) {
+      console.error("Error archiving expired opportunities:", error);
+    }
+  }
 }
 
 exports.OpportunitiesController = OpportunitiesController;

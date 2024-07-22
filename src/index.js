@@ -1,11 +1,11 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
-const functions = require("firebase-functions");
 const { initializeApp, cert } = require("firebase-admin/app");
 const fileUploader = require("express-fileupload");
 const router = require("./restful/routes");
-const { cronJob } = require("./helper/cronjob");
+const cronJob = require("./helper/cronjob");
+const { stripeEvent } = require("../functions");
 
 const serviceAccount = {
   type: "service_account",
@@ -27,6 +27,7 @@ const PORT = process.env.PORT || 8080;
 const app = express();
 app.use(cors());
 app.use(express.json());
+
 initializeApp({
   credential: cert(serviceAccount),
   storageBucket: `${process.env.PROJECT_ID}.appspot.com`,
@@ -50,5 +51,6 @@ const start = () => {
   }
 };
 start();
-exports.api = functions.https.onRequest(app);
 module.exports = app;
+
+exports.stripeEvent = stripeEvent;

@@ -40,7 +40,8 @@ const checkSubscribedUser = () => {
       }
     } else {
       util.statusCode = 400;
-      util.message = "You are not allowed to perform this action";
+      util.message =
+        "You have used up your free credits this month. Upgrade to plus to post unlimited opportunities";
       return util.send(res);
     }
   };

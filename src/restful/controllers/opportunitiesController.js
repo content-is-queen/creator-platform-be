@@ -65,15 +65,36 @@ class OpportunitiesController {
   static async getAllOpportunities(req, res) {
     const db = admin.firestore();
     const { limit = 10, page = 1 } = req.query;
+    const parsedLimit = parseInt(limit);
+    const parsedPage = parseInt(page);
 
     try {
-      const opportunitiesData = [];
+      // Fetch the initial set of documents to determine the correct starting point
       const query = db
         .collection("opportunities")
         .where("status", "!=", "archived")
         .orderBy("createdAt", "desc");
 
-      const querySnapshot = await query.get();
+      const initialSnapshot = await query.get();
+
+      // Calculate the starting index
+      const startIndex = (parsedPage - 1) * parsedLimit;
+
+      if (initialSnapshot.size < startIndex) {
+        throw new Error("Page number out of bounds");
+      }
+
+      // Retrieve the document to start after for the current page
+      let queryWithLimit = query.limit(parsedLimit);
+      if (parsedPage > 1) {
+        const lastVisible = initialSnapshot.docs[startIndex - 1];
+        queryWithLimit = queryWithLimit.startAfter(lastVisible);
+      }
+
+      // Fetch the documents for the current page
+      const querySnapshot = await queryWithLimit.get();
+      const opportunitiesData = [];
+
       await Promise.all(
         querySnapshot.docs.map(async (doc) => {
           const opportunitiesDetails = { id: doc.id, ...doc.data() };
@@ -98,23 +119,20 @@ class OpportunitiesController {
         }),
       );
 
-      // Calculate pagination details
-      const totalItems = opportunitiesData.length;
-      const totalPages = Math.ceil(totalItems / limit);
-      const startIndex = (page - 1) * limit;
-      const endIndex = page * limit;
+      // Calculate total items and total pages
+      const totalItems = (
+        await db
+          .collection("opportunities")
+          .where("status", "!=", "archived")
+          .get()
+      ).size;
+      const totalPages = Math.ceil(totalItems / parsedLimit);
 
-      // Slice the array to get the current page's items
-      const paginatedOpportunities = opportunitiesData.slice(
-        startIndex,
-        endIndex,
-      );
-
-      if (paginatedOpportunities.length > 0) {
+      if (opportunitiesData.length > 0) {
         util.statusCode = 200;
         util.message = {
-          opportunities: paginatedOpportunities,
-          currentPage: parseInt(page),
+          opportunities: opportunitiesData,
+          currentPage: parsedPage,
           totalPages,
           totalItems,
         };

@@ -51,6 +51,7 @@ const start = () => {
   }
 };
 start();
-module.exports = app;
 
 exports.stripeEvent = stripeEvent;
+
+module.exports = app;

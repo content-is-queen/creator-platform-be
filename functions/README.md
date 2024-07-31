@@ -39,3 +39,35 @@ stripe listen --forward-to http://127.0.0.1:5001/creator-platform---production/u
 ```
 stripe trigger customer.subscription.deleted
 ```
+
+### Deploy
+
+Don't forget to update the `STRIPE_WHSEC` variable in your `.env` file
+
+**Staging**
+
+1. Set project to staging
+
+```
+firebase use staging
+```
+
+2. Deploy
+
+```
+npm run deploy
+```
+
+**Production**
+
+1. Set project to production
+
+```
+firebase use production
+```
+
+2. Deploy
+
+```
+npm run deploy
+```

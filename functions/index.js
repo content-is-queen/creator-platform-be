@@ -38,9 +38,8 @@ exports.stripeEvent = onRequest(async (request, response) => {
         for (const doc of snapshot.docs) {
           await doc.ref.update({ subscriptionId: null, subscribed: false });
 
-          await admin
-            .auth()
-            .setCustomUserClaims(doc.ref.get("uid"), { subscribed: false });
+          await admin.auth().setCustomUserClaims(doc.id, { subscribed: false });
+
           logger.info(
             `Removed the the subscription id: ${subscriptionId} from user: ${doc.id}`,
           );

@@ -65,11 +65,6 @@ const cancelSubscription = async (req, res) => {
       cancel_at_period_end: true,
     });
 
-    // Update the user's subscription status in Firestore
-    await db.collection("users").doc(userId).update({ subscribed: false });
-
-    await admin.auth().setCustomUserClaims(userId, { subscribed: false });
-
     res
       .status(200)
       .json({ message: "Subscription cancelled successfully", cancellation });

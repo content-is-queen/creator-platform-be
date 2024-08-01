@@ -1,56 +1,29 @@
-# Creator Platform backend
+# Creator Platform Backend
 
-> Creator Platform backend is a
+## Technologies
 
-## Built With
+- Node.js
+- Firebase Admin SDK
+- Firebase Cloud Functions
+- Google Cloud
 
--Node Js
+### Getting started
 
-## Getting Started
+**Install dependencies**
 
-To get a local copy up and running follow these simple example steps.
+```
+npm i
+```
 
-### Prerequisites
+**Development**
 
-You need to have a git installed
-You need to have a basic knowledge about how to use terminal
+```
+npm run dev
+```
 
-### Setup
+**Deployment**
+Note: Must have Google Cloud CLI installed. Follow the steps here to get it setup https://cloud.google.com/sdk/docs/install
 
-#### clone this project (using git clone https://github.com/content-is-queen/creator-platform-be.git) to your local computer and use telminal to navigate into the parent directory of this project.
-
-### Install
-
-#### Run npm install
-
-### Usage
-
-run: npm run dev
-
-## Authors
-
-👤 **Author1**
-
-- GitHub: [@githubhandle](https://github.com/bizip)
-- Twitter: [@twitterhandle](https://twitter.com/BizimunguPasca9)
-- LinkedIn: [LinkedIn](www.linkedin.com/in/bizimungu)
-
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome!
-
-Feel free to check the [issues page](../../issues/).
-
-## Show your support
-
-Give a ⭐️ if you like this project!
-
-## Acknowledgments
-
-- Hat tip to everyone who has been a part of this collaborative journey!
-- Inspiration
-- etc
-
-## 📝 License
-
-Copyright of Content is Queen Ltd. Confidential. All Rights Reserved.
+```
+npm run deploy
+```

@@ -40,7 +40,7 @@ stripe listen --forward-to http://127.0.0.1:5001/creator-platform---production/u
 stripe trigger customer.subscription.deleted
 ```
 
-### Deploy
+### Deployment
 
 Don't forget to update the `STRIPE_WHSEC` variable in your `.env` file
 

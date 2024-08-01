@@ -7,8 +7,6 @@ const admin = require("firebase-admin");
 
 const secret = process.env.STRIPE_WHSEC;
 
-admin.initializeApp();
-
 exports.stripeEvent = onRequest(async (request, response) => {
   const signature = request.headers["stripe-signature"];
 

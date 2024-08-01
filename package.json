@@ -8,6 +8,8 @@
     "dev": "nodemon --exec babel-node src/index.js",
     "start": "node src/index.js",
     "deploy": "gcloud app deploy",
+    "deploy:functions": "firebase deploy --only functions",
+    "serve:functions": "firebase emulators:start --only functions",
     "check": "npx prettier ./src --check",
     "format": "npx prettier ./src --write",
     "lint": "npx eslint . --ext .js",

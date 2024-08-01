@@ -25,7 +25,7 @@ dotenv.config();
 
 const PORT = process.env.PORT || 8080;
 const app = express();
-app.use(cors({ origin: "contentisqueen.org" }));
+app.use(cors());
 app.use(express.json());
 
 initializeApp({

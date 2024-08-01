@@ -22,8 +22,12 @@ npm run dev
 ```
 
 **Deployment**
-Note: Must have Google Cloud CLI installed. Follow the steps here to get it setup https://cloud.google.com/sdk/docs/install
+Note: Must have Google Cloud CLI installed. Follow the steps here to get it setup: https://cloud.google.com/sdk/docs/install
 
 ```
 npm run deploy
 ```
+
+## 📝 Copyright
+
+&copy; Content is Queen Ltd. All Rights Reserved.

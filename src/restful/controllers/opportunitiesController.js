@@ -216,7 +216,7 @@ class OpportunitiesController {
 
     try {
       const opportunitiesData = [];
-      let query = db
+      const query = db
         .collection("opportunities")
         .where("status", "==", status)
         .limit(parseInt(limit));

@@ -84,10 +84,35 @@ class ApplicationsController {
     try {
       const applicationsData = [];
 
-      // Fetch all documents from the "applications" collection
       const querySnapshot = await db.collection("applications").get();
 
-      // Iterate over each document
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        applicationsData.push(data);
+      });
+
+      util.statusCode = 200;
+      util.message = applicationsData;
+      return util.send(res);
+    } catch (error) {
+      console.log(error);
+      util.statusCode = 500;
+      util.message = error.message || "Server error";
+      return util.send(res);
+    }
+  }
+
+  static async getApplicationsByUserId(req, res) {
+    const db = admin.firestore();
+    const { userId } = req.params;
+    try {
+      const applicationsData = [];
+
+      const querySnapshot = await db
+        .collection("applications")
+        .where("creatorId", "==", userId)
+        .get();
+
       querySnapshot.forEach((doc) => {
         const data = doc.data();
         applicationsData.push(data);

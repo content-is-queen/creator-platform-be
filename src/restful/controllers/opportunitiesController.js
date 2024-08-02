@@ -68,7 +68,7 @@ class OpportunitiesController {
 
     try {
       const opportunitiesData = [];
-      let query = db
+      const query = db
         .collection("opportunities")
         .where("status", "!=", "archived")
         .orderBy("createdAt", "desc")
@@ -140,7 +140,9 @@ class OpportunitiesController {
 
     try {
       const opportunitiesData = [];
-      let query = db.collection("opportunities").where("userId", "==", userId);
+      const query = db
+        .collection("opportunities")
+        .where("userId", "==", userId);
 
       const querySnapshot = await query.get();
       const promises = querySnapshot.docs.map(async (doc) => {

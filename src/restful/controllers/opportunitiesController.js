@@ -64,28 +64,37 @@ class OpportunitiesController {
 
   static async getAllOpportunities(req, res) {
     const db = admin.firestore();
-    const { limit = 10, startAfter: startAfterId = null } = req.query;
+    const { limit = 10, page = 1 } = req.query;
+    const parsedLimit = parseInt(limit);
+    const parsedPage = parseInt(page);
 
     try {
-      const opportunitiesData = [];
-      let query = db
+      // Fetch the initial set of documents to determine the correct starting point
+      const query = db
         .collection("opportunities")
         .where("status", "!=", "archived")
-        .orderBy("createdAt", "desc")
-        .limit(parseInt(limit));
-      if (startAfterId) {
-        const startAfterDoc = await db
-          .collection("opportunities")
-          .doc(startAfterId)
-          .get();
-        if (startAfterDoc.exists) {
-          query = query.startAfter(startAfterDoc);
-        } else {
-          return res.status(400).json({ message: "Invalid startAfter ID" });
-        }
+        .orderBy("createdAt", "desc");
+
+      const initialSnapshot = await query.get();
+
+      // Calculate the starting index
+      const startIndex = (parsedPage - 1) * parsedLimit;
+
+      if (initialSnapshot.size < startIndex) {
+        throw new Error("Page number out of bounds");
       }
 
-      const querySnapshot = await query.get();
+      // Retrieve the document to start after for the current page
+      let queryWithLimit = query.limit(parsedLimit);
+      if (parsedPage > 1) {
+        const lastVisible = initialSnapshot.docs[startIndex - 1];
+        queryWithLimit = queryWithLimit.startAfter(lastVisible);
+      }
+
+      // Fetch the documents for the current page
+      const querySnapshot = await queryWithLimit.get();
+      const opportunitiesData = [];
+
       await Promise.all(
         querySnapshot.docs.map(async (doc) => {
           const opportunitiesDetails = { id: doc.id, ...doc.data() };
@@ -110,11 +119,22 @@ class OpportunitiesController {
         }),
       );
 
+      // Calculate total items and total pages
+      const totalItems = (
+        await db
+          .collection("opportunities")
+          .where("status", "!=", "archived")
+          .get()
+      ).size;
+      const totalPages = Math.ceil(totalItems / parsedLimit);
+
       if (opportunitiesData.length > 0) {
         util.statusCode = 200;
         util.message = {
           opportunities: opportunitiesData,
-          nextStartAfterId: opportunitiesData[opportunitiesData.length - 1].id,
+          currentPage: parsedPage,
+          totalPages,
+          totalItems,
         };
         return util.send(res);
       } else {

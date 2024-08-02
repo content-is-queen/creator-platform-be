@@ -16,6 +16,9 @@ router.get(
   ApplicationsController.getAllApplicationsById,
 );
 
+// GET applications by user ID
+router.get("/user/:userId", ApplicationsController.getApplicationsByUserId);
+
 // GET application by ID
 router.get("/:applicationId", ApplicationsController.getApplicationById);
 

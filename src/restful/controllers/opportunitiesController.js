@@ -153,29 +153,15 @@ class OpportunitiesController {
   static async getAllOpportunitiesByUserId(req, res) {
     const db = admin.firestore();
     const { userId } = req.params;
-    const { limit = 10, startAfter: startAfterId = null } = req.query;
     if (!userId) {
       return res.status(400).json({ message: "User ID is required" });
     }
 
     try {
       const opportunitiesData = [];
-      let query = db
+      const query = db
         .collection("opportunities")
-        .where("userId", "==", userId)
-        .limit(parseInt(limit));
-
-      if (startAfterId) {
-        const startAfterDoc = await db
-          .collection("opportunities")
-          .doc(startAfterId)
-          .get();
-        if (startAfterDoc.exists) {
-          query = query.startAfter(startAfterDoc);
-        } else {
-          return res.status(400).json({ message: "Invalid startAfter ID" });
-        }
-      }
+        .where("userId", "==", userId);
 
       const querySnapshot = await query.get();
       const promises = querySnapshot.docs.map(async (doc) => {
@@ -185,8 +171,8 @@ class OpportunitiesController {
             const profileData = await doc.data().profilePhotoRef.get();
             opportunitiesDetails.profilePhoto = profileData.data().profilePhoto;
           }
-          const { profilePhotoRef, ...restFromFiterd } = opportunitiesDetails;
-          opportunitiesData.push(restFromFiterd);
+          const { profilePhotoRef, ...restFromFiltered } = opportunitiesDetails;
+          opportunitiesData.push(restFromFiltered);
         }
       });
 

@@ -181,7 +181,6 @@ class OpportunitiesController {
       if (opportunitiesData.length > 0) {
         return res.status(200).json({
           opportunities: opportunitiesData,
-          nextStartAfterId: opportunitiesData[opportunitiesData.length - 1].id,
         });
       } else {
         return res.status(404).json({ message: "No opportunities found" });
